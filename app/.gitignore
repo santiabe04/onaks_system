@@ -1,0 +1,25 @@
+# dependencias
+node_modules/
+
+# next.js
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# tests
+coverage/
+
+# prisma (cliente generado)
+src/generated/
+
+# env: se versionan solo los .env.example
+.env
+.env.*
+!.env.example
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*

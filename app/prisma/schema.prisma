@@ -1,0 +1,242 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- ENUMS ---
+
+enum UserType {
+  ADMIN
+  CLIENT
+}
+
+enum TaxCondition {
+  REGISTERED_TAXPAYER
+  SINGLE_TAX_REGIME
+  EXEMPT
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  CARD
+}
+
+enum SaleState {
+  PENDING
+  PREPARING
+  READY_TO_SHIP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELED
+  FINISHED
+}
+
+enum SalePaymentState {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  REFUNDED
+}
+
+// --- TABLES ---
+
+model MeasurementUnit {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  products    Product[]
+
+  @@map("measurement_units")
+}
+
+model Product {
+  id                String          @id @default(cuid(2))
+  name              String          @unique
+  description       String?
+  taxRate           Decimal         @map("tax_rate") @db.Decimal(5, 4)
+  price             Decimal         @db.Decimal(12, 2)
+  measurementUnitId Int             @map("measurement_unit_id")
+  weight            Decimal         @db.Decimal(10, 3)
+  volume            Decimal?        @db.Decimal(10, 3)
+  stock             Decimal         @db.Decimal(12, 4)
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt         DateTime?       @map("deleted_at") @db.Timestamptz(3)
+  measurementUnit   MeasurementUnit @relation(fields: [measurementUnitId], references: [id], onDelete: Restrict)
+  saleItems         SaleItem[]
+
+  @@index([measurementUnitId], map: "idx_products_measurement_unit_id")
+  @@index([deletedAt], map: "idx_products_deleted_at")
+  @@map("products")
+}
+
+model Customer {
+  id           String       @id @default(cuid(2))
+  tradeName    String       @map("trade_name")
+  legalName    String       @map("legal_name")
+  cuit         String       @unique @db.VarChar(11)
+  taxCondition TaxCondition @map("tax_condition")
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt    DateTime?    @map("deleted_at") @db.Timestamptz(3)
+  persons      Person[]
+
+  @@map("customers")
+}
+
+model Person {
+  id         String          @id @default(cuid(2))
+  customerId String?         @map("customer_id")
+  name       String
+  surname    String
+  mail       String          @unique
+  phone      String
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt  DateTime?       @map("deleted_at") @db.Timestamptz(3)
+  customer   Customer?       @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  addresses  PersonAddress[]
+  user       User?
+
+  @@index([customerId], map: "idx_persons_customer_id")
+  @@index([deletedAt], map: "idx_persons_deleted_at")
+  @@map("persons")
+}
+
+model State {
+  id     Int    @id @default(autoincrement())
+  name   String @unique
+  cities City[]
+
+  @@map("states")
+}
+
+model City {
+  id        Int             @id @default(autoincrement())
+  name      String
+  stateId   Int             @map("state_id")
+  state     State           @relation(fields: [stateId], references: [id], onDelete: Restrict)
+  addresses PersonAddress[]
+
+  @@unique([name, stateId])
+  @@index([stateId], map: "idx_cities_state_id")
+  @@map("cities")
+}
+
+model PersonAddress {
+  id          String    @id @default(cuid(2))
+  personId    String    @map("person_id")
+  name        String
+  description String?
+  address     String
+  cityId      Int       @map("city_id")
+  zipCode     String?   @map("zip_code")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(3)
+  person      Person    @relation(fields: [personId], references: [id], onDelete: Restrict)
+  city        City      @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  sales       Sale[]
+
+  @@index([personId], map: "idx_person_addresses_person_id")
+  @@index([cityId], map: "idx_person_addresses_city_id")
+  @@map("person_addresses")
+}
+
+model User {
+  id                 String    @id @default(cuid(2))
+  personId           String    @unique @map("person_id")
+  userType           UserType  @map("user_type")
+  passwordHash       String    @map("password_hash")
+  passwordMustChange Boolean   @default(true) @map("password_must_change")
+  isActive           Boolean   @default(true) @map("is_active")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt          DateTime? @map("deleted_at") @db.Timestamptz(3)
+  person             Person    @relation(fields: [personId], references: [id], onDelete: Restrict)
+  sales              Sale[]
+
+  @@index([userType], map: "idx_users_user_type")
+  @@index([deletedAt], map: "idx_users_deleted_at")
+  @@map("users")
+}
+
+model Discount {
+  id           String         @id @default(cuid(2))
+  name         String         @unique
+  description  String?
+  percentage   Decimal?       @db.Decimal(5, 4)
+  value        Decimal?       @db.Decimal(12, 2)
+  dateFrom     DateTime?      @map("date_from") @db.Timestamptz(3)
+  dateTo       DateTime?      @map("date_to") @db.Timestamptz(3)
+  maxUses      Int?           @map("max_uses")
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  usedDiscounts UsedDiscount[]
+
+  @@index([dateFrom, dateTo], map: "idx_discounts_date_from_date_to")
+  @@map("discounts")
+}
+
+model SaleItem {
+  saleId      String   @map("sale_id")
+  productId   String   @map("product_id")
+  quantity    Decimal  @db.Decimal(12, 4)
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(12, 2)
+  unitWeight  Decimal  @map("unit_weight") @db.Decimal(10, 3)
+  unitVolume  Decimal? @map("unit_volume") @db.Decimal(10, 3)
+  unitTaxRate Decimal  @map("unit_tax_rate") @db.Decimal(5, 4)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@id([saleId, productId])
+  @@map("sale_items")
+}
+
+model Sale {
+  id            String           @id @default(cuid(2))
+  userId        String           @map("user_id")
+  addressId     String           @map("address_id")
+  subTotal      Decimal          @map("sub_total") @db.Decimal(12, 2)
+  tax           Decimal          @db.Decimal(12, 2)
+  discount      Decimal          @db.Decimal(12, 2)
+  total         Decimal          @db.Decimal(12, 2)
+  paymentMethod PaymentMethod    @map("payment_method")
+  state         SaleState        @default(PENDING)
+  paymentState  SalePaymentState @default(PENDING) @map("payment_state")
+  paidAt        DateTime?        @map("paid_at") @db.Timestamptz(3)
+  createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user          User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  address       PersonAddress    @relation(fields: [addressId], references: [id], onDelete: Restrict)
+  items         SaleItem[]
+  usedDiscounts UsedDiscount[]
+
+  @@index([userId], map: "idx_sales_user_id")
+  @@index([addressId], map: "idx_sales_address_id")
+  @@index([state], map: "idx_sales_state")
+  @@index([createdAt], map: "idx_sales_created_at")
+  @@map("sales")
+}
+
+model UsedDiscount {
+  discountId String   @map("discount_id")
+  saleId     String   @map("sale_id")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  discount   Discount @relation(fields: [discountId], references: [id], onDelete: Restrict)
+  sale       Sale     @relation(fields: [saleId], references: [id], onDelete: Restrict)
+
+  @@id([discountId, saleId])
+  @@index([saleId], map: "idx_used_discounts_sale_id")
+  @@map("used_discounts")
+}
