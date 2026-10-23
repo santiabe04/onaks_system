@@ -2,7 +2,7 @@
 
 Enum UserType {
   ADMIN
-  PET
+  CLIENT
 }
 
 Enum SaleState {
