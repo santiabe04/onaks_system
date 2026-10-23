@@ -1,0 +1,163 @@
+// --- ENUMS ---
+
+Enum UserType {
+  ADMIN
+  PET
+}
+
+Enum SaleState {
+  CREATED
+  PAID
+  CANCELED
+  PREPARING
+  READY_TO_SHIP
+  DELIVERED
+  FINISHED
+}
+
+// --- TABLES ---
+
+Table measurement_units {
+  id integer [pk, increment]
+  name varchar [unique, not null]
+  description text
+  created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+}
+
+Table products {
+  id varchar [pk] // CUID2
+  name varchar [unique, not null]
+  description text
+  price decimal(12, 2) [not null]
+  measurement_unit_id integer [not null]
+  weight decimal(10, 3) [not null]
+  volume decimal(10, 3)
+  stock decimal(12, 4) [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  deleted_at timestamp
+
+  indexes {
+    measurement_unit_id [name: 'idx_products_measurement_unit_id']
+    deleted_at [name: 'idx_products_deleted_at']
+  }
+}
+
+Table persons {
+  id varchar [pk] // CUID2
+  name varchar [not null]
+  surname varchar [not null]
+  mail varchar [unique, not null]
+  phone varchar [not null]
+  address varchar [not null, note: "Custom composite type: Address (address, city, state, zip_code)"]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  deleted_at timestamp
+
+  indexes {
+    deleted_at [name: 'idx_persons_deleted_at']
+  }
+}
+
+Table users {
+  id varchar [pk] // CUID2
+  person_id varchar [not null]
+  user_type UserType [not null]
+  password_hash varchar [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  deleted_at timestamp
+
+  indexes {
+    person_id [name: 'idx_users_person_id]
+    user_type [name: 'idx_users_user_type']
+    deleted_at [name: 'idx_users_deleted_at']
+  }
+}
+
+Table discounts {
+  id varchar [pk] // CUID2
+  name varchar [unique, not null]
+  description text
+  percentage decimal(3, 2)
+  value decimal(12, 2)
+  date_from timestamp
+  date_to timestamp
+  max_uses integer
+  created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+
+  indexes {
+    (date_from, date_to) [name: 'idx_discounts_date_from_date_to']
+  }
+
+  note: '''
+    Checks:
+    - discount_percentage_or_value_chk: (percentage IS NOT NULL AND value IS NULL) OR (percentage IS NULL AND value IS NOT NULL)
+    - discount_limit_mechanism_chk: (date_from IS NOT NULL OR date_to IS NOT NULL) OR (max_uses IS NOT NULL)
+  '''
+}
+
+Table sale_items {
+  sale_id varchar [not null]
+  product_id varchar [not null]
+  quantity decimal(12, 4) [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+
+  indexes {
+    (sale_id, product_id) [pk]
+  }
+}
+
+Table sales {
+  id varchar [pk] // CUID2
+  user_id varchar [not null]
+  address varchar
+  city varchar
+  province varchar
+  zip_code varchar
+  sub_total decimal(12, 2) [not null]
+  tax decimal(12, 2) [not null]
+  discount decimal(12, 2) [not null]
+  total decimal(12, 2) [not null]
+  state SaleState [default: 'CREATED', not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+
+  indexes {
+    user_id [name: 'idx_sales_user_id']
+    state [name: 'idx_sales_state']
+    created_at [name: 'idx_sales_created_at']
+  }
+}
+
+Table used_discounts {
+  user_id varchar [not null]
+  discount_id varchar [not null]
+  sale_id varchar [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+
+  indexes {
+    (user_id, discount_id, sale_id) [pk]
+    discount_id [name: 'idx_used_discounts_discount_id']
+    sale_id [name: 'idx_used_discounts_sale_id']
+  }
+}
+
+// --- RELATIONSHIPS (FOREIGN KEYS) ---
+
+Ref: products.measurement_unit_id > measurement_units.id [delete: restrict]
+
+Ref: users.person_id > persons.id [delete: restrict]
+
+Ref: sale_items.product_id > products.id [delete: restrict]
+Ref: sale_items.sale_id > sales.id
+
+Ref: sales.user_id > users.id [delete: restrict]
+
+Ref: used_discounts.user_id > users.id [delete: restrict]
+Ref: used_discounts.discount_id > discounts.id [delete: restrict]
+Ref: used_discounts.sale_id > sales.id [delete: restrict]
