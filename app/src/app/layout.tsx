@@ -5,8 +5,8 @@ import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Distribuidora",
-  description: "Pedidos mayoristas",
+  title: "Onaks System",
+  description: "Onaks System",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
