@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.0.0-alpha...v1.1.0-alpha) (2026-10-23)
+
+
+### Features
+
+* basic measurement units crud ([#12](https://github.com/santiabe04/onaks_system/issues/12)) ([707f758](https://github.com/santiabe04/onaks_system/commit/707f758d8047373bb1225a720250129aea10ff59))
+
 ## 1.0.0-alpha (2026-10-23)
 
 
