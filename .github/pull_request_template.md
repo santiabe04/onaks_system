@@ -7,6 +7,3 @@
 - [ ] feat: nueva funcionalidad (genera versión MINOR)
 - [ ] fix: corrección de bug (genera versión PATCH)
 - [ ] docs / test / ci / build / chore (no genera versión)
-
-## Evidencia de pruebas (N/A si no aplica)
-<!-- Evidencias de pruebas unitarias, lint, etc. -->

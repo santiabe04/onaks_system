@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 // Placeholder: se reemplaza por el login / catálogo en los issues de ALPHA.
 export default function Home() {
   return (
@@ -5,6 +7,12 @@ export default function Home() {
       <div className="text-center">
         <h1 className="text-2xl font-semibold">Onaks System</h1>
         <p className="mt-2 text-sm opacity-70">Proyecto inicializado.</p>
+        <Link
+          href="/admin/measurement-units"
+          className="mt-4 inline-block text-sm underline"
+        >
+          Unidades de medida
+        </Link>
       </div>
     </main>
   );
