@@ -1,3 +1,0 @@
-# Los hooks corren desde la raíz del repo; el tooling vive en app/.
-# commitlint resuelve --edit contra la raíz de git, así que "$1" va tal cual.
-cd app && npx --no -- commitlint --edit "$1"

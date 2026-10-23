@@ -1,7 +1,0 @@
-.next
-node_modules
-src/generated
-prisma/migrations
-package-lock.json
-CHANGELOG.md
-.release-please-manifest.json

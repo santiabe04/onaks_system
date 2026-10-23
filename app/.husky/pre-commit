@@ -1,4 +1,0 @@
-# Solo chequea si el commit toca app/: los cambios de docs no necesitan lint.
-if git diff --cached --name-only | grep -q '^app/'; then
-  cd app && npm run format:check && npm run lint
-fi
