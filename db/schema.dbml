@@ -5,14 +5,33 @@ Enum UserType {
   CLIENT
 }
 
+Enum TaxCondition {
+  REGISTERED_TAXPAYER
+  SINGLE_TAX_REGIME
+  EXEMPT
+}
+
+Enum PaymentMethod {
+  CASH
+  TRANSFER
+  CARD
+}
+
 Enum SaleState {
-  CREATED
-  PAID
-  CANCELED
+  PENDING
   PREPARING
   READY_TO_SHIP
+  OUT_FOR_DELIVERY
   DELIVERED
+  CANCELED
   FINISHED
+}
+
+Enum SalePaymentState {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  REFUNDED
 }
 
 // --- TABLES ---
@@ -29,6 +48,7 @@ Table products {
   id varchar [pk] // CUID2
   name varchar [unique, not null]
   description text
+  tax_rate decimal(5,4) [not null]
   price decimal(12, 2) [not null]
   measurement_unit_id integer [not null]
   weight decimal(10, 3) [not null]
@@ -44,27 +64,77 @@ Table products {
   }
 }
 
+Table customers {
+  id varchar [pk] // CUID2
+  trade_name varchar [not null]
+  legal_name varchar [not null]
+  cuit varchar(11) [unique, not null]
+  tax_condition TaxCondition [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  deleted_at timestamp
+  
+  note: 'Check: cuit ~ ''^[0-9]{11}$'''
+}
+
 Table persons {
   id varchar [pk] // CUID2
+  customer_id varchar
   name varchar [not null]
   surname varchar [not null]
   mail varchar [unique, not null]
   phone varchar [not null]
-  address varchar [not null, note: "Custom composite type: Address (address, city, state, zip_code)"]
   created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
   updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
   deleted_at timestamp
 
   indexes {
+    customer_id [name: 'idx_persons_customer_id']
     deleted_at [name: 'idx_persons_deleted_at']
+  }
+}
+
+Table states {
+  id integer [pk, increment]
+  name varchar [not null]
+}
+
+Table cities {
+  id integer [pk, increment]
+  name varchar [not null]
+  state_id integer [not null]
+
+  (name, state_id) [unique]
+  indexes {
+    state_id [name: 'idx_cities_state_id']
+  }
+}
+
+Table person_addresses {
+  id varchar [pk] // CUID2
+  person_id varchar [not null]
+  name varchar [not null]
+  description text
+  address varchar [not null]
+  city_id integer [not null]
+  zip_code varchar
+  created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
+  deleted_at timestamp
+
+  indexes {
+    person_id [name: 'idx_person_addresses_person_id']
+    city_id [name: 'idx_person_addresses_city_id']
   }
 }
 
 Table users {
   id varchar [pk] // CUID2
-  person_id varchar [not null]
+  person_id varchar [not null, unique]
   user_type UserType [not null]
   password_hash varchar [not null]
+  password_must_change boolean [default: true, not null]
+  is_active boolean [default: true, not null]
   created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
   updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
   deleted_at timestamp
@@ -80,11 +150,12 @@ Table discounts {
   id varchar [pk] // CUID2
   name varchar [unique, not null]
   description text
-  percentage decimal(3, 2)
+  percentage decimal(5,4)
   value decimal(12, 2)
   date_from timestamp
   date_to timestamp
   max_uses integer
+  condition varchar [not null]
   created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
   updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
 
@@ -95,6 +166,7 @@ Table discounts {
   note: '''
     Checks:
     - discount_percentage_or_value_chk: (percentage IS NOT NULL AND value IS NULL) OR (percentage IS NULL AND value IS NOT NULL)
+    - discount_percentage_over_zero_under_one_chk: (percentage > 0 AND percentage <= 1)
     - discount_limit_mechanism_chk: (date_from IS NOT NULL OR date_to IS NOT NULL) OR (max_uses IS NOT NULL)
   '''
 }
@@ -103,6 +175,10 @@ Table sale_items {
   sale_id varchar [not null]
   product_id varchar [not null]
   quantity decimal(12, 4) [not null]
+  unit_price decimal(12, 2)
+  unit_weight decimal(10, 3)
+  unit_volume decimal(10, 3)
+  unit_tax_rate decimal(5,4)
   created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
   updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
 
@@ -114,34 +190,34 @@ Table sale_items {
 Table sales {
   id varchar [pk] // CUID2
   user_id varchar [not null]
-  address varchar
-  city varchar
-  province varchar
-  zip_code varchar
+  address_id varchar [not null]
   sub_total decimal(12, 2) [not null]
   tax decimal(12, 2) [not null]
   discount decimal(12, 2) [not null]
   total decimal(12, 2) [not null]
-  state SaleState [default: 'CREATED', not null]
+  payment_method PaymentMethod [not null]
+  state SaleState [default: 'PENDING', not null]
+  payment_state SalePaymentState [default: 'PENDING', not null]
+  paid_at timestamp
   created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
   updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
 
   indexes {
     user_id [name: 'idx_sales_user_id']
+    address_id [name: 'idx_sales_address_id']
     state [name: 'idx_sales_state']
     created_at [name: 'idx_sales_created_at']
   }
 }
 
 Table used_discounts {
-  user_id varchar [not null]
   discount_id varchar [not null]
   sale_id varchar [not null]
   created_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
   updated_at timestamp [default: `CURRENT_TIMESTAMP`, not null]
 
   indexes {
-    (user_id, discount_id, sale_id) [pk]
+    (discount_id, sale_id) [pk]
     discount_id [name: 'idx_used_discounts_discount_id']
     sale_id [name: 'idx_used_discounts_sale_id']
   }
@@ -151,13 +227,20 @@ Table used_discounts {
 
 Ref: products.measurement_unit_id > measurement_units.id [delete: restrict]
 
+Ref: persons.customer_id > customers.id [delete: restrict]
+
+Ref: cities.state_id > states.id [delete: restrict]
+
+Ref: person_addresses.person_id > persons.id [delete: restrict]
+Ref: person_addresses.city_id > cities.id [delete: restrict]
+
 Ref: users.person_id > persons.id [delete: restrict]
 
 Ref: sale_items.product_id > products.id [delete: restrict]
-Ref: sale_items.sale_id > sales.id
+Ref: sale_items.sale_id > sales.id [delete: restrict]
 
 Ref: sales.user_id > users.id [delete: restrict]
+Ref: sales.address_id > person_addresses.id [delete: restrict]
 
-Ref: used_discounts.user_id > users.id [delete: restrict]
 Ref: used_discounts.discount_id > discounts.id [delete: restrict]
 Ref: used_discounts.sale_id > sales.id [delete: restrict]
