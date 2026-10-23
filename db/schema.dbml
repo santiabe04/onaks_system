@@ -70,7 +70,7 @@ Table users {
   deleted_at timestamp
 
   indexes {
-    person_id [name: 'idx_users_person_id]
+    person_id [name: 'idx_users_person_id']
     user_type [name: 'idx_users_user_type']
     deleted_at [name: 'idx_users_deleted_at']
   }
