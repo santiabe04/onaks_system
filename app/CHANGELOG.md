@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.1.0-alpha...v1.2.0-alpha) (2026-10-27)
+
+
+### Features
+
+* **auth:** add session, login and logout ([#14](https://github.com/santiabe04/onaks_system/issues/14)) ([f8c645d](https://github.com/santiabe04/onaks_system/commit/f8c645dbaa781b106229646ccaaacd40695d3414))
+
 ## [1.1.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.0.0-alpha...v1.1.0-alpha) (2026-10-23)
 
 
