@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { appLocale, hasLocale, interpolate, localizePath } from "./config";
+import {
+  appLocale,
+  hasLocale,
+  interpolate,
+  localizePath,
+  stripLocalePrefix,
+} from "./config";
 
 describe("appLocale", () => {
   afterEach(() => {
@@ -41,6 +47,19 @@ describe("localizePath", () => {
 
   it("la raíz queda sin barra final", () => {
     expect(localizePath("/", "es")).toBe("/es");
+  });
+});
+
+describe("stripLocalePrefix", () => {
+  it("saca el idioma de la ruta interna", () => {
+    expect(stripLocalePrefix("/es/admin/audit")).toBe("/admin/audit");
+    expect(stripLocalePrefix("/en")).toBe("/");
+  });
+
+  it("deja igual las rutas públicas", () => {
+    expect(stripLocalePrefix("/admin")).toBe("/admin");
+    expect(stripLocalePrefix("/")).toBe("/");
+    expect(stripLocalePrefix("/estado")).toBe("/estado");
   });
 });
 

@@ -39,6 +39,14 @@ comentarios y textos de UI en español.
 - Login: bloqueo de 15 min con 5 fallos por mail+IP o 20 por mail (`login_attempts`, `lib/login-throttle`).
 - `users.session_version` va en el token; incrementarlo revoca las sesiones (se hace al cambiar la contraseña).
 
+## UI del admin
+
+- Menú lateral agrupado por secciones, definido en `app/src/app/[lang]/admin/layout.tsx` (un grupo aparece
+  cuando tiene alguna pantalla). En mobile es un panel con ☰. Inicio del admin: dashboard en `/admin`.
+- Tema claro/oscuro/sistema (default sistema) guardado por navegador en localStorage; `data-theme` en
+  `<html>` lo aplica un script inline antes del paint. Para estilos por tema usar la variante `dark:`.
+- `usePathname()` devuelve la ruta interna (`/es/...`) al prerenderizar: normalizar con `stripLocalePrefix`.
+
 ## Idiomas (i18n)
 
 - Español (default) e inglés, uno por instalación con la env `APP_LOCALE` (`es` | `en`), leída en runtime.

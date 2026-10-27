@@ -12,8 +12,7 @@ const ADMIN_PATH = "/admin";
 
 /** Adónde va cada rol al entrar o cuando intenta abrir algo que no le corresponde. */
 export function homePathFor(role: UserType): string {
-  // Hasta que exista el panel de admin, su inicio es el ABM de unidades.
-  return role === "ADMIN" ? "/admin/measurement-units" : "/";
+  return role === "ADMIN" ? ADMIN_PATH : "/";
 }
 
 function isUnder(pathname: string, base: string): boolean {

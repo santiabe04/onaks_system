@@ -8,6 +8,7 @@ describe("can", () => {
     expect(can("ADMIN", "customers:manage")).toBe(true);
     expect(can("ADMIN", "sales:read-all")).toBe(true);
     expect(can("ADMIN", "audit:read")).toBe(true);
+    expect(can("ADMIN", "dashboard:read")).toBe(true);
   });
 
   it("el cliente solo ve el catálogo y compra", () => {
