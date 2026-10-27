@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getActionDictionary } from "@/i18n/dictionary";
 import { requireUserForPasswordChange } from "@/lib/auth";
 import {
   validateChangePasswordForm,
@@ -17,7 +18,8 @@ export async function changePassword(
 ): Promise<ChangePasswordFormState> {
   const user = await requireUserForPasswordChange();
 
-  const result = validateChangePasswordForm(formData);
+  const t = getActionDictionary().changePassword.errors;
+  const result = validateChangePasswordForm(formData, t);
   if (!result.ok) return result.state;
   const { currentPassword, newPassword } = result.data;
 
@@ -32,9 +34,7 @@ export async function changePassword(
     stored?.passwordHash ?? null,
   );
   if (!valid) {
-    return {
-      errors: { currentPassword: ["La contraseña actual no es correcta"] },
-    };
+    return { errors: { currentPassword: [t.currentWrong] } };
   }
 
   await db.user.update({

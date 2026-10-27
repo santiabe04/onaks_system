@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getActionDictionary } from "@/i18n/dictionary";
 import { db } from "@/lib/db";
 import { validateLoginForm, type LoginFormState } from "@/lib/login";
 import { verifyPassword } from "@/lib/password";
@@ -12,15 +13,12 @@ import {
 } from "@/lib/routes";
 import { createSession, deleteSession } from "@/lib/session";
 
-// Mismo mensaje para mail inexistente, contraseña mala o usuario dado de baja:
-// no hay que revelar cuál de las tres fue.
-const INVALID_CREDENTIALS = "Mail o contraseña incorrectos";
-
 export async function login(
   _prev: LoginFormState,
   formData: FormData,
 ): Promise<LoginFormState> {
-  const result = validateLoginForm(formData);
+  const t = getActionDictionary().login.errors;
+  const result = validateLoginForm(formData, t);
   if (!result.ok) return result.state;
   const { mail, password } = result.data;
 
@@ -49,8 +47,10 @@ export async function login(
       : null;
 
   // Se compara aunque no haya user, para que el tiempo de respuesta sea igual.
+  // Mismo mensaje para mail inexistente, contraseña mala o usuario dado de baja:
+  // no hay que revelar cuál de las tres fue.
   const valid = await verifyPassword(password, user?.passwordHash ?? null);
-  if (!user || !valid) return { error: INVALID_CREDENTIALS, mail };
+  if (!user || !valid) return { error: t.invalidCredentials, mail };
 
   await createSession({
     userId: user.id,

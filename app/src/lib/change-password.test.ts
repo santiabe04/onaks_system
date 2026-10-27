@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { es } from "@/i18n/dictionaries/es";
 import { validateChangePasswordForm } from "./change-password";
+
+const t = es.changePassword.errors;
 
 function form(fields: Record<string, string>) {
   const data = new FormData();
@@ -15,7 +18,7 @@ const valid = {
 
 describe("validateChangePasswordForm", () => {
   it("acepta una contraseña nueva válida", () => {
-    expect(validateChangePasswordForm(form(valid))).toEqual({
+    expect(validateChangePasswordForm(form(valid), t)).toEqual({
       ok: true,
       data: valid,
     });
@@ -24,6 +27,7 @@ describe("validateChangePasswordForm", () => {
   it("exige un largo mínimo", () => {
     const result = validateChangePasswordForm(
       form({ ...valid, newPassword: "corta", confirmPassword: "corta" }),
+      t,
     );
     expect(result).toMatchObject({
       ok: false,
@@ -36,6 +40,7 @@ describe("validateChangePasswordForm", () => {
     const long = "ñ".repeat(37);
     const result = validateChangePasswordForm(
       form({ ...valid, newPassword: long, confirmPassword: long }),
+      t,
     );
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -45,6 +50,7 @@ describe("validateChangePasswordForm", () => {
   it("exige que la confirmación coincida", () => {
     const result = validateChangePasswordForm(
       form({ ...valid, confirmPassword: "otra-distinta" }),
+      t,
     );
     expect(result).toMatchObject({
       ok: false,
@@ -59,6 +65,7 @@ describe("validateChangePasswordForm", () => {
         newPassword: "misma-clave",
         confirmPassword: "misma-clave",
       }),
+      t,
     );
     expect(result).toMatchObject({
       ok: false,
@@ -71,6 +78,7 @@ describe("validateChangePasswordForm", () => {
   it("exige la contraseña actual", () => {
     const result = validateChangePasswordForm(
       form({ ...valid, currentPassword: "" }),
+      t,
     );
     expect(result.ok).toBe(false);
     if (result.ok) return;

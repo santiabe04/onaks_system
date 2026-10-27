@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@/generated/prisma/client";
+import { getActionDictionary } from "@/i18n/dictionary";
 import { requirePermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
@@ -17,7 +18,12 @@ import {
 const PERMISSION = "measurement-units:manage";
 
 const LIST_PATH = "/admin/measurement-units";
-const DUPLICATE_NAME = "Ya existe una unidad con ese nombre";
+// revalidatePath usa la ruta interna: así cubre los dos idiomas.
+const LIST_ROUTE = "/[lang]/admin/measurement-units";
+
+function messages() {
+  return getActionDictionary().measurementUnits.errors;
+}
 
 function prismaErrorCode(error: unknown): string | undefined {
   return error instanceof Prisma.PrismaClientKnownRequestError
@@ -30,20 +36,21 @@ export async function createMeasurementUnit(
   formData: FormData,
 ): Promise<MeasurementUnitFormState> {
   await requirePermission(PERMISSION);
+  const t = messages();
 
-  const result = validateMeasurementUnitForm(formData);
+  const result = validateMeasurementUnitForm(formData, t);
   if (!result.ok) return result.state;
 
   try {
     await db.measurementUnit.create({ data: result.data });
   } catch (error) {
     if (prismaErrorCode(error) === "P2002") {
-      return { errors: { name: [DUPLICATE_NAME] }, values: result.values };
+      return { errors: { name: [t.duplicate] }, values: result.values };
     }
     throw error;
   }
 
-  revalidatePath(LIST_PATH);
+  revalidatePath(LIST_ROUTE, "page");
   redirect(LIST_PATH);
 }
 
@@ -53,12 +60,13 @@ export async function updateMeasurementUnit(
   formData: FormData,
 ): Promise<MeasurementUnitFormState> {
   await requirePermission(PERMISSION);
+  const t = messages();
 
   // El id viene bindeado desde el cliente: no confiar en el tipo.
   const unitId = parseUnitId(id);
-  if (unitId === null) return { errors: { form: ["Unidad inválida"] } };
+  if (unitId === null) return { errors: { form: [t.invalid] } };
 
-  const result = validateMeasurementUnitForm(formData);
+  const result = validateMeasurementUnitForm(formData, t);
   if (!result.ok) return result.state;
 
   try {
@@ -69,18 +77,15 @@ export async function updateMeasurementUnit(
   } catch (error) {
     const code = prismaErrorCode(error);
     if (code === "P2002") {
-      return { errors: { name: [DUPLICATE_NAME] }, values: result.values };
+      return { errors: { name: [t.duplicate] }, values: result.values };
     }
     if (code === "P2025") {
-      return {
-        errors: { form: ["La unidad ya no existe"] },
-        values: result.values,
-      };
+      return { errors: { form: [t.notFound] }, values: result.values };
     }
     throw error;
   }
 
-  revalidatePath(LIST_PATH);
+  revalidatePath(LIST_ROUTE, "page");
   redirect(LIST_PATH);
 }
 
@@ -89,32 +94,27 @@ export async function deleteMeasurementUnit(
   id: number,
 ): Promise<DeleteMeasurementUnitState> {
   await requirePermission(PERMISSION);
+  const t = messages();
 
   const unitId = parseUnitId(id);
-  if (unitId === null) return { error: "Unidad inválida" };
+  if (unitId === null) return { error: t.invalid };
 
   // La FK es RESTRICT e incluye productos con soft delete: contamos todos.
   const products = await db.product.count({
     where: { measurementUnitId: unitId },
   });
-  if (products > 0) {
-    return {
-      error: `No se puede borrar: la usa${products === 1 ? "" : "n"} ${products} producto${products === 1 ? "" : "s"}`,
-    };
-  }
+  if (products > 0) return { error: t.inUse };
 
   try {
     await db.measurementUnit.delete({ where: { id: unitId } });
   } catch (error) {
     const code = prismaErrorCode(error);
     // P2003: se cargó un producto entre el count y el delete.
-    if (code === "P2003") {
-      return { error: "No se puede borrar: hay productos que la usan" };
-    }
+    if (code === "P2003") return { error: t.inUse };
     // P2025: ya estaba borrada; alcanza con refrescar la lista.
     if (code !== "P2025") throw error;
   }
 
-  revalidatePath(LIST_PATH);
+  revalidatePath(LIST_ROUTE, "page");
   return {};
 }

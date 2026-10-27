@@ -1,0 +1,82 @@
+import type { Dictionary } from "./es";
+
+export const en: Dictionary = {
+  common: {
+    loading: "Loading…",
+    saving: "Saving…",
+    save: "Save",
+    create: "Create",
+    cancel: "Cancel",
+    edit: "Edit",
+    delete: "Delete",
+    deleting: "Deleting…",
+    actions: "Actions",
+  },
+  userMenu: {
+    changePassword: "Change password",
+    logout: "Log out",
+  },
+  notFound: {
+    title: "Page not found",
+    description: "This address does not exist or is no longer available.",
+    back: "Back to home",
+  },
+  home: {
+    subtitle: "Project initialized.",
+    measurementUnits: "Units of measure",
+  },
+  login: {
+    title: "Log in",
+    intro: "Log in with the email and password provided by the distributor.",
+    mail: "Email",
+    password: "Password",
+    submit: "Log in",
+    pending: "Logging in…",
+    errors: {
+      invalidMail: "Enter a valid email",
+      passwordRequired: "Enter your password",
+      passwordTooLong: "Password is too long",
+      invalidCredentials: "Incorrect email or password",
+    },
+  },
+  changePassword: {
+    title: "Change password",
+    intro:
+      "If this is your first login or your password was reset, choose a new one to continue.",
+    current: "Current password",
+    new: "New password (at least {min} characters)",
+    confirm: "Repeat the new password",
+    submit: "Change password",
+    errors: {
+      currentRequired: "Enter your current password",
+      tooShort: "At least {min} characters",
+      tooLong: "Too long (maximum {max} bytes)",
+      mismatch: "Passwords do not match",
+      sameAsCurrent: "Must be different from the current one",
+      currentWrong: "Current password is incorrect",
+    },
+  },
+  measurementUnits: {
+    title: "Units of measure",
+    newButton: "New unit",
+    newTitle: "New unit of measure",
+    editTitle: "Edit unit of measure",
+    empty: "No units yet.",
+    name: "Name",
+    description: "Description",
+    descriptionOptional: "Description (optional)",
+    namePlaceholder: "kg",
+    descriptionPlaceholder: "Kilogram",
+    products: "Products",
+    hasProducts: "Has related products",
+    confirmDelete: 'Delete the unit "{name}"?',
+    errors: {
+      nameRequired: "Name is required",
+      tooLong: "Maximum {max} characters",
+      duplicate: "A unit with that name already exists",
+      invalid: "Invalid unit",
+      notFound: "The unit no longer exists",
+      inUse: "Cannot delete: there are products using it",
+    },
+  },
+};

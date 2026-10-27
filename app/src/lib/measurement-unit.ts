@@ -1,20 +1,34 @@
 import { z } from "zod";
+import { interpolate } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/dictionaries/es";
 
-export const measurementUnitSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "El nombre es obligatorio")
-    .max(20, "Máximo 20 caracteres"),
-  // Vacío se guarda como null, no como "".
-  description: z
-    .string()
-    .trim()
-    .max(100, "Máximo 100 caracteres")
-    .transform((value) => value || null),
-});
+export const NAME_MAX_LENGTH = 20;
+export const DESCRIPTION_MAX_LENGTH = 100;
 
-export type MeasurementUnitInput = z.infer<typeof measurementUnitSchema>;
+type Messages = Dictionary["measurementUnits"]["errors"];
+
+export function measurementUnitSchema(t: Messages) {
+  return z.object({
+    name: z
+      .string()
+      .trim()
+      .min(1, t.nameRequired)
+      .max(NAME_MAX_LENGTH, interpolate(t.tooLong, { max: NAME_MAX_LENGTH })),
+    // Vacío se guarda como null, no como "".
+    description: z
+      .string()
+      .trim()
+      .max(
+        DESCRIPTION_MAX_LENGTH,
+        interpolate(t.tooLong, { max: DESCRIPTION_MAX_LENGTH }),
+      )
+      .transform((value) => value || null),
+  });
+}
+
+export type MeasurementUnitInput = z.infer<
+  ReturnType<typeof measurementUnitSchema>
+>;
 
 /** Lo que el usuario tipeó, para volver a mostrarlo si hay errores. */
 export type MeasurementUnitValues = { name: string; description: string };
@@ -36,11 +50,12 @@ function readMeasurementUnitForm(formData: FormData): MeasurementUnitValues {
 
 export function validateMeasurementUnitForm(
   formData: FormData,
+  t: Messages,
 ):
   | { ok: true; data: MeasurementUnitInput; values: MeasurementUnitValues }
   | { ok: false; state: MeasurementUnitFormState } {
   const values = readMeasurementUnitForm(formData);
-  const parsed = measurementUnitSchema.safeParse(values);
+  const parsed = measurementUnitSchema(t).safeParse(values);
   if (parsed.success) return { ok: true, data: parsed.data, values };
   return {
     ok: false,

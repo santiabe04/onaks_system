@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { appLocale, localizePath } from "@/i18n/config";
 import { proxyRedirect } from "@/lib/routes";
 import { SESSION_COOKIE, verifySession } from "@/lib/session-token";
 
@@ -11,7 +12,13 @@ export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   const target = proxyRedirect(pathname, search, session);
-  if (!target) return NextResponse.next();
+  if (!target) {
+    // Las URLs públicas no llevan idioma: se reescriben a `app/[lang]` según
+    // la instalación. Una URL que ya trae prefijo (/es/login) termina en 404.
+    const url = request.nextUrl.clone();
+    url.pathname = localizePath(pathname, appLocale());
+    return NextResponse.rewrite(url);
+  }
 
   const response = NextResponse.redirect(new URL(target, request.url));
   // Cookie inválida o vencida: se borra para no verificarla en cada request.
