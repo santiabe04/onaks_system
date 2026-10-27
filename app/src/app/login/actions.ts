@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { validateLoginForm, type LoginFormState } from "@/lib/login";
 import { verifyPassword } from "@/lib/password";
-import { homePathFor, LOGIN_PATH } from "@/lib/routes";
+import { homePathFor, LOGIN_PATH, safeNextPath } from "@/lib/routes";
 import { createSession, deleteSession } from "@/lib/session";
 
 // Mismo mensaje para mail inexistente, contraseña mala o usuario dado de baja:
@@ -52,7 +52,9 @@ export async function login(
     role: user.userType,
     mustChangePassword: user.passwordMustChange,
   });
-  redirect(homePathFor(user.userType));
+  // `next` viene del form: se valida para no redirigir afuera del sitio. Si el
+  // rol no puede entrar ahí, el proxy lo rebota a su inicio.
+  redirect(safeNextPath(formData.get("next")) ?? homePathFor(user.userType));
 }
 
 export async function logout() {

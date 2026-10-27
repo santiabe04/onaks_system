@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@/generated/prisma/client";
+import { requirePermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
   parseUnitId,
@@ -11,7 +12,9 @@ import {
   type MeasurementUnitFormState,
 } from "@/lib/measurement-unit";
 
-// TODO: validar sesión de ADMIN en cada acción cuando exista el login.
+// Cada acción verifica el permiso antes que nada: se pueden invocar con un POST
+// directo, sin pasar por la página ni por el proxy.
+const PERMISSION = "measurement-units:manage";
 
 const LIST_PATH = "/admin/measurement-units";
 const DUPLICATE_NAME = "Ya existe una unidad con ese nombre";
@@ -26,6 +29,8 @@ export async function createMeasurementUnit(
   _prev: MeasurementUnitFormState,
   formData: FormData,
 ): Promise<MeasurementUnitFormState> {
+  await requirePermission(PERMISSION);
+
   const result = validateMeasurementUnitForm(formData);
   if (!result.ok) return result.state;
 
@@ -47,6 +52,8 @@ export async function updateMeasurementUnit(
   _prev: MeasurementUnitFormState,
   formData: FormData,
 ): Promise<MeasurementUnitFormState> {
+  await requirePermission(PERMISSION);
+
   // El id viene bindeado desde el cliente: no confiar en el tipo.
   const unitId = parseUnitId(id);
   if (unitId === null) return { errors: { form: ["Unidad inválida"] } };
@@ -81,6 +88,8 @@ export async function updateMeasurementUnit(
 export async function deleteMeasurementUnit(
   id: number,
 ): Promise<DeleteMeasurementUnitState> {
+  await requirePermission(PERMISSION);
+
   const unitId = parseUnitId(id);
   if (unitId === null) return { error: "Unidad inválida" };
 

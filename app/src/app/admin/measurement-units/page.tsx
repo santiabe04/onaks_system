@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { getUserWithPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { deleteMeasurementUnit } from "./actions";
 import { DeleteMeasurementUnitButton } from "./delete-button";
@@ -26,6 +27,8 @@ export default function MeasurementUnitsPage() {
 }
 
 async function MeasurementUnitsTable() {
+  await getUserWithPermission("measurement-units:manage");
+
   const units = await db.measurementUnit.findMany({
     orderBy: { name: "asc" },
     include: { _count: { select: { products: true } } },
