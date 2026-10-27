@@ -58,6 +58,7 @@ enum AuditAction {
 enum AuditEntity {
   MEASUREMENT_UNIT
   CATEGORY
+  WAREHOUSE
   PRODUCT
   CUSTOMER
   PERSON
@@ -103,6 +104,28 @@ model Category {
   @@unique([parentId, name])
   @@index([parentId], map: "idx_categories_parent_id")
   @@map("categories")
+}
+
+// Depósitos de mercadería. El stock por depósito llega en el PR 1.4. Inactivo:
+// no recibe movimientos nuevos, pero se conserva para el historial.
+model Warehouse {
+  id          String   @id @default(cuid(2))
+  name        String   @unique
+  address     String
+  cityId      Int      @map("city_id")
+  phone       String?
+  contactName String?  @map("contact_name")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById String?  @map("created_by")
+  updatedById String?  @map("updated_by")
+  city        City     @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  createdBy   User?    @relation("WarehouseCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?    @relation("WarehouseUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@index([cityId], map: "idx_warehouses_city_id")
+  @@map("warehouses")
 }
 
 model Product {
@@ -168,11 +191,12 @@ model State {
 }
 
 model City {
-  id        Int             @id @default(autoincrement())
-  name      String
-  stateId   Int             @map("state_id")
-  state     State           @relation(fields: [stateId], references: [id], onDelete: Restrict)
-  addresses PersonAddress[]
+  id         Int             @id @default(autoincrement())
+  name       String
+  stateId    Int             @map("state_id")
+  state      State           @relation(fields: [stateId], references: [id], onDelete: Restrict)
+  addresses  PersonAddress[]
+  warehouses Warehouse[]
 
   @@unique([name, stateId])
   @@index([stateId], map: "idx_cities_state_id")
@@ -218,6 +242,8 @@ model User {
   measurementUnitsUpdated MeasurementUnit[] @relation("MeasurementUnitUpdatedBy")
   categoriesCreated       Category[]        @relation("CategoryCreatedBy")
   categoriesUpdated       Category[]        @relation("CategoryUpdatedBy")
+  warehousesCreated       Warehouse[]       @relation("WarehouseCreatedBy")
+  warehousesUpdated       Warehouse[]       @relation("WarehouseUpdatedBy")
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")
