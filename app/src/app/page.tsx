@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { UserMenu } from "@/components/user-menu";
 
-// Placeholder: se reemplaza por el login / catálogo en los issues de ALPHA.
+// Placeholder: se reemplaza por el catálogo en los issues de ALPHA.
 export default function Home() {
   return (
     <main className="flex flex-1 items-center justify-center p-8">
@@ -13,6 +15,11 @@ export default function Home() {
         >
           Unidades de medida
         </Link>
+        <div className="mt-6 flex justify-center">
+          <Suspense fallback={null}>
+            <UserMenu />
+          </Suspense>
+        </div>
       </div>
     </main>
   );
