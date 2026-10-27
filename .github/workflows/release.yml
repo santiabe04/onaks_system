@@ -93,5 +93,5 @@ jobs:
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
             gh api -X DELETE \
-              repos/${{ github.repository }}/git/refs/heads/release-please--branches--main--components--app \
+              repos/${{ github.repository }}/git/refs/heads/release-please--branches--main--components--onaks_system \
               || echo "Branch deleted"
