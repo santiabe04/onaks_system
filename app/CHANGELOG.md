@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.9.0-alpha...v1.10.0-alpha) (2026-10-27)
+
+
+### Features
+
+* **catalog:** add VAT rates catalog ([#35](https://github.com/santiabe04/onaks_system/issues/35)) ([dc67a90](https://github.com/santiabe04/onaks_system/commit/dc67a90f20260c638a9e72e00c518158fb26b30c))
+
 ## [1.9.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.8.0-alpha...v1.9.0-alpha) (2026-10-27)
 
 
