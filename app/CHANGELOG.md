@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.2.0-alpha...v1.3.0-alpha) (2026-10-27)
+
+
+### Features
+
+* **auth:** add permissions and route proxy ([#18](https://github.com/santiabe04/onaks_system/issues/18)) ([7961aa5](https://github.com/santiabe04/onaks_system/commit/7961aa5d82a4a7c44663d804f06aed1baa90cd56))
+
 ## [1.2.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.1.0-alpha...v1.2.0-alpha) (2026-10-27)
 
 
