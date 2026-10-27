@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono";
 import { INTL_LOCALE, LOCALES } from "@/i18n/config";
 import { getLocale } from "@/i18n/server";
 import { APP_NAME } from "@/lib/app";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -21,10 +22,15 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
   const locale = await getLocale();
 
   return (
+    // suppressHydrationWarning: el script del tema cambia `data-theme` antes de hidratar.
     <html
       lang={INTL_LOCALE[locale]}
       className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

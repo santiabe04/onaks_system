@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { ThemeSelector } from "@/components/theme-selector";
 import { UserMenu } from "@/components/user-menu";
 import { getT } from "@/i18n/server";
 import { APP_NAME } from "@/lib/app";
@@ -23,6 +24,9 @@ export default async function Home() {
           <Suspense fallback={null}>
             <UserMenu />
           </Suspense>
+        </div>
+        <div className="mt-4 flex justify-center">
+          <ThemeSelector labels={t.theme} />
         </div>
       </div>
     </main>

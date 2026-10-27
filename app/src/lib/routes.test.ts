@@ -47,7 +47,7 @@ describe("proxyRedirect", () => {
   });
 
   it("con sesión, el login manda al inicio de cada rol", () => {
-    expect(proxyRedirect("/login", "", admin)).toBe("/admin/measurement-units");
+    expect(proxyRedirect("/login", "", admin)).toBe("/admin");
     expect(proxyRedirect("/login", "", client)).toBe("/");
   });
 

@@ -34,6 +34,17 @@ export function localizePath(pathname: string, locale: Locale): string {
   return pathname === "/" ? `/${locale}` : `/${locale}${pathname}`;
 }
 
+/**
+ * Inversa de `localizePath`. Al prerenderizar, `usePathname()` devuelve la ruta
+ * interna (/es/admin) y en el navegador la pública (/admin): normalizando, las
+ * dos coinciden y no hay error de hidratación.
+ */
+export function stripLocalePrefix(pathname: string): string {
+  const match = /^\/([^/]+)(\/.*)?$/.exec(pathname);
+  if (!match || !hasLocale(match[1])) return pathname;
+  return match[2] ?? "/";
+}
+
 /** Reemplaza `{clave}` en un texto del diccionario: "Mínimo {min}" → "Mínimo 8". */
 export function interpolate(
   template: string,
