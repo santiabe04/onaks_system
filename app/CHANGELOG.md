@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.11.0-alpha...v1.12.0-alpha) (2026-10-27)
+
+
+### Features
+
+* **inventory:** add per-warehouse stock with movement ledger ([#39](https://github.com/santiabe04/onaks_system/issues/39)) ([c215173](https://github.com/santiabe04/onaks_system/commit/c215173279be70255819a77d1707fb494b553856))
+
 ## [1.11.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.10.0-alpha...v1.11.0-alpha) (2026-10-27)
 
 
