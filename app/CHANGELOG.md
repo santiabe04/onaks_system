@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.12.0-alpha...v1.13.0-alpha) (2026-10-27)
+
+
+### Features
+
+* **customers:** add states and cities management ([#41](https://github.com/santiabe04/onaks_system/issues/41)) ([3f493e4](https://github.com/santiabe04/onaks_system/commit/3f493e413f3981e7b99a0a74913fd384b9499850))
+
 ## [1.12.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.11.0-alpha...v1.12.0-alpha) (2026-10-27)
 
 
