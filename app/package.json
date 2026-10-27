@@ -1,6 +1,6 @@
 {
   "name": "onaks_system",
-  "version": "1.10.0-alpha",
+  "version": "1.11.0-alpha",
   "private": true,
   "scripts": {
     "dev": "next dev",

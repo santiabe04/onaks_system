@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.10.0-alpha...v1.11.0-alpha) (2026-10-27)
+
+
+### Features
+
+* **catalog:** add products with images, search and filters ([#37](https://github.com/santiabe04/onaks_system/issues/37)) ([9056309](https://github.com/santiabe04/onaks_system/commit/905630988dcc699c8e1bb69db4384eb6cafef856))
+
 ## [1.10.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.9.0-alpha...v1.10.0-alpha) (2026-10-27)
 
 
