@@ -23,3 +23,6 @@ src/generated/
 .DS_Store
 *.pem
 npm-debug.log*
+
+# imágenes subidas en desarrollo
+/uploads

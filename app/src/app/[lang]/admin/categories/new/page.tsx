@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { parentOptions, parseCategoryId } from "@/lib/category";
-import { db } from "@/lib/db";
+import { getCategoryTreeData } from "@/lib/category-queries";
 import { createCategory } from "../actions";
 import { CategoryForm } from "../category-form";
 
@@ -38,10 +38,8 @@ async function NewForm({
   await getUserWithPermission("categories:manage");
   const t = await getT();
 
-  const rows = await db.category.findMany({
-    select: { id: true, name: true, parentId: true },
-  });
-  const parents = parentOptions(rows, null);
+  const { rows, withProducts } = await getCategoryTreeData();
+  const parents = parentOptions(rows, null, withProducts);
 
   // "Agregar subcategoría" llega con ?parent=ID: se preselecciona si es válido.
   const requested = parseCategoryId((await searchParams).parent);

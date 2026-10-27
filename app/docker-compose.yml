@@ -44,9 +44,13 @@ services:
       TZ: America/Argentina/Buenos_Aires
     ports:
       - "${APP_PORT:-3000}:3000"
+    volumes:
+      # Imágenes de productos: hay que incluirlo en los backups junto con la DB.
+      - uploads:/app/uploads
     depends_on:
       migrate:
         condition: service_completed_successfully
 
 volumes:
   pgdata:
+  uploads:

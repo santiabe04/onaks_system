@@ -75,6 +75,13 @@ describe("parentOptions", () => {
     expect(parentOptions(rows, null).map((n) => n.id)).toEqual([4, 5, 1, 2]);
   });
 
+  it("saca las categorías que ya tienen productos", () => {
+    // Correas (5) tiene productos: no puede recibir subcategorías.
+    expect(parentOptions(rows, null, new Set([5])).map((n) => n.id)).toEqual([
+      4, 1, 2,
+    ]);
+  });
+
   it("al editar, saca a la categoría, sus descendientes y lo que la dejaría muy profunda", () => {
     expect(parentOptions(rows, 2).map((n) => n.id)).toEqual([4, 1]);
   });

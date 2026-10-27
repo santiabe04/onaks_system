@@ -20,6 +20,12 @@ describe("formatters", () => {
     expect(formatters("en").number(1234.5678)).toBe("1,234.568");
   });
 
+  it("precarga inputs sin separador de miles", () => {
+    expect(formatters("es").input("25000.5")).toBe("25000,5");
+    expect(formatters("es").input("0.125")).toBe("0,125");
+    expect(formatters("en").input({ toString: () => "1234.5" })).toBe("1234.5");
+  });
+
   it("formatea tasas guardadas como fracción", () => {
     expect(plain(formatters("es").percent("0.105"))).toBe("10,5%");
     expect(formatters("en").percent(0.21)).toBe("21%");

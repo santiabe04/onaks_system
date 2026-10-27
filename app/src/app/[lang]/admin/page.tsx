@@ -134,7 +134,7 @@ async function Summary() {
 
   const [units, products, customers, users] = await Promise.all([
     db.measurementUnit.count(),
-    db.product.count({ where: { deletedAt: null } }),
+    db.product.count({ where: { deletedAt: null, isActive: true } }),
     db.customer.count({ where: { deletedAt: null } }),
     db.user.count({ where: { deletedAt: null, isActive: true } }),
   ]);
