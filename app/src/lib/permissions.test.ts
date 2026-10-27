@@ -8,6 +8,7 @@ describe("can", () => {
     expect(can("ADMIN", "warehouses:manage")).toBe(true);
     expect(can("ADMIN", "tax-rates:manage")).toBe(true);
     expect(can("ADMIN", "locations:manage")).toBe(true);
+    expect(can("ADMIN", "suppliers:manage")).toBe(true);
     expect(can("ADMIN", "products:manage")).toBe(true);
     expect(can("ADMIN", "stock:manage")).toBe(true);
     expect(can("ADMIN", "customers:manage")).toBe(true);
