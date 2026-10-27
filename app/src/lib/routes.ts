@@ -7,6 +7,7 @@ export const LOGIN_PATH = "/login";
  * proxy vería un token válido y lo devolvería al inicio, en loop.
  */
 export const LOGOUT_PATH = "/logout";
+export const CHANGE_PASSWORD_PATH = "/change-password";
 const ADMIN_PATH = "/admin";
 
 /** Adónde va cada rol al entrar o cuando intenta abrir algo que no le corresponde. */
@@ -50,12 +51,15 @@ export function safeNextPath(raw: unknown): string | null {
 export function proxyRedirect(
   pathname: string,
   search: string,
-  session: { role: UserType } | null,
+  session: { role: UserType; mustChangePassword: boolean } | null,
 ): string | null {
   if (isUnder(pathname, LOGOUT_PATH)) return null;
 
   if (isUnder(pathname, LOGIN_PATH)) {
-    return session ? homePathFor(session.role) : null;
+    if (!session) return null;
+    return session.mustChangePassword
+      ? CHANGE_PASSWORD_PATH
+      : homePathFor(session.role);
   }
 
   if (!session) {
@@ -64,6 +68,11 @@ export function proxyRedirect(
       ? `${LOGIN_PATH}?next=${encodeURIComponent(next)}`
       : LOGIN_PATH;
   }
+
+  // Con la contraseña pendiente solo se puede cambiarla (o salir).
+  // Sin la marca, /change-password queda abierto para un cambio voluntario.
+  if (isUnder(pathname, CHANGE_PASSWORD_PATH)) return null;
+  if (session.mustChangePassword) return CHANGE_PASSWORD_PATH;
 
   if (isUnder(pathname, ADMIN_PATH) && session.role !== "ADMIN") {
     return homePathFor(session.role);

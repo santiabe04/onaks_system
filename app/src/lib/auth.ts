@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import type { UserType } from "@/generated/prisma/enums";
 import { db } from "./db";
 import { can, type Permission } from "./permissions";
-import { homePathFor, LOGOUT_PATH } from "./routes";
+import { CHANGE_PASSWORD_PATH, homePathFor, LOGOUT_PATH } from "./routes";
 import { getSession } from "./session";
 
 export type SessionUser = {
@@ -51,6 +51,9 @@ async function findSessionUser(): Promise<SessionUser | null> {
 function checkAccess(user: SessionUser | null, role?: UserType): SessionUser {
   // Sin user puede haber igual un token válido: /logout lo borra antes del login.
   if (!user) redirect(LOGOUT_PATH);
+  // La DB manda: el token puede no tener la marca (p. ej. si el admin la puso
+  // después del login). Con contraseña pendiente no se usa nada más de la app.
+  if (user.mustChangePassword) redirect(CHANGE_PASSWORD_PATH);
   if (role && user.role !== role) redirect(homePathFor(user.role));
   return user;
 }
@@ -67,6 +70,16 @@ export async function getCurrentUser(role?: UserType): Promise<SessionUser> {
 /** Para Server Actions y Route Handlers: siempre verifica contra la DB, sin caché. */
 export async function requireUser(role?: UserType): Promise<SessionUser> {
   return checkAccess(await findSessionUser(), role);
+}
+
+/**
+ * Solo para cambiar la contraseña: exige sesión pero no que el cambio ya esté
+ * hecho (si no, nadie con la marca podría cumplirlo).
+ */
+export async function requireUserForPasswordChange(): Promise<SessionUser> {
+  const user = await findSessionUser();
+  if (!user) redirect(LOGOUT_PATH);
+  return user;
 }
 
 function checkPermission(
