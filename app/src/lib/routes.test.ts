@@ -26,8 +26,9 @@ describe("safeNextPath", () => {
 });
 
 describe("proxyRedirect", () => {
-  const admin = { role: "ADMIN" as const };
-  const client = { role: "CLIENT" as const };
+  const admin = { role: "ADMIN" as const, mustChangePassword: false };
+  const client = { role: "CLIENT" as const, mustChangePassword: false };
+  const pending = { role: "ADMIN" as const, mustChangePassword: true };
 
   it("sin sesión manda al login recordando la ruta", () => {
     expect(proxyRedirect("/admin/measurement-units", "?a=1", null)).toBe(
@@ -62,5 +63,25 @@ describe("proxyRedirect", () => {
   it("deja pasar al admin y al cliente en sus rutas", () => {
     expect(proxyRedirect("/admin/measurement-units", "", admin)).toBeNull();
     expect(proxyRedirect("/", "", client)).toBeNull();
+  });
+
+  it("con la contraseña pendiente todo lleva a cambiarla", () => {
+    expect(proxyRedirect("/admin/measurement-units", "", pending)).toBe(
+      "/change-password",
+    );
+    expect(proxyRedirect("/", "", pending)).toBe("/change-password");
+    expect(proxyRedirect("/login", "", pending)).toBe("/change-password");
+  });
+
+  it("con la contraseña pendiente se puede cambiarla o salir", () => {
+    expect(proxyRedirect("/change-password", "", pending)).toBeNull();
+    expect(proxyRedirect("/logout", "", pending)).toBeNull();
+  });
+
+  it("sin la marca, /change-password queda para un cambio voluntario", () => {
+    expect(proxyRedirect("/change-password", "", client)).toBeNull();
+    expect(proxyRedirect("/change-password", "", null)).toBe(
+      "/login?next=%2Fchange-password",
+    );
   });
 });

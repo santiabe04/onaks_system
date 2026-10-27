@@ -1,4 +1,6 @@
+import Link from "next/link";
 import type { UserType } from "@/generated/prisma/enums";
+import { CHANGE_PASSWORD_PATH } from "@/lib/routes";
 import { logout } from "@/app/login/actions";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -13,6 +15,9 @@ export async function UserMenu({ role }: { role?: UserType }) {
   return (
     <div className="flex items-center gap-4 text-sm">
       <span className="opacity-70">{user.name}</span>
+      <Link href={CHANGE_PASSWORD_PATH} className="hover:underline">
+        Cambiar contraseña
+      </Link>
       {/* Logout por POST: un link GET lo dispararía cualquier prefetch. */}
       <form action={logout}>
         <button type="submit" className="hover:underline">
