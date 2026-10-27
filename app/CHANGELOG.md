@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.5.0-alpha...v1.6.0-alpha) (2026-10-27)
+
+
+### Features
+
+* **security:** add audit log, login lockout and session revocation ([#27](https://github.com/santiabe04/onaks_system/issues/27)) ([07c9848](https://github.com/santiabe04/onaks_system/commit/07c984861a288745a6507a8cc5ac017f5130ee8a))
+
 ## [1.5.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.4.0-alpha...v1.5.0-alpha) (2026-10-27)
 
 
