@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.13.0-alpha...v1.14.0-alpha) (2026-10-27)
+
+
+### Features
+
+* **purchasing:** add suppliers and the products they supply ([#43](https://github.com/santiabe04/onaks_system/issues/43)) ([c8c7c8f](https://github.com/santiabe04/onaks_system/commit/c8c7c8faef4f6824a7cc467b6cabf45e7f5e5ccd))
+
 ## [1.13.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.12.0-alpha...v1.13.0-alpha) (2026-10-27)
 
 
