@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { buttonClass } from "@/components/ui/button";
 import { getUserWithPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { deleteMeasurementUnit } from "./actions";
@@ -10,10 +11,7 @@ export default function MeasurementUnitsPage() {
     <main className="mx-auto w-full max-w-3xl p-8">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Unidades de medida</h1>
-        <Link
-          href="/admin/measurement-units/new"
-          className="bg-foreground text-background rounded px-4 py-2 text-sm font-medium"
-        >
+        <Link href="/admin/measurement-units/new" className={buttonClass()}>
           Nueva unidad
         </Link>
       </div>

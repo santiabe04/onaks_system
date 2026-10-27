@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense, useActionState } from "react";
+import { Field, FormError, Input, SubmitButton } from "@/components/ui/form";
 import type { LoginFormState } from "@/lib/login";
 import { login } from "./actions";
 
@@ -23,42 +24,30 @@ export function LoginForm() {
         <NextInput />
       </Suspense>
 
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Mail</span>
-        <input
+      <Field label="Mail">
+        <Input
           name="mail"
           type="email"
           autoComplete="username"
           defaultValue={state.mail}
           required
-          className="rounded border border-current/20 bg-transparent px-3 py-2"
         />
-      </label>
+      </Field>
 
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Contraseña</span>
-        <input
+      <Field label="Contraseña">
+        <Input
           name="password"
           type="password"
           autoComplete="current-password"
           required
-          className="rounded border border-current/20 bg-transparent px-3 py-2"
         />
-      </label>
+      </Field>
 
-      {state.error && (
-        <p role="alert" className="text-sm text-red-600">
-          {state.error}
-        </p>
-      )}
+      <FormError messages={state.error} />
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="bg-foreground text-background rounded px-4 py-2 text-sm font-medium disabled:opacity-50"
-      >
-        {pending ? "Ingresando…" : "Ingresar"}
-      </button>
+      <SubmitButton pending={pending} pendingLabel="Ingresando…">
+        Ingresar
+      </SubmitButton>
     </form>
   );
 }
