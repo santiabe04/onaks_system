@@ -57,6 +57,7 @@ enum AuditAction {
 
 enum AuditEntity {
   MEASUREMENT_UNIT
+  CATEGORY
   PRODUCT
   CUSTOMER
   PERSON
@@ -82,6 +83,26 @@ model MeasurementUnit {
   products    Product[]
 
   @@map("measurement_units")
+}
+
+// Árbol de hasta 3 niveles (el límite lo controla la app). El nombre es único
+// entre hermanas, también en la raíz (índice NULLS NOT DISTINCT en la migración).
+model Category {
+  id          Int        @id @default(autoincrement())
+  name        String
+  parentId    Int?       @map("parent_id")
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById String?    @map("created_by")
+  updatedById String?    @map("updated_by")
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children    Category[] @relation("CategoryTree")
+  createdBy   User?      @relation("CategoryCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?      @relation("CategoryUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@unique([parentId, name])
+  @@index([parentId], map: "idx_categories_parent_id")
+  @@map("categories")
 }
 
 model Product {
@@ -195,6 +216,8 @@ model User {
   auditLogs               AuditLog[]
   measurementUnitsCreated MeasurementUnit[] @relation("MeasurementUnitCreatedBy")
   measurementUnitsUpdated MeasurementUnit[] @relation("MeasurementUnitUpdatedBy")
+  categoriesCreated       Category[]        @relation("CategoryCreatedBy")
+  categoriesUpdated       Category[]        @relation("CategoryUpdatedBy")
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")

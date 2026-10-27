@@ -17,6 +17,7 @@ export default async function AdminLayout({
     {
       title: t.adminNav.catalog,
       items: [
+        { href: "/admin/categories", label: t.adminNav.categories },
         {
           href: "/admin/measurement-units",
           label: t.adminNav.measurementUnits,

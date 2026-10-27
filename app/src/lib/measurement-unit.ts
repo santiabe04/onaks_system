@@ -38,8 +38,6 @@ export type MeasurementUnitFormState = {
   values?: MeasurementUnitValues;
 };
 
-export type DeleteMeasurementUnitState = { error?: string };
-
 function readMeasurementUnitForm(formData: FormData): MeasurementUnitValues {
   const get = (key: string) => {
     const value = formData.get(key);

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { DeleteState } from "@/components/ui/delete-button";
 import { Prisma } from "@/generated/prisma/client";
 import { getActionDictionary } from "@/i18n/dictionary";
 import { audit } from "@/lib/audit";
@@ -10,7 +11,6 @@ import { db } from "@/lib/db";
 import {
   parseUnitId,
   validateMeasurementUnitForm,
-  type DeleteMeasurementUnitState,
   type MeasurementUnitFormState,
 } from "@/lib/measurement-unit";
 
@@ -117,9 +117,7 @@ export async function updateMeasurementUnit(
 }
 
 // Sin parámetro de estado previo: useActionState lo pasa pero no se usa.
-export async function deleteMeasurementUnit(
-  id: number,
-): Promise<DeleteMeasurementUnitState> {
+export async function deleteMeasurementUnit(id: number): Promise<DeleteState> {
   const user = await requirePermission(PERMISSION);
   const t = messages();
 

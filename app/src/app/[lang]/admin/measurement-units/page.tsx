@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { buttonClass } from "@/components/ui/button";
+import { DeleteButton } from "@/components/ui/delete-button";
 import { interpolate } from "@/i18n/config";
 import { getLocale, getT } from "@/i18n/server";
 import { formatters } from "@/i18n/format";
 import { getUserWithPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { deleteMeasurementUnit } from "./actions";
-import { DeleteMeasurementUnitButton } from "./delete-button";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -83,7 +83,7 @@ async function MeasurementUnitsTable() {
                 >
                   {t.common.edit}
                 </Link>
-                <DeleteMeasurementUnitButton
+                <DeleteButton
                   action={deleteMeasurementUnit.bind(null, unit.id)}
                   confirmMessage={interpolate(
                     t.measurementUnits.confirmDelete,
