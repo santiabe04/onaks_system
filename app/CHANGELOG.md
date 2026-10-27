@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.7.0-alpha...v1.8.0-alpha) (2026-10-27)
+
+
+### Features
+
+* **catalog:** add hierarchical product categories ([#31](https://github.com/santiabe04/onaks_system/issues/31)) ([0846692](https://github.com/santiabe04/onaks_system/commit/084669246bbebeb593a281ac53c05541a4dc0594))
+
 ## [1.7.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.6.0-alpha...v1.7.0-alpha) (2026-10-27)
 
 
