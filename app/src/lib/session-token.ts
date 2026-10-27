@@ -12,6 +12,8 @@ export type SessionPayload = {
   userId: string;
   role: UserType;
   mustChangePassword: boolean;
+  /** Copia de `users.session_version`: si no coincide, la sesión fue revocada. */
+  sessionVersion: number;
 };
 
 const ALGORITHM = "HS256";
@@ -20,6 +22,8 @@ const claimsSchema = z.object({
   sub: z.string().min(1),
   role: z.enum(UserType),
   mustChangePassword: z.boolean(),
+  // Tokens emitidos antes de que existiera: valen como versión 0.
+  sv: z.number().int().nonnegative().default(0),
 });
 
 // Se lee al usarla, no al importar: `next build` corre sin SESSION_SECRET.
@@ -37,6 +41,7 @@ export async function signSession(payload: SessionPayload): Promise<string> {
   return new SignJWT({
     role: payload.role,
     mustChangePassword: payload.mustChangePassword,
+    sv: payload.sessionVersion,
   })
     .setProtectedHeader({ alg: ALGORITHM })
     .setSubject(payload.userId)
@@ -62,6 +67,7 @@ export async function verifySession(
       userId: claims.data.sub,
       role: claims.data.role,
       mustChangePassword: claims.data.mustChangePassword,
+      sessionVersion: claims.data.sv,
     };
   } catch {
     return null;

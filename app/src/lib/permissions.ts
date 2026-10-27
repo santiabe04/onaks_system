@@ -9,6 +9,7 @@ export const PERMISSIONS = [
   "sales:read-all",
   "sales:create",
   "catalog:read",
+  "audit:read",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -21,6 +22,7 @@ export const ROLE_PERMISSIONS: Record<UserType, readonly Permission[]> = {
     "customers:manage",
     "sales:read-all",
     "catalog:read",
+    "audit:read",
   ],
   CLIENT: ["catalog:read", "sales:create"],
 };
