@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getActionDictionary } from "@/i18n/dictionary";
+import { audit } from "@/lib/audit";
 import { requireUserForPasswordChange } from "@/lib/auth";
 import {
   validateChangePasswordForm,
@@ -33,23 +34,37 @@ export async function changePassword(
     currentPassword,
     stored?.passwordHash ?? null,
   );
-  if (!valid) {
-    return { errors: { currentPassword: [t.currentWrong] } };
-  }
+  if (!valid) return { errors: { currentPassword: [t.currentWrong] } };
 
-  await db.user.update({
-    where: { id: user.id },
-    data: {
-      passwordHash: await hashPassword(newPassword),
-      passwordMustChange: false,
-    },
+  const passwordHash = await hashPassword(newPassword);
+  // Subir la versión invalida las sesiones abiertas en otros dispositivos.
+  const { sessionVersion } = await db.$transaction(async (tx) => {
+    const updated = await tx.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        passwordMustChange: false,
+        sessionVersion: { increment: 1 },
+      },
+      select: { sessionVersion: true },
+    });
+    await audit(tx, {
+      action: "PASSWORD_CHANGE",
+      actorUserId: user.id,
+      entityType: "USER",
+      entityId: user.id,
+      metadata: { forced: user.mustChangePassword },
+    });
+    return updated;
   });
 
-  // Token nuevo sin la marca: si no, el proxy lo seguiría mandando acá.
+  // Token nuevo con la versión nueva y sin la marca: si no, esta sesión
+  // también quedaría revocada y el proxy lo seguiría mandando acá.
   await createSession({
     userId: user.id,
     role: user.role,
     mustChangePassword: false,
+    sessionVersion,
   });
   redirect(homePathFor(user.role));
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@/generated/prisma/client";
 import { getActionDictionary } from "@/i18n/dictionary";
+import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
@@ -16,6 +17,7 @@ import {
 // Cada acción verifica el permiso antes que nada: se pueden invocar con un POST
 // directo, sin pasar por la página ni por el proxy.
 const PERMISSION = "measurement-units:manage";
+const ENTITY = "MEASUREMENT_UNIT";
 
 const LIST_PATH = "/admin/measurement-units";
 // revalidatePath usa la ruta interna: así cubre los dos idiomas.
@@ -35,14 +37,25 @@ export async function createMeasurementUnit(
   _prev: MeasurementUnitFormState,
   formData: FormData,
 ): Promise<MeasurementUnitFormState> {
-  await requirePermission(PERMISSION);
+  const user = await requirePermission(PERMISSION);
   const t = messages();
 
   const result = validateMeasurementUnitForm(formData, t);
   if (!result.ok) return result.state;
 
   try {
-    await db.measurementUnit.create({ data: result.data });
+    await db.$transaction(async (tx) => {
+      const unit = await tx.measurementUnit.create({
+        data: { ...result.data, createdById: user.id, updatedById: user.id },
+      });
+      await audit(tx, {
+        action: "CREATE",
+        actorUserId: user.id,
+        entityType: ENTITY,
+        entityId: unit.id,
+        after: unit,
+      });
+    });
   } catch (error) {
     if (prismaErrorCode(error) === "P2002") {
       return { errors: { name: [t.duplicate] }, values: result.values };
@@ -59,7 +72,7 @@ export async function updateMeasurementUnit(
   _prev: MeasurementUnitFormState,
   formData: FormData,
 ): Promise<MeasurementUnitFormState> {
-  await requirePermission(PERMISSION);
+  const user = await requirePermission(PERMISSION);
   const t = messages();
 
   // El id viene bindeado desde el cliente: no confiar en el tipo.
@@ -70,9 +83,23 @@ export async function updateMeasurementUnit(
   if (!result.ok) return result.state;
 
   try {
-    await db.measurementUnit.update({
-      where: { id: unitId },
-      data: result.data,
+    await db.$transaction(async (tx) => {
+      // findUniqueOrThrow tira P2025 si ya no existe, igual que el update.
+      const before = await tx.measurementUnit.findUniqueOrThrow({
+        where: { id: unitId },
+      });
+      const after = await tx.measurementUnit.update({
+        where: { id: unitId },
+        data: { ...result.data, updatedById: user.id },
+      });
+      await audit(tx, {
+        action: "UPDATE",
+        actorUserId: user.id,
+        entityType: ENTITY,
+        entityId: unitId,
+        before,
+        after,
+      });
     });
   } catch (error) {
     const code = prismaErrorCode(error);
@@ -93,7 +120,7 @@ export async function updateMeasurementUnit(
 export async function deleteMeasurementUnit(
   id: number,
 ): Promise<DeleteMeasurementUnitState> {
-  await requirePermission(PERMISSION);
+  const user = await requirePermission(PERMISSION);
   const t = messages();
 
   const unitId = parseUnitId(id);
@@ -106,7 +133,16 @@ export async function deleteMeasurementUnit(
   if (products > 0) return { error: t.inUse };
 
   try {
-    await db.measurementUnit.delete({ where: { id: unitId } });
+    await db.$transaction(async (tx) => {
+      const before = await tx.measurementUnit.delete({ where: { id: unitId } });
+      await audit(tx, {
+        action: "DELETE",
+        actorUserId: user.id,
+        entityType: ENTITY,
+        entityId: unitId,
+        before,
+      });
+    });
   } catch (error) {
     const code = prismaErrorCode(error);
     // P2003: se cargó un producto entre el count y el delete.

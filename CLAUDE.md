@@ -29,6 +29,16 @@ comentarios y textos de UI en español.
 - `app/src/lib/db.ts`: cliente Prisma singleton. No valida `DATABASE_URL` al importar a propósito,
   para que `next build` y `prisma generate` anden sin base de datos.
 
+## Auditoría y seguridad
+
+- Todo cambio de datos se registra con `audit(tx, {...})` (`lib/audit`) **dentro de la misma transacción**
+  (`db.$transaction`), con `before`/`after`. Guarda IP y user agent solo. `passwordHash` nunca se guarda.
+- `audit_logs` es solo de inserción (trigger en la DB) y se guarda indefinidamente. Visor en `/admin/audit` (permiso `audit:read`).
+- Las tablas de negocio llevan `created_by`/`updated_by` (por ahora `measurement_units`; se agregan al tocar cada tabla).
+- `ACCESS_DENIED` se registra solo en Server Actions (`requirePermission`/`requireUser`), no al renderizar.
+- Login: bloqueo de 15 min con 5 fallos por mail+IP o 20 por mail (`login_attempts`, `lib/login-throttle`).
+- `users.session_version` va en el token; incrementarlo revoca las sesiones (se hace al cambiar la contraseña).
+
 ## Idiomas (i18n)
 
 - Español (default) e inglés, uno por instalación con la env `APP_LOCALE` (`es` | `en`), leída en runtime.

@@ -11,6 +11,7 @@ const payload: SessionPayload = {
   userId: "user_1",
   role: "ADMIN",
   mustChangePassword: true,
+  sessionVersion: 3,
 };
 
 beforeEach(() => vi.stubEnv("SESSION_SECRET", SECRET));
@@ -23,6 +24,18 @@ describe("signSession / verifySession", () => {
   it("devuelve el mismo contenido que se firmó", async () => {
     const token = await signSession(payload);
     expect(await verifySession(token)).toEqual(payload);
+  });
+
+  it("toma versión 0 en tokens emitidos antes de session_version", async () => {
+    const token = await new SignJWT({
+      role: "ADMIN",
+      mustChangePassword: false,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setSubject("user_1")
+      .setExpirationTime("1h")
+      .sign(new TextEncoder().encode(SECRET));
+    expect(await verifySession(token)).toMatchObject({ sessionVersion: 0 });
   });
 
   it("rechaza un token ausente o basura", async () => {
