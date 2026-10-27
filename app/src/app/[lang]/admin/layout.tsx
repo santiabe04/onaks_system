@@ -18,6 +18,7 @@ export default async function AdminLayout({
       title: t.adminNav.catalog,
       items: [
         { href: "/admin/products", label: t.adminNav.products },
+        { href: "/admin/stock", label: t.adminNav.stock },
         { href: "/admin/categories", label: t.adminNav.categories },
         { href: "/admin/warehouses", label: t.adminNav.warehouses },
         { href: "/admin/tax-rates", label: t.adminNav.taxRates },
