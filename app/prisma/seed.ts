@@ -51,7 +51,7 @@ async function main() {
     });
   }
 
-  const mail = process.env.SEED_ADMIN_MAIL;
+  const mail = process.env.SEED_ADMIN_MAIL?.trim().toLowerCase();
   const password = process.env.SEED_ADMIN_PASSWORD;
   if (!mail || !password) {
     throw new Error("Faltan SEED_ADMIN_MAIL o SEED_ADMIN_PASSWORD en el .env");
