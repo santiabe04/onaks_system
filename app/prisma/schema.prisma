@@ -72,6 +72,8 @@ enum AuditEntity {
   WAREHOUSE
   TAX_RATE
   STOCK_MOVEMENT
+  STATE
+  CITY
   PRODUCT
   CUSTOMER
   PERSON
@@ -276,21 +278,35 @@ model Person {
   @@map("persons")
 }
 
+// Provincias y localidades/partidos: las localidades son las zonas de reparto
+// (los pedidos se agrupan por localidad). Tienen ABM propio.
 model State {
-  id     Int    @id @default(autoincrement())
-  name   String @unique
-  cities City[]
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById String?  @map("created_by")
+  updatedById String?  @map("updated_by")
+  createdBy   User?    @relation("StateCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?    @relation("StateUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  cities      City[]
 
   @@map("states")
 }
 
 model City {
-  id         Int             @id @default(autoincrement())
-  name       String
-  stateId    Int             @map("state_id")
-  state      State           @relation(fields: [stateId], references: [id], onDelete: Restrict)
-  addresses  PersonAddress[]
-  warehouses Warehouse[]
+  id          Int             @id @default(autoincrement())
+  name        String
+  stateId     Int             @map("state_id")
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById String?         @map("created_by")
+  updatedById String?         @map("updated_by")
+  state       State           @relation(fields: [stateId], references: [id], onDelete: Restrict)
+  createdBy   User?           @relation("CityCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?           @relation("CityUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  addresses   PersonAddress[]
+  warehouses  Warehouse[]
 
   @@unique([name, stateId])
   @@index([stateId], map: "idx_cities_state_id")
@@ -343,6 +359,10 @@ model User {
   productsCreated         Product[]         @relation("ProductCreatedBy")
   productsUpdated         Product[]         @relation("ProductUpdatedBy")
   stockMovements          StockMovement[]
+  statesCreated           State[]           @relation("StateCreatedBy")
+  statesUpdated           State[]           @relation("StateUpdatedBy")
+  citiesCreated           City[]            @relation("CityCreatedBy")
+  citiesUpdated           City[]            @relation("CityUpdatedBy")
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")
