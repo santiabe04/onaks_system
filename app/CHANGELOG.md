@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.3.0-alpha...v1.4.0-alpha) (2026-10-27)
+
+
+### Features
+
+* **auth:** force password change on first login ([#21](https://github.com/santiabe04/onaks_system/issues/21)) ([9b09b29](https://github.com/santiabe04/onaks_system/commit/9b09b29c81527a20770ac5782310a82f4088bba1))
+
 ## [1.3.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.2.0-alpha...v1.3.0-alpha) (2026-10-27)
 
 
