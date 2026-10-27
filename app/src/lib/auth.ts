@@ -2,7 +2,8 @@ import "server-only";
 import { redirect } from "next/navigation";
 import type { UserType } from "@/generated/prisma/enums";
 import { db } from "./db";
-import { homePathFor, LOGIN_PATH } from "./routes";
+import { can, type Permission } from "./permissions";
+import { homePathFor, LOGOUT_PATH } from "./routes";
 import { getSession } from "./session";
 
 export type SessionUser = {
@@ -48,7 +49,8 @@ async function findSessionUser(): Promise<SessionUser | null> {
 }
 
 function checkAccess(user: SessionUser | null, role?: UserType): SessionUser {
-  if (!user) redirect(LOGIN_PATH);
+  // Sin user puede haber igual un token válido: /logout lo borra antes del login.
+  if (!user) redirect(LOGOUT_PATH);
   if (role && user.role !== role) redirect(homePathFor(user.role));
   return user;
 }
@@ -65,4 +67,31 @@ export async function getCurrentUser(role?: UserType): Promise<SessionUser> {
 /** Para Server Actions y Route Handlers: siempre verifica contra la DB, sin caché. */
 export async function requireUser(role?: UserType): Promise<SessionUser> {
   return checkAccess(await findSessionUser(), role);
+}
+
+function checkPermission(
+  user: SessionUser | null,
+  permission: Permission,
+): SessionUser {
+  const checked = checkAccess(user);
+  if (!can(checked.role, permission)) redirect(homePathFor(checked.role));
+  return checked;
+}
+
+/** Como `getCurrentUser`, pero exige un permiso. Para páginas. */
+export async function getUserWithPermission(
+  permission: Permission,
+): Promise<SessionUser> {
+  "use cache: private";
+  return checkPermission(await findSessionUser(), permission);
+}
+
+/**
+ * Primera línea de toda Server Action que toca datos protegidos. Una action se
+ * puede invocar con un POST directo: el proxy y la UI no alcanzan.
+ */
+export async function requirePermission(
+  permission: Permission,
+): Promise<SessionUser> {
+  return checkPermission(await findSessionUser(), permission);
 }

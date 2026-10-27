@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { getUserWithPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { parseUnitId } from "@/lib/measurement-unit";
 import { updateMeasurementUnit } from "../../actions";
@@ -20,6 +21,8 @@ export default function EditMeasurementUnitPage({
 }
 
 async function EditForm({ params }: { params: Promise<{ id: string }> }) {
+  await getUserWithPermission("measurement-units:manage");
+
   const unitId = parseUnitId((await params).id);
   if (unitId === null) notFound();
 
