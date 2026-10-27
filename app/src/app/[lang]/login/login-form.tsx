@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense, useActionState } from "react";
 import { Field, FormError, Input, SubmitButton } from "@/components/ui/form";
+import type { Dictionary } from "@/i18n/dictionaries/es";
 import type { LoginFormState } from "@/lib/login";
 import { login } from "./actions";
 
@@ -12,7 +13,7 @@ function NextInput() {
   return next ? <input type="hidden" name="next" value={next} /> : null;
 }
 
-export function LoginForm() {
+export function LoginForm({ t }: { t: Dictionary["login"] }) {
   const [state, formAction, pending] = useActionState<LoginFormState, FormData>(
     login,
     {},
@@ -24,7 +25,7 @@ export function LoginForm() {
         <NextInput />
       </Suspense>
 
-      <Field label="Mail">
+      <Field label={t.mail}>
         <Input
           name="mail"
           type="email"
@@ -34,7 +35,7 @@ export function LoginForm() {
         />
       </Field>
 
-      <Field label="Contraseña">
+      <Field label={t.password}>
         <Input
           name="password"
           type="password"
@@ -45,8 +46,8 @@ export function LoginForm() {
 
       <FormError messages={state.error} />
 
-      <SubmitButton pending={pending} pendingLabel="Ingresando…">
-        Ingresar
+      <SubmitButton pending={pending} pendingLabel={t.pending}>
+        {t.submit}
       </SubmitButton>
     </form>
   );

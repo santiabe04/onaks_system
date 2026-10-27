@@ -1,33 +1,44 @@
 import { z } from "zod";
+import { interpolate } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/dictionaries/es";
 
 export const MIN_PASSWORD_LENGTH = 8;
 // bcrypt solo usa los primeros 72 bytes: más largo daría una falsa sensación de seguridad.
 const MAX_PASSWORD_BYTES = 72;
 
-const newPassword = z
-  .string()
-  .min(MIN_PASSWORD_LENGTH, `Mínimo ${MIN_PASSWORD_LENGTH} caracteres`)
-  .refine(
-    (value) => new TextEncoder().encode(value).length <= MAX_PASSWORD_BYTES,
-    "Demasiado larga (máximo 72 bytes)",
-  );
+type Messages = Dictionary["changePassword"]["errors"];
 
-export const changePasswordSchema = z
-  .object({
-    currentPassword: z.string().min(1, "Ingresá tu contraseña actual"),
-    newPassword,
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    path: ["confirmPassword"],
-    message: "Las contraseñas no coinciden",
-  })
-  .refine((data) => data.newPassword !== data.currentPassword, {
-    path: ["newPassword"],
-    message: "Tiene que ser distinta de la actual",
-  });
+export function changePasswordSchema(t: Messages) {
+  const newPassword = z
+    .string()
+    .min(
+      MIN_PASSWORD_LENGTH,
+      interpolate(t.tooShort, { min: MIN_PASSWORD_LENGTH }),
+    )
+    .refine(
+      (value) => new TextEncoder().encode(value).length <= MAX_PASSWORD_BYTES,
+      interpolate(t.tooLong, { max: MAX_PASSWORD_BYTES }),
+    );
 
-export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+  return z
+    .object({
+      currentPassword: z.string().min(1, t.currentRequired),
+      newPassword,
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      path: ["confirmPassword"],
+      message: t.mismatch,
+    })
+    .refine((data) => data.newPassword !== data.currentPassword, {
+      path: ["newPassword"],
+      message: t.sameAsCurrent,
+    });
+}
+
+export type ChangePasswordInput = z.infer<
+  ReturnType<typeof changePasswordSchema>
+>;
 
 type Field = keyof ChangePasswordInput;
 
@@ -38,6 +49,7 @@ export type ChangePasswordFormState = {
 
 export function validateChangePasswordForm(
   formData: FormData,
+  t: Messages,
 ):
   | { ok: true; data: ChangePasswordInput }
   | { ok: false; state: ChangePasswordFormState } {
@@ -45,7 +57,7 @@ export function validateChangePasswordForm(
     const value = formData.get(key);
     return typeof value === "string" ? value : "";
   };
-  const parsed = changePasswordSchema.safeParse({
+  const parsed = changePasswordSchema(t).safeParse({
     currentPassword: get("currentPassword"),
     newPassword: get("newPassword"),
     confirmPassword: get("confirmPassword"),

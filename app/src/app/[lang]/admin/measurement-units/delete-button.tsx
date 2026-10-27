@@ -7,13 +7,15 @@ type Props = {
   action: (
     state: DeleteMeasurementUnitState,
   ) => Promise<DeleteMeasurementUnitState>;
-  name: string;
+  confirmMessage: string;
+  labels: { delete: string; deleting: string };
   disabledReason?: string;
 };
 
 export function DeleteMeasurementUnitButton({
   action,
-  name,
+  confirmMessage,
+  labels,
   disabledReason,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
@@ -22,7 +24,7 @@ export function DeleteMeasurementUnitButton({
     <form
       action={formAction}
       onSubmit={(event) => {
-        if (!confirm(`¿Borrar la unidad "${name}"?`)) event.preventDefault();
+        if (!confirm(confirmMessage)) event.preventDefault();
       }}
       className="inline-flex flex-col items-end"
     >
@@ -32,7 +34,7 @@ export function DeleteMeasurementUnitButton({
         title={disabledReason}
         className="text-sm text-red-600 hover:underline disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:no-underline"
       >
-        {pending ? "Borrando…" : "Borrar"}
+        {pending ? labels.deleting : labels.delete}
       </button>
       {state.error && (
         <span role="alert" className="text-xs text-red-600">

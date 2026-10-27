@@ -1,24 +1,27 @@
 import { z } from "zod";
+import type { Dictionary } from "@/i18n/dictionaries/es";
 
-export const loginSchema = z.object({
-  mail: z.string().trim().toLowerCase().pipe(z.email("Ingresá un mail válido")),
-  password: z
-    .string()
-    .min(1, "Ingresá la contraseña")
-    .max(128, "Contraseña demasiado larga"),
-});
+type Messages = Dictionary["login"]["errors"];
 
-export type LoginInput = z.infer<typeof loginSchema>;
+export function loginSchema(t: Messages) {
+  return z.object({
+    mail: z.string().trim().toLowerCase().pipe(z.email(t.invalidMail)),
+    password: z.string().min(1, t.passwordRequired).max(128, t.passwordTooLong),
+  });
+}
+
+export type LoginInput = z.infer<ReturnType<typeof loginSchema>>;
 
 /** `mail` vuelve al form para no tener que tipearlo de nuevo; la contraseña nunca. */
 export type LoginFormState = { error?: string; mail?: string };
 
 export function validateLoginForm(
   formData: FormData,
+  t: Messages,
 ): { ok: true; data: LoginInput } | { ok: false; state: LoginFormState } {
   const mail = formData.get("mail");
   const password = formData.get("password");
-  const parsed = loginSchema.safeParse({
+  const parsed = loginSchema(t).safeParse({
     mail: typeof mail === "string" ? mail : "",
     password: typeof password === "string" ? password : "",
   });

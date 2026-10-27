@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { es } from "@/i18n/dictionaries/es";
 import { parseUnitId, validateMeasurementUnitForm } from "./measurement-unit";
+
+const t = es.measurementUnits.errors;
 
 function form(fields: Record<string, string>) {
   const data = new FormData();
@@ -11,6 +14,7 @@ describe("validateMeasurementUnitForm", () => {
   it("recorta espacios y guarda la descripción vacía como null", () => {
     const result = validateMeasurementUnitForm(
       form({ name: "  kg ", description: "   " }),
+      t,
     );
     expect(result).toMatchObject({
       ok: true,
@@ -21,6 +25,7 @@ describe("validateMeasurementUnitForm", () => {
   it("acepta una descripción", () => {
     const result = validateMeasurementUnitForm(
       form({ name: "l", description: "Litro" }),
+      t,
     );
     expect(result).toMatchObject({
       ok: true,
@@ -31,6 +36,7 @@ describe("validateMeasurementUnitForm", () => {
   it("exige el nombre y devuelve lo tipeado", () => {
     const result = validateMeasurementUnitForm(
       form({ name: " ", description: "x" }),
+      t,
     );
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -41,6 +47,7 @@ describe("validateMeasurementUnitForm", () => {
   it("rechaza textos demasiado largos", () => {
     const result = validateMeasurementUnitForm(
       form({ name: "a".repeat(21), description: "b".repeat(101) }),
+      t,
     );
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -49,7 +56,7 @@ describe("validateMeasurementUnitForm", () => {
   });
 
   it("trata los campos faltantes como vacíos", () => {
-    const result = validateMeasurementUnitForm(new FormData());
+    const result = validateMeasurementUnitForm(new FormData(), t);
     expect(result.ok).toBe(false);
   });
 });

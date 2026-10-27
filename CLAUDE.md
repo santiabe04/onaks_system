@@ -29,6 +29,17 @@ comentarios y textos de UI en español.
 - `app/src/lib/db.ts`: cliente Prisma singleton. No valida `DATABASE_URL` al importar a propósito,
   para que `next build` y `prisma generate` anden sin base de datos.
 
+## Idiomas (i18n)
+
+- Español (default) e inglés, uno por instalación con la env `APP_LOCALE` (`es` | `en`), leída en runtime.
+- Todas las páginas viven en `app/src/app/[lang]/` y se prerenderizan para los dos idiomas. Las URLs
+  públicas no llevan prefijo: el proxy reescribe `/login` → `/es/login`. Fuera de `[lang]` solo queda `api/health`.
+- Textos en `app/src/i18n/dictionaries/{es,en}.ts` (`es` define el tipo). Solo strings, con `{x}` + `interpolate`.
+- Server Components: `getT()` / `getLocale()` de `@/i18n/server` (usa `next/root-params`).
+  Server Actions: `getActionDictionary()` de `@/i18n/dictionary` (lee `APP_LOCALE`). Client Components: reciben el slice por props.
+- Las validaciones Zod reciben los mensajes del diccionario. Formato de plata/números/fechas: `formatters(locale)`.
+- Los datos (productos, unidades, etc.) y el nombre de la app (`lib/app.ts`) no se traducen.
+
 ## Base de datos
 
 - Modelo en `app/prisma/schema.prisma` (traducido de `schema.dbml`). Tablas en snake_case con `@@map`/`@map`.
