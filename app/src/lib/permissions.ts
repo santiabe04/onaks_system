@@ -5,6 +5,7 @@ import type { UserType } from "@/generated/prisma/enums";
 export const PERMISSIONS = [
   "measurement-units:manage",
   "categories:manage",
+  "warehouses:manage",
   "products:manage",
   "customers:manage",
   "sales:read-all",
@@ -21,6 +22,7 @@ export const ROLE_PERMISSIONS: Record<UserType, readonly Permission[]> = {
   ADMIN: [
     "measurement-units:manage",
     "categories:manage",
+    "warehouses:manage",
     "products:manage",
     "customers:manage",
     "sales:read-all",

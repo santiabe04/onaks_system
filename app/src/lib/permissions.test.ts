@@ -5,6 +5,7 @@ describe("can", () => {
   it("el admin gestiona el catálogo y ve todos los pedidos", () => {
     expect(can("ADMIN", "measurement-units:manage")).toBe(true);
     expect(can("ADMIN", "categories:manage")).toBe(true);
+    expect(can("ADMIN", "warehouses:manage")).toBe(true);
     expect(can("ADMIN", "products:manage")).toBe(true);
     expect(can("ADMIN", "customers:manage")).toBe(true);
     expect(can("ADMIN", "sales:read-all")).toBe(true);
