@@ -73,6 +73,11 @@ comentarios y textos de UI en español.
 - Imágenes de productos: `lib/product-image` (sharp → WebP de máx. 1200 px, sin EXIF) en
   `UPLOADS_DIR/products`, servidas por `app/media/products/[file]`. En Docker es el volumen `uploads`
   (incluirlo en los backups). Server Actions aceptan hasta 6 MB (`next.config.ts`).
+- Stock por depósito: saldo en `product_stocks` (puede ser negativo) y libro `stock_movements` (solo
+  inserción, trigger). El saldo se cambia **solo** con `recordMovement` (`lib/stock-ledger`), que bloquea
+  los saldos (`FOR UPDATE`, en orden), calcula las patas (`lib/stock`, en milésimas con BigInt) y escribe
+  saldo + movimiento + auditoría en la misma transacción. Cantidades con 3 decimales. Un depósito se
+  desactiva solo sin stock.
 - Estados separados: `SaleState` (logística) y `SalePaymentState` (pago).
 - `customers` es la empresa (CUIT, razón social, condición IVA). `persons.customer_id` es null para admins.
 - Las direcciones de entrega son `person_addresses` y la zona sale de `city_id`.

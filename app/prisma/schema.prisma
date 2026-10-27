@@ -43,6 +43,17 @@ enum SalePaymentState {
   REFUNDED
 }
 
+// Manuales: ENTRY, ADJUSTMENT, WRITE_OFF y la transferencia (un par OUT/IN).
+// SALE la generan los pedidos (fase 4).
+enum StockMovementType {
+  ENTRY
+  ADJUSTMENT
+  WRITE_OFF
+  TRANSFER_OUT
+  TRANSFER_IN
+  SALE
+}
+
 enum AuditAction {
   CREATE
   UPDATE
@@ -60,6 +71,7 @@ enum AuditEntity {
   CATEGORY
   WAREHOUSE
   TAX_RATE
+  STOCK_MOVEMENT
   PRODUCT
   CUSTOMER
   PERSON
@@ -108,23 +120,25 @@ model Category {
   @@map("categories")
 }
 
-// Depósitos de mercadería. El stock por depósito llega en el PR 1.4. Inactivo:
-// no recibe movimientos nuevos, pero se conserva para el historial.
+// Depósitos de mercadería, con stock propio (ProductStock). Inactivo: no recibe
+// movimientos nuevos, pero se conserva para el historial. Solo se desactiva sin stock.
 model Warehouse {
-  id          String   @id @default(cuid(2))
-  name        String   @unique
-  address     String
-  cityId      Int      @map("city_id")
-  phone       String?
-  contactName String?  @map("contact_name")
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
-  createdById String?  @map("created_by")
-  updatedById String?  @map("updated_by")
-  city        City     @relation(fields: [cityId], references: [id], onDelete: Restrict)
-  createdBy   User?    @relation("WarehouseCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy   User?    @relation("WarehouseUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  id             String          @id @default(cuid(2))
+  name           String          @unique
+  address        String
+  cityId         Int             @map("city_id")
+  phone          String?
+  contactName    String?         @map("contact_name")
+  isActive       Boolean         @default(true) @map("is_active")
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById    String?         @map("created_by")
+  updatedById    String?         @map("updated_by")
+  city           City            @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  createdBy      User?           @relation("WarehouseCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy      User?           @relation("WarehouseUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  stocks         ProductStock[]
+  stockMovements StockMovement[]
 
   @@index([cityId], map: "idx_warehouses_city_id")
   @@map("warehouses")
@@ -165,8 +179,6 @@ model Product {
   // Peso en kg y volumen en litros, por unidad de venta.
   weight            Decimal         @db.Decimal(10, 3)
   volume            Decimal?        @db.Decimal(10, 3)
-  // Se reemplaza por el stock por depósito en el PR 1.5.
-  stock             Decimal         @default(0) @db.Decimal(12, 4)
   // Archivo WebP en UPLOADS_DIR/products (ver lib/product-image).
   imageFile         String?         @map("image_file")
   // Pausado: no se ve en el catálogo, pero conserva historial y stock.
@@ -182,12 +194,53 @@ model Product {
   createdBy         User?           @relation("ProductCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   updatedBy         User?           @relation("ProductUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   saleItems         SaleItem[]
+  stocks            ProductStock[]
+  stockMovements    StockMovement[]
 
   @@index([categoryId], map: "idx_products_category_id")
   @@index([measurementUnitId], map: "idx_products_measurement_unit_id")
   @@index([taxRateId], map: "idx_products_tax_rate_id")
   @@index([deletedAt], map: "idx_products_deleted_at")
   @@map("products")
+}
+
+// Saldo actual por producto y depósito. Se mueve solo a través de un
+// StockMovement (en la misma transacción). Puede ser negativo.
+model ProductStock {
+  productId   String    @map("product_id")
+  warehouseId String    @map("warehouse_id")
+  quantity    Decimal   @default(0) @db.Decimal(12, 3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+
+  @@id([productId, warehouseId])
+  @@index([warehouseId], map: "idx_product_stocks_warehouse_id")
+  @@map("product_stocks")
+}
+
+// Libro de movimientos: solo se inserta (trigger en la DB). quantity es la
+// variación con signo y alanceAfter el saldo que quedó en ese depósito.
+model StockMovement {
+  id           String            @id @default(cuid(2))
+  productId    String            @map("product_id")
+  warehouseId  String            @map("warehouse_id")
+  type         StockMovementType
+  quantity     Decimal           @db.Decimal(12, 3)
+  balanceAfter Decimal           @map("balance_after") @db.Decimal(12, 3)
+  comment      String?
+  // Agrupa las dos patas de una transferencia.
+  transferId   String?           @map("transfer_id")
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdById  String?           @map("created_by")
+  product      Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+  warehouse    Warehouse         @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  createdBy    User?             @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([productId, createdAt], map: "idx_stock_movements_product_id_created_at")
+  @@index([warehouseId, createdAt], map: "idx_stock_movements_warehouse_id_created_at")
+  @@index([transferId], map: "idx_stock_movements_transfer_id")
+  @@map("stock_movements")
 }
 
 model Customer {
@@ -289,6 +342,7 @@ model User {
   taxRatesUpdated         TaxRate[]         @relation("TaxRateUpdatedBy")
   productsCreated         Product[]         @relation("ProductCreatedBy")
   productsUpdated         Product[]         @relation("ProductUpdatedBy")
+  stockMovements          StockMovement[]
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")

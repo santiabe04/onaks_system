@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isCuid } from "./ids";
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import {
@@ -158,7 +159,5 @@ export function productImageUrl(fileName: string): string {
   return `/media/products/${fileName}`;
 }
 
-/** Los ids de productos son CUID2: alcanza con descartar lo que obviamente no es uno. */
-export function isProductId(value: unknown): value is string {
-  return typeof value === "string" && /^[a-z0-9]{1,32}$/.test(value);
-}
+/** Los ids de productos son CUID2. */
+export const isProductId = isCuid;

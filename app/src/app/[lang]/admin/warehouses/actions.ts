@@ -8,6 +8,7 @@ import { getActionDictionary } from "@/i18n/dictionary";
 import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { isCuid } from "@/lib/ids";
 import {
   validateWarehouseForm,
   type WarehouseFormState,
@@ -23,8 +24,8 @@ const LIST_PATH = "/admin/warehouses";
 // revalidatePath usa la ruta interna: así cubre los dos idiomas.
 const LIST_ROUTE = "/[lang]/admin/warehouses";
 
-// Los ids son CUID2: alcanza con descartar lo que obviamente no es uno.
-const ID_PATTERN = /^[a-z0-9]{1,32}$/;
+/** Se intentó desactivar un depósito que todavía tiene stock. */
+class HasStockError extends Error {}
 
 function messages() {
   return getActionDictionary().warehouses.errors;
@@ -42,6 +43,9 @@ function formError(
   values: WarehouseValues,
 ): WarehouseFormState {
   const t = messages();
+  if (error instanceof HasStockError) {
+    return { errors: { form: [t.hasStock] }, values };
+  }
   const code = prismaErrorCode(error);
   if (code === "P2002") return { errors: { name: [t.duplicate] }, values };
   // P2003: la localidad elegida no existe (FK).
@@ -88,7 +92,7 @@ export async function updateWarehouse(
   const user = await requirePermission(PERMISSION);
 
   // El id viene bindeado desde el cliente: no confiar en el tipo.
-  if (typeof id !== "string" || !ID_PATTERN.test(id)) {
+  if (!isCuid(id)) {
     return { errors: { form: [messages().invalid] } };
   }
 
@@ -97,8 +101,18 @@ export async function updateWarehouse(
 
   try {
     await db.$transaction(async (tx) => {
+      // FOR UPDATE: espera a los movimientos en curso (que toman la fila FOR
+      // SHARE), así el chequeo de stock no queda viejo antes de desactivar.
+      await tx.$queryRaw`SELECT "id" FROM "warehouses" WHERE "id" = ${id} FOR UPDATE`;
       // findUniqueOrThrow tira P2025 si ya no existe, igual que el update.
       const before = await tx.warehouse.findUniqueOrThrow({ where: { id } });
+      if (before.isActive && !result.data.isActive) {
+        // Solo se desactiva sin stock (ni positivo ni negativo).
+        const withStock = await tx.productStock.count({
+          where: { warehouseId: id, quantity: { not: 0 } },
+        });
+        if (withStock > 0) throw new HasStockError();
+      }
       const after = await tx.warehouse.update({
         where: { id },
         data: { ...result.data, updatedById: user.id },
@@ -128,7 +142,7 @@ export async function deleteWarehouse(id: string): Promise<DeleteState> {
   const user = await requirePermission(PERMISSION);
   const t = messages();
 
-  if (typeof id !== "string" || !ID_PATTERN.test(id)) {
+  if (!isCuid(id)) {
     return { error: t.invalid };
   }
 

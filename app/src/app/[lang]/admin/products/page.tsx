@@ -12,6 +12,7 @@ import { getUserWithPermission } from "@/lib/auth";
 import { descendantIds, flattenCategoryTree } from "@/lib/category";
 import { db } from "@/lib/db";
 import { finalPrice } from "@/lib/price";
+import { toMilli } from "@/lib/quantity";
 import { productImageUrl } from "@/lib/product";
 import {
   parseProductFilters,
@@ -84,6 +85,14 @@ async function ProductsContent({
       include: { taxRate: { select: { rate: true } } },
     }),
   ]);
+  // Stock total (todos los depósitos) de los productos de esta página.
+  const stocks = await db.productStock.groupBy({
+    by: ["productId"],
+    where: { productId: { in: products.map((p) => p.id) } },
+    _sum: { quantity: true },
+  });
+  const stockOf = (productId: string) =>
+    stocks.find((s) => s.productId === productId)?._sum.quantity ?? 0;
   const pages = Math.max(1, Math.ceil(total / PRODUCT_PAGE_SIZE));
 
   return (
@@ -114,6 +123,9 @@ async function ProductsContent({
                 </th>
                 <th className="py-2 pr-3 text-right font-medium">
                   {t.products.finalPrice}
+                </th>
+                <th className="py-2 pr-3 text-right font-medium">
+                  {t.products.stock}
                 </th>
                 <th className="py-2 pr-3 font-medium">{t.products.status}</th>
                 <th className="py-2">
@@ -159,6 +171,20 @@ async function ProductsContent({
                     {format.money(
                       finalPrice(product.price, product.taxRate.rate),
                     )}
+                  </td>
+                  <td
+                    className={`py-2 pr-3 text-right font-mono whitespace-nowrap ${
+                      toMilli(stockOf(product.id)) < BigInt(0)
+                        ? "text-red-600"
+                        : ""
+                    }`}
+                  >
+                    <Link
+                      href={`/admin/stock/${product.id}`}
+                      className="hover:underline"
+                    >
+                      {format.number(stockOf(product.id))}
+                    </Link>
                   </td>
                   <td className="py-2 pr-3">
                     {product.isActive ? t.products.active : t.products.paused}
