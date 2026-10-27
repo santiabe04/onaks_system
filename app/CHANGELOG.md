@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.4.0-alpha...v1.5.0-alpha) (2026-10-27)
+
+
+### Features
+
+* **i18n:** add Spanish and English support selected by APP_LOCALE ([#25](https://github.com/santiabe04/onaks_system/issues/25)) ([d4f1511](https://github.com/santiabe04/onaks_system/commit/d4f1511af80aaa6d8cb0209b4680d5e81041205b))
+
 ## [1.4.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.3.0-alpha...v1.4.0-alpha) (2026-10-27)
 
 
