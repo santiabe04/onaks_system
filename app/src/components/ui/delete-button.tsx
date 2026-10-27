@@ -1,18 +1,20 @@
 "use client";
 
 import { useActionState } from "react";
-import type { DeleteMeasurementUnitState } from "@/lib/measurement-unit";
+
+export type DeleteState = { error?: string };
 
 type Props = {
-  action: (
-    state: DeleteMeasurementUnitState,
-  ) => Promise<DeleteMeasurementUnitState>;
+  /** La action de borrado con el id ya bindeado. */
+  action: (state: DeleteState) => Promise<DeleteState>;
   confirmMessage: string;
   labels: { delete: string; deleting: string };
+  /** Si viene, el botón queda deshabilitado y el motivo se ve al pasar el mouse. */
   disabledReason?: string;
 };
 
-export function DeleteMeasurementUnitButton({
+/** Botón "Borrar" de una fila: pide confirmación y muestra el error de la action. */
+export function DeleteButton({
   action,
   confirmMessage,
   labels,

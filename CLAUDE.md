@@ -70,6 +70,9 @@ comentarios y textos de UI en español.
 - Las direcciones de entrega son `person_addresses` y la zona sale de `city_id`.
 - **CHECK constraints** en `app/prisma/migrations/20261023000001_checks` (Prisma no los soporta).
   Para nuevos: `npm run db:migrate -- --create-only --name <x>` y escribir el SQL a mano.
+- `categories`: árbol de hasta 3 niveles (reglas en `lib/category`, validadas con lock de tabla en la
+  action). Nombre único entre hermanas, también en la raíz: índice `NULLS NOT DISTINCT` escrito a mano.
+- Ejemplos de tests y datos: dominio de distribuidora de alimentos y productos para mascotas.
 - La migración init se escribió a mano (sin engine de Prisma disponible). El CI corre
   `prisma migrate diff --from-config-datasource --to-schema ... --exit-code` para detectar drift.
 - Seed idempotente (`app/prisma/seed.ts`): provincias, partidos del sur, unidades y admin inicial
