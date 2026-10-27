@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { parentOptions, parseCategoryId } from "@/lib/category";
-import { db } from "@/lib/db";
+import { getCategoryTreeData } from "@/lib/category-queries";
 import { updateCategory } from "../../actions";
 import { CategoryForm } from "../../category-form";
 
@@ -38,9 +38,7 @@ async function EditForm({ params }: { params: Promise<{ id: string }> }) {
   const categoryId = parseCategoryId((await params).id);
   if (categoryId === null) notFound();
 
-  const rows = await db.category.findMany({
-    select: { id: true, name: true, parentId: true },
-  });
+  const { rows, withProducts } = await getCategoryTreeData();
   const category = rows.find((row) => row.id === categoryId);
   if (!category) notFound();
 
@@ -51,7 +49,7 @@ async function EditForm({ params }: { params: Promise<{ id: string }> }) {
         name: category.name,
         parentId: category.parentId === null ? "" : String(category.parentId),
       }}
-      parents={parentOptions(rows, category.id).map((p) => ({
+      parents={parentOptions(rows, category.id, withProducts).map((p) => ({
         id: p.id,
         label: p.path.join(" › "),
       }))}

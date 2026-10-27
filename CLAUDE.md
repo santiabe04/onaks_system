@@ -67,6 +67,12 @@ comentarios y textos de UI en español.
 - `sale_items` guarda una foto del producto al vender (`unit_price`, `unit_weight`, `unit_volume`, `unit_tax_rate`).
 - El IVA del producto es una FK a `tax_rates` (ABM propio; el seed carga 21 / 10,5 / 27 / 0 %): cambiar
   una tasa afecta a todos sus productos, no a los pedidos ya hechos.
+- Productos: precio **neto** (el final se calcula con `lib/price`, en enteros), SKU obligatorio en
+  mayúsculas, código de barras opcional, solo en categorías finales (las actions de productos y de
+  categorías comparten un lock de `categories`), peso en kg y volumen en litros, activo/pausado y soft delete.
+- Imágenes de productos: `lib/product-image` (sharp → WebP de máx. 1200 px, sin EXIF) en
+  `UPLOADS_DIR/products`, servidas por `app/media/products/[file]`. En Docker es el volumen `uploads`
+  (incluirlo en los backups). Server Actions aceptan hasta 6 MB (`next.config.ts`).
 - Estados separados: `SaleState` (logística) y `SalePaymentState` (pago).
 - `customers` es la empresa (CUIT, razón social, condición IVA). `persons.customer_id` es null para admins.
 - Las direcciones de entrega son `person_addresses` y la zona sale de `city_id`.

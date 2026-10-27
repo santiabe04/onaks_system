@@ -101,6 +101,7 @@ model Category {
   children    Category[] @relation("CategoryTree")
   createdBy   User?      @relation("CategoryCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   updatedBy   User?      @relation("CategoryUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  products    Product[]
 
   @@unique([parentId, name])
   @@index([parentId], map: "idx_categories_parent_id")
@@ -151,20 +152,38 @@ model TaxRate {
 model Product {
   id                String          @id @default(cuid(2))
   name              String          @unique
+  // Código interno, obligatorio. El de barras es opcional (no todo tiene EAN).
+  sku               String          @unique
+  barcode           String?         @unique
   description       String?
-  taxRateId         Int             @map("tax_rate_id")
+  // Solo categorías finales (sin hijas): lo controla la app.
+  categoryId        Int             @map("category_id")
+  // Precio neto, sin IVA. El final se calcula con la alícuota.
   price             Decimal         @db.Decimal(12, 2)
+  taxRateId         Int             @map("tax_rate_id")
   measurementUnitId Int             @map("measurement_unit_id")
+  // Peso en kg y volumen en litros, por unidad de venta.
   weight            Decimal         @db.Decimal(10, 3)
   volume            Decimal?        @db.Decimal(10, 3)
-  stock             Decimal         @db.Decimal(12, 4)
+  // Se reemplaza por el stock por depósito en el PR 1.5.
+  stock             Decimal         @default(0) @db.Decimal(12, 4)
+  // Archivo WebP en UPLOADS_DIR/products (ver lib/product-image).
+  imageFile         String?         @map("image_file")
+  // Pausado: no se ve en el catálogo, pero conserva historial y stock.
+  isActive          Boolean         @default(true) @map("is_active")
   createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt         DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
   deletedAt         DateTime?       @map("deleted_at") @db.Timestamptz(3)
+  createdById       String?         @map("created_by")
+  updatedById       String?         @map("updated_by")
+  category          Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   measurementUnit   MeasurementUnit @relation(fields: [measurementUnitId], references: [id], onDelete: Restrict)
   taxRate           TaxRate         @relation(fields: [taxRateId], references: [id], onDelete: Restrict)
+  createdBy         User?           @relation("ProductCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy         User?           @relation("ProductUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   saleItems         SaleItem[]
 
+  @@index([categoryId], map: "idx_products_category_id")
   @@index([measurementUnitId], map: "idx_products_measurement_unit_id")
   @@index([taxRateId], map: "idx_products_tax_rate_id")
   @@index([deletedAt], map: "idx_products_deleted_at")
@@ -268,6 +287,8 @@ model User {
   warehousesUpdated       Warehouse[]       @relation("WarehouseUpdatedBy")
   taxRatesCreated         TaxRate[]         @relation("TaxRateCreatedBy")
   taxRatesUpdated         TaxRate[]         @relation("TaxRateUpdatedBy")
+  productsCreated         Product[]         @relation("ProductCreatedBy")
+  productsUpdated         Product[]         @relation("ProductUpdatedBy")
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")

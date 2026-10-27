@@ -74,6 +74,15 @@ async function assertValidParent(
       interpolate(t.tooDeep, { max: MAX_CATEGORY_DEPTH }),
     );
   }
+  // Los productos van solo en categorías finales: una que ya tiene productos
+  // no puede recibir subcategorías. (El lock también frena a un producto que
+  // se esté cargando en esa categoría al mismo tiempo.)
+  if (data.parentId !== null) {
+    const products = await tx.product.count({
+      where: { categoryId: data.parentId, deletedAt: null },
+    });
+    if (products > 0) throw new TreeError("parentId", t.parentHasProducts);
+  }
 }
 
 /** Errores conocidos → estado del form; el resto se relanza. */
@@ -179,6 +188,11 @@ export async function deleteCategory(id: number): Promise<DeleteState> {
     where: { parentId: categoryId },
   });
   if (children > 0) return { error: t.hasChildren };
+  // La FK es RESTRICT e incluye productos con soft delete: contamos todos.
+  const products = await db.product.count({
+    where: { categoryId },
+  });
+  if (products > 0) return { error: t.hasProducts };
 
   try {
     await db.$transaction(async (tx) => {
@@ -193,8 +207,8 @@ export async function deleteCategory(id: number): Promise<DeleteState> {
     });
   } catch (error) {
     const code = prismaErrorCode(error);
-    // P2003: se agregó una subcategoría entre el count y el delete.
-    if (code === "P2003") return { error: t.hasChildren };
+    // P2003: se agregó una subcategoría o un producto entre el count y el delete.
+    if (code === "P2003") return { error: t.hasProducts };
     // P2025: ya estaba borrada; alcanza con refrescar la lista.
     if (code !== "P2025") throw error;
   }

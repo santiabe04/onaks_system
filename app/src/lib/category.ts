@@ -122,13 +122,18 @@ export function checkParent(
     : null;
 }
 
-/** Categorías que se pueden elegir como padre de `id` (null si es nueva). */
+/**
+ * Categorías que se pueden elegir como padre de `id` (null si es nueva). Las
+ * que tienen productos quedan afuera: solo las finales pueden tenerlos.
+ */
 export function parentOptions(
   rows: CategoryRow[],
   id: number | null,
+  withProducts: ReadonlySet<number> = new Set(),
 ): CategoryNode[] {
   return flattenCategoryTree(rows).filter(
-    (node) => checkParent(rows, id, node.id) === null,
+    (node) =>
+      !withProducts.has(node.id) && checkParent(rows, id, node.id) === null,
   );
 }
 

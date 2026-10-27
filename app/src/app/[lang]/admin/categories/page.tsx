@@ -41,9 +41,14 @@ async function CategoryTree() {
   await getUserWithPermission("categories:manage");
   const t = await getT();
 
-  const rows = await db.category.findMany({
-    select: { id: true, name: true, parentId: true },
-  });
+  const [rows, productCounts] = await Promise.all([
+    db.category.findMany({ select: { id: true, name: true, parentId: true } }),
+    // La FK incluye productos borrados (soft delete): cuentan para no borrar.
+    db.product.groupBy({ by: ["categoryId"], _count: { _all: true } }),
+  ]);
+  const products = new Map(
+    productCounts.map((row) => [row.categoryId, row._count._all]),
+  );
   const nodes = flattenCategoryTree(rows);
 
   if (nodes.length === 0) {
@@ -66,7 +71,8 @@ async function CategoryTree() {
             {node.name}
           </span>
           <div className="flex shrink-0 items-start gap-4">
-            {node.depth < MAX_CATEGORY_DEPTH && (
+            {/* Con productos ya no puede tener hijas: solo las finales los tienen. */}
+            {node.depth < MAX_CATEGORY_DEPTH && !products.has(node.id) && (
               <Link
                 href={`/admin/categories/new?parent=${node.id}`}
                 className="hover:underline"
@@ -87,7 +93,11 @@ async function CategoryTree() {
               })}
               labels={{ delete: t.common.delete, deleting: t.common.deleting }}
               disabledReason={
-                node.childCount > 0 ? t.categories.hasChildren : undefined
+                node.childCount > 0
+                  ? t.categories.hasChildren
+                  : products.has(node.id)
+                    ? t.categories.hasProducts
+                    : undefined
               }
             />
           </div>
