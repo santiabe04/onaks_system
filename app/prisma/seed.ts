@@ -21,6 +21,15 @@ const CITIES: Record<string, string[]> = {
   "Ciudad Autónoma de Buenos Aires": ["CABA"],
 };
 
+// Alícuotas de IVA vigentes. `rate` es fracción, como string para no perder
+// precisión en el Decimal.
+const TAX_RATES = [
+  { name: "IVA 21%", rate: "0.21" },
+  { name: "IVA 10,5%", rate: "0.105" },
+  { name: "IVA 27%", rate: "0.27" },
+  { name: "Exento (0%)", rate: "0" },
+];
+
 const MEASUREMENT_UNITS = [
   { name: "u", description: "Unidad" },
   { name: "kg", description: "Kilogramo" },
@@ -48,6 +57,15 @@ async function main() {
       where: { name: unit.name },
       update: {},
       create: unit,
+    });
+  }
+
+  // Solo se crean si no existen: una tasa editada desde el ABM no se pisa.
+  for (const taxRate of TAX_RATES) {
+    await db.taxRate.upsert({
+      where: { name: taxRate.name },
+      update: {},
+      create: taxRate,
     });
   }
 

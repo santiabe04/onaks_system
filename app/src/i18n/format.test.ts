@@ -20,6 +20,11 @@ describe("formatters", () => {
     expect(formatters("en").number(1234.5678)).toBe("1,234.568");
   });
 
+  it("formatea tasas guardadas como fracción", () => {
+    expect(plain(formatters("es").percent("0.105"))).toBe("10,5%");
+    expect(formatters("en").percent(0.21)).toBe("21%");
+  });
+
   it("formatea fechas en el orden de cada idioma", () => {
     const date = new Date(2026, 9, 27, 12);
     expect(formatters("es").date(date)).toBe("27/10/26");

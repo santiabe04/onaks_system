@@ -19,6 +19,7 @@ export default async function AdminLayout({
       items: [
         { href: "/admin/categories", label: t.adminNav.categories },
         { href: "/admin/warehouses", label: t.adminNav.warehouses },
+        { href: "/admin/tax-rates", label: t.adminNav.taxRates },
         {
           href: "/admin/measurement-units",
           label: t.adminNav.measurementUnits,
