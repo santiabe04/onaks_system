@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.8.0-alpha...v1.9.0-alpha) (2026-10-27)
+
+
+### Features
+
+* **catalog:** add warehouses ([#33](https://github.com/santiabe04/onaks_system/issues/33)) ([620ea1a](https://github.com/santiabe04/onaks_system/commit/620ea1add31a11ed94f68a5c78cfc66dd7c1f119))
+
 ## [1.8.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.7.0-alpha...v1.8.0-alpha) (2026-10-27)
 
 
