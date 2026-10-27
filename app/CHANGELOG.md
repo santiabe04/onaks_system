@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.6.0-alpha...v1.7.0-alpha) (2026-10-27)
+
+
+### Features
+
+* **admin:** add sidebar layout, theme selector and dashboard ([#29](https://github.com/santiabe04/onaks_system/issues/29)) ([fdfe5c9](https://github.com/santiabe04/onaks_system/commit/fdfe5c92ec8c4179fabfe579beff560b15b85f12))
+
 ## [1.6.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.5.0-alpha...v1.6.0-alpha) (2026-10-27)
 
 
