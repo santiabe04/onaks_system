@@ -6,8 +6,10 @@ Sistema de pedidos B2B para una distribuidora (zona sur del GBA). Dos tipos de u
 - **CLIENT**: entra con usuario y contraseña, ve el catálogo, arma un carrito y compra.
 
 El admin ve los pedidos de la semana **agrupados por zona** (partido/localidad) con datos de
-entrega: método de pago, peso y volumen totales, montos. La agrupación es una consulta
-(`GROUP BY` ciudad + rango de fechas), no un job programado.
+entrega: método de pago, peso y volumen totales, montos. La agrupación es una consulta por rango de
+fechas, no un job programado: `/admin/orders` lee los pedidos del período (semana de **sábado a
+viernes**, `lib/order-period`, o rango libre) sin los cancelados y los agrupa por localidad con
+`lib/orders-by-zone` (en enteros). El detalle de solo lectura está en `/admin/orders/[number]`.
 
 Idioma: el usuario habla en español rioplatense. Código, commits y nombres en inglés;
 comentarios y textos de UI en español.
