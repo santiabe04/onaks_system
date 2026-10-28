@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.34.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.33.0-alpha...v1.34.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **purchases:** add minimum stock and purchase orders with suggestions ([#85](https://github.com/santiabe04/onaks_system/issues/85)) ([1d2a96a](https://github.com/santiabe04/onaks_system/commit/1d2a96a3136ae0fbf03b8b5a0254dc2fcc97d445))
+
 ## [1.33.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.32.0-alpha...v1.33.0-alpha) (2026-10-28)
 
 
