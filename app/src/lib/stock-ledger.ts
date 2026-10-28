@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { audit } from "./audit";
 import { planMovement, type MovementInput, type MovementLeg } from "./stock";
+import { fromMilli, toMilli } from "./quantity";
 
 export type LedgerError =
   "productNotFound" | "warehouseInactive" | "noDifference";
@@ -107,4 +108,76 @@ export async function recordMovement(
     });
   }
   return legs;
+}
+
+export type SaleStockLine = {
+  productId: string;
+  warehouseId: string;
+  /** Variación con signo: negativa al descontar, positiva al devolver. */
+  quantity: string;
+};
+
+/**
+ * Descuenta (SALE) o devuelve (SALE_RETURN) el stock de un pedido: bloquea los
+ * saldos en orden, escribe saldo + movimiento (con el pedido) + auditoría.
+ * Los depósitos tienen que estar activos; el producto puede estar pausado o
+ * borrado (el pedido ya existe). El stock puede quedar negativo.
+ */
+export async function recordSaleMovements(
+  tx: Prisma.TransactionClient,
+  sale: { id: string; number: number },
+  type: "SALE" | "SALE_RETURN",
+  lines: SaleStockLine[],
+  userId: string,
+): Promise<void> {
+  if (lines.length === 0) return;
+
+  const warehouseIds = [...new Set(lines.map((line) => line.warehouseId))];
+  // FOR SHARE: igual que en recordMovement, nadie desactiva el depósito mientras tanto.
+  const active = await tx.$queryRaw<{ id: string }[]>`
+    SELECT "id" FROM "warehouses"
+    WHERE "id" = ANY(${warehouseIds}) AND "is_active" = true
+    FOR SHARE`;
+  if (active.length !== warehouseIds.length) {
+    throw new StockLedgerError("warehouseInactive");
+  }
+
+  // Mismo orden siempre (producto, depósito): dos pedidos no se bloquean entre sí.
+  const sorted = [...lines].sort(
+    (a, b) =>
+      a.productId.localeCompare(b.productId) ||
+      a.warehouseId.localeCompare(b.warehouseId),
+  );
+  for (const line of sorted) {
+    const before = await lockBalance(tx, line.productId, line.warehouseId);
+    const balanceAfter = fromMilli(toMilli(before) + toMilli(line.quantity));
+    await tx.productStock.update({
+      where: {
+        productId_warehouseId: {
+          productId: line.productId,
+          warehouseId: line.warehouseId,
+        },
+      },
+      data: { quantity: balanceAfter },
+    });
+    const movement = await tx.stockMovement.create({
+      data: {
+        productId: line.productId,
+        warehouseId: line.warehouseId,
+        type,
+        quantity: line.quantity,
+        balanceAfter,
+        saleId: sale.id,
+        comment: `#${sale.number}`,
+        createdById: userId,
+      },
+    });
+    await audit(tx, {
+      action: "CREATE",
+      actorUserId: userId,
+      entityType: "STOCK_MOVEMENT",
+      entityId: movement.id,
+      after: movement,
+    });
+  }
 }

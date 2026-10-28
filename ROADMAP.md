@@ -3,7 +3,7 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 28/10/2026: fases 0 a 5 terminadas (v1.21.0-alpha); fase 6 en curso.
+Estado al 28/10/2026: fases 0 a 6 terminadas (v1.23.0-alpha); fase 7 en curso.
 
 | Fase | Contenido                                                        | Estado       |
 | ---- | ---------------------------------------------------------------- | ------------ |
@@ -13,8 +13,8 @@ Estado al 28/10/2026: fases 0 a 5 terminadas (v1.21.0-alpha); fase 6 en curso.
 | 3    | Cliente: catálogo                                                | ✅           |
 | 4    | Cliente: carrito y compra                                        | ✅           |
 | 5    | Admin: pedidos por zona                                          | ✅           |
-| 6    | Filtros de pedidos                                               | 🔄 en curso  |
-| 7    | Gestión de pedidos (estados)                                     | ⏳           |
+| 6    | Filtros de pedidos                                               | ✅           |
+| 7    | Gestión de pedidos (estados)                                     | 🔄 en curso  |
 | 8    | Hojas de ruta de entrega                                         | ⏳           |
 | 9    | Órdenes de compra a proveedores                                  | ⏳           |
 | 10   | Lista de picking                                                 | ⏳ a debatir |
@@ -158,12 +158,12 @@ Estado al 28/10/2026: fases 0 a 5 terminadas (v1.21.0-alpha); fase 6 en curso.
 
 ---
 
-## Fase 6 — Filtros de pedidos 🔄
+## Fase 6 — Filtros de pedidos ✅
 
 | PR  | Contenido                                           | Estado           |
 | --- | --------------------------------------------------- | ---------------- |
 | 6.1 | Lista "Todos los pedidos" con filtros               | ✅ v1.22.0-alpha |
-| 6.2 | Los mismos filtros en la vista por zona y en el CSV | 🟡 PR listo      |
+| 6.2 | Los mismos filtros en la vista por zona y en el CSV | ✅ v1.23.0-alpha |
 
 **Decisiones**
 
@@ -174,11 +174,26 @@ Estado al 28/10/2026: fases 0 a 5 terminadas (v1.21.0-alpha); fase 6 en curso.
 - Con un producto elegido, cada pedido muestra cuánto se pidió de ese producto y arriba el total del
   filtro (para saber cuánto preparar).
 
-## Fase 7 — Gestión de pedidos ⏳
+## Fase 7 — Gestión de pedidos 🔄
 
-- Cambios de estado: logística (`SaleState`) y pago (`SalePaymentState`) por separado.
-- Al preparar se descuenta el stock (eligiendo depósito); cancelar pedidos y habilitar al cliente a
-  modificarlos.
+| PR  | Contenido                                                          | Estado      |
+| --- | ------------------------------------------------------------------ | ----------- |
+| 7.1 | Cambios de estado, descuento de stock al preparar e historial      | 🟡 PR listo |
+| 7.2 | Pagos con monto (estado de pago automático)                        | ⏳          |
+| 7.3 | Cliente: cancelar pedido pendiente y modificar (volver al carrito) | ⏳          |
+| 7.4 | Cambio de estado masivo                                            | ⏳          |
+
+**Decisiones**
+
+- Estados: se avanza al siguiente o se saltean pasos hacia adelante, y se puede volver **un paso**
+  para corregir. Cancelar se puede hasta antes de Entregado.
+- Al pasar a **En preparación** se descuenta el stock (deja de estar reservado): se elige un depósito
+  para todo el pedido o uno por producto. Volver a Pendiente o cancelar después de eso devuelve el
+  stock a los depósitos de donde salió.
+- Habilitar al cliente a modificar: el pedido Pendiente vuelve a su carrito, lo cambia y confirma de
+  nuevo (mismo número, precios actualizados). El cliente también puede cancelar un pedido Pendiente.
+- Pagos con monto, fecha y forma; el estado de pago (parcial / pagado) se calcula solo.
+- Cambio de estado masivo (p. ej. toda una zona a En reparto) e historial de cambios en el detalle.
 
 ## Fase 8 — Hojas de ruta de entrega ⏳
 

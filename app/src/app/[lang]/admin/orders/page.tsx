@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { OrderFilterFields } from "@/components/orders/order-filter-fields";
 import { buttonClass } from "@/components/ui/button";
@@ -64,6 +65,8 @@ async function OrdersByZone({
   await getUserWithPermission("sales:read-all");
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
+  // La semana actual depende de la hora del request, no de la del build.
+  await connection();
   const now = new Date();
   const params = await searchParams;
   const period = parseOrderPeriod(params, now);

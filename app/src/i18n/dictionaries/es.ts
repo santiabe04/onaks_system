@@ -86,6 +86,45 @@ export const es = {
     },
   },
   adminOrders: {
+    stateChange: {
+      title: "Cambiar estado",
+      target: "Nuevo estado",
+      choose: "Elegí un estado",
+      back: "{state} (volver)",
+      deductHint:
+        "Al pasar a este estado se descuenta el stock y deja de estar reservado.",
+      returnHint:
+        "El stock que se había descontado vuelve a los depósitos de donde salió.",
+      cancelHint: "Cancelar es definitivo: el pedido ya no cambia de estado.",
+      warehouse: "Depósito para todo el pedido",
+      itemWarehouses: "Depósito por producto (opcional)",
+      sameAsOrder: "El del pedido",
+      comment: "Comentario (opcional)",
+      commentPlaceholder: "Motivo de la cancelación, aviso al cliente…",
+      submit: "Cambiar estado",
+      saving: "Guardando…",
+      saved: "Estado actualizado",
+      final: "Este pedido ya no cambia de estado.",
+      errors: {
+        invalid: "No se pudo leer el cambio de estado",
+        targetRequired: "Elegí el nuevo estado",
+        notFound: "El pedido ya no existe",
+        stale:
+          "El pedido cambió mientras lo mirabas: revisá el estado actual y probá de nuevo.",
+        notAllowed: "Ese cambio de estado no está permitido",
+        warehouseRequired: "Elegí de qué depósito sale cada producto",
+        warehouseInactive:
+          "Alguno de los depósitos está desactivado: reactivalo o elegí otro",
+        commentTooLong: "Máximo {max} caracteres",
+      },
+    },
+    history: {
+      title: "Historial",
+      created: "Pedido confirmado",
+      changed: "{from} → {to}",
+      by: "por {name}",
+      stock: "Stock: {detail}",
+    },
     filters: "Filtros",
     activeFilters: "Filtrado por: {filters}",
     productLine: "{product}: {quantity} {unit}",
@@ -409,6 +448,7 @@ export const es = {
       TRANSFER_OUT: "Transferencia (salida)",
       TRANSFER_IN: "Transferencia (entrada)",
       SALE: "Venta",
+      SALE_RETURN: "Devolución de pedido",
     },
     errors: {
       typeRequired: "Elegí el tipo de movimiento",
