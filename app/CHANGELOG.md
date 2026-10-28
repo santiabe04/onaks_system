@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.17.0-alpha...v1.18.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **cart:** add customer cart and decimal flag for measurement units ([#51](https://github.com/santiabe04/onaks_system/issues/51)) ([59f395d](https://github.com/santiabe04/onaks_system/commit/59f395df4fea89cb1b3a8f2e93bd81efd3e2b308))
+
 ## [1.17.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.16.0-alpha...v1.17.0-alpha) (2026-10-28)
 
 
