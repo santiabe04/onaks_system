@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.16.0-alpha...v1.17.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **catalog:** add customer catalog with search, categories and product detail ([#49](https://github.com/santiabe04/onaks_system/issues/49)) ([b21c29d](https://github.com/santiabe04/onaks_system/commit/b21c29d3133105473f232733aa4ee3e624255f1f))
+
 ## [1.16.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.15.0-alpha...v1.16.0-alpha) (2026-10-28)
 
 
