@@ -180,8 +180,8 @@ Estado al 28/10/2026: fases 0 a 6 terminadas (v1.23.0-alpha); fase 7 en curso.
 | --- | ------------------------------------------------------------------------------------------- | ---------------- |
 | 7.1 | Cambios de estado, descuento de stock al preparar e historial                               | ✅ v1.24.0-alpha |
 | 7.2 | Cuenta corriente: cobros, reintegros y anulaciones (detalle del pedido y ficha del cliente) | ✅ v1.25.0-alpha |
-| 7.3 | Listado de deudores y saldo a la vista del cliente                                          | 🟡 PR listo      |
-| 7.4 | Cliente: cancelar pedido pendiente y modificar (volver al carrito)                          | ⏳               |
+| 7.3 | Listado de deudores y saldo a la vista del cliente                                          | ✅ v1.26.0-alpha |
+| 7.4 | Cliente: cancelar pedido pendiente y modificar (volver al carrito)                          | 🟡 PR listo      |
 | 7.5 | Cambio de estado masivo                                                                     | ⏳               |
 
 **Decisiones**
@@ -191,8 +191,10 @@ Estado al 28/10/2026: fases 0 a 6 terminadas (v1.23.0-alpha); fase 7 en curso.
 - Al pasar a **En preparación** se descuenta el stock (deja de estar reservado): se elige un depósito
   para todo el pedido o uno por producto. Volver a Pendiente o cancelar después de eso devuelve el
   stock a los depósitos de donde salió.
-- Habilitar al cliente a modificar: el pedido Pendiente vuelve a su carrito, lo cambia y confirma de
-  nuevo (mismo número, precios actualizados). El cliente también puede cancelar un pedido Pendiente.
+- Habilitar al cliente a modificar: el pedido Pendiente vuelve a su carrito (se suma a lo que ya
+  tenía), lo cambia y confirma de nuevo (mismo número, precios actualizados). El permiso se usa **una
+  vez**; mientras el cliente modifica, el admin no le cambia el estado. El cliente también puede
+  cancelar un pedido Pendiente.
 - **Cuenta corriente por cliente**: un pedido es deuda al **entregarse** (si vuelve atrás, deja de
   serlo). Los cobros (monto, fecha, forma) se cargan al cliente y se imputan **solos al pedido más
   viejo**; el estado de pago de cada pedido se calcula. Se puede cobrar de más: queda **saldo a favor**

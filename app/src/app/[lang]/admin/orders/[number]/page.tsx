@@ -20,6 +20,7 @@ import { isoDay } from "@/lib/order-period";
 import { can } from "@/lib/permissions";
 import { groupOrdersByZone } from "@/lib/orders-by-zone";
 import { allowedTransitions, isStepBack, stockEffect } from "@/lib/sale-state";
+import { CustomerEditControl } from "./customer-edit-control";
 import { StateChangeForm } from "./state-change-form";
 
 export async function generateMetadata({
@@ -78,6 +79,7 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
           },
         },
       },
+      editingPerson: { select: { name: true, surname: true } },
       items: {
         include: {
           product: {
@@ -255,6 +257,23 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
           <h2 className="mb-3 text-lg font-medium">
             {t.adminOrders.stateChange.title}
           </h2>
+          {canManage && sale.state === "PENDING" && (
+            <div className="mb-6 rounded border border-current/20 p-3">
+              <h3 className="mb-2 font-medium">
+                {t.adminOrders.customerEdit.title}
+              </h3>
+              <CustomerEditControl
+                saleId={sale.id}
+                allowed={sale.customerCanEdit}
+                editingBy={
+                  sale.editingPerson
+                    ? `${sale.editingPerson.name} ${sale.editingPerson.surname}`
+                    : null
+                }
+                t={t.adminOrders.customerEdit}
+              />
+            </div>
+          )}
           <StateChangeForm
             saleId={sale.id}
             current={sale.state}
@@ -305,6 +324,33 @@ async function History({ saleId }: { saleId: string }) {
     (value as { state?: SaleState } | null)?.state;
   const commentOf = (value: unknown) =>
     (value as { comment?: string | null } | null)?.comment;
+  const h = t.adminOrders.history;
+  /** Qué pasó, en palabras: estado, permiso de modificar o cambios del cliente. */
+  const describe = (
+    log: (typeof logs)[number],
+    from: SaleState | undefined,
+    to: SaleState | undefined,
+  ): string => {
+    if (log.action === "CREATE") return h.created;
+    const meta = (log.metadata ?? {}) as Record<string, unknown>;
+    if (meta.editStarted) return h.editStarted;
+    if (meta.editDiscarded) return h.editDiscarded;
+    if (meta.editedByCustomer) return h.edited;
+    const canEdit = (value: unknown) =>
+      (value as { customerCanEdit?: boolean } | null)?.customerCanEdit;
+    const before = canEdit(log.before);
+    const after = canEdit(log.after);
+    if (before !== undefined && after !== undefined && before !== after) {
+      return after ? h.editAllowed : h.editRevoked;
+    }
+    if (from && to && from !== to) {
+      return interpolate(h.changed, {
+        from: t.orders.states[from],
+        to: t.orders.states[to],
+      });
+    }
+    return log.action;
+  };
 
   return (
     <ol className="flex flex-col gap-3 border-l border-current/20 pl-4 text-sm">
@@ -315,16 +361,7 @@ async function History({ saleId }: { saleId: string }) {
         const actor = log.actor?.person;
         return (
           <li key={log.id}>
-            <p className="font-medium">
-              {log.action === "CREATE"
-                ? t.adminOrders.history.created
-                : from && to
-                  ? interpolate(t.adminOrders.history.changed, {
-                      from: t.orders.states[from],
-                      to: t.orders.states[to],
-                    })
-                  : log.action}
-            </p>
+            <p className="font-medium">{describe(log, from, to)}</p>
             <p className="text-xs opacity-70">
               {format.dateTime(log.createdAt)}
               {actor &&

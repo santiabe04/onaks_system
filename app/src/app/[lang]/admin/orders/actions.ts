@@ -52,10 +52,13 @@ export async function changeSaleState(
 
       // Bloqueado hasta el final: dos cambios a la vez no descuentan dos veces.
       const [locked] = await tx.$queryRaw<
-        { state: SaleState; number: number }[]
-      >`SELECT "state", "number" FROM "sales" WHERE "id" = ${saleId} FOR UPDATE`;
+        { state: SaleState; number: number; editing: boolean }[]
+      >`SELECT "state", "number", "editing_person_id" IS NOT NULL AS "editing"
+        FROM "sales" WHERE "id" = ${saleId} FOR UPDATE`;
       if (!locked) throw new StateChangeError(t.notFound);
       if (locked.state !== input.from) throw new StateChangeError(t.stale);
+      // Sus productos están en el carrito del cliente: no se toca hasta que confirme.
+      if (locked.editing) throw new StateChangeError(t.beingEdited);
       if (!canTransition(locked.state, input.to)) {
         throw new StateChangeError(t.notAllowed);
       }
@@ -93,7 +96,8 @@ export async function changeSaleState(
 
       await tx.sale.update({
         where: { id: saleId },
-        data: { state: input.to },
+        // El permiso de modificar es solo para pedidos Pendientes.
+        data: { state: input.to, customerCanEdit: false },
       });
       await audit(tx, {
         action: "UPDATE",
@@ -116,6 +120,59 @@ export async function changeSaleState(
   }
 
   // Detalle, listas, Stock (reservado) y dashboard.
+  revalidatePath("/[lang]", "layout");
+  return { savedAt: Date.now() };
+}
+
+/**
+ * Habilita (o quita) al cliente la modificación de un pedido Pendiente. Al
+ * quitarla mientras la está usando, el pedido queda como estaba (los productos
+ * siguen en su carrito).
+ */
+export async function setCustomerCanEdit(
+  saleId: string,
+  allow: boolean,
+): Promise<StateChangeFormState> {
+  const user = await requirePermission("sales:manage");
+  const t = getActionDictionary().adminOrders.stateChange.errors;
+  if (!isCuid(saleId)) return { error: t.notFound };
+
+  try {
+    await db.$transaction(async (tx) => {
+      const owner = await tx.sale.findUnique({
+        where: { id: saleId },
+        select: { address: { select: { customerId: true } } },
+      });
+      if (!owner) throw new StateChangeError(t.notFound);
+      await lockAccount(tx, owner.address.customerId);
+      const before = await tx.sale.findUniqueOrThrow({
+        where: { id: saleId },
+        select: { state: true, customerCanEdit: true, editingPersonId: true },
+      });
+      if (before.state !== "PENDING") {
+        throw new StateChangeError(t.notEditable);
+      }
+      const after = await tx.sale.update({
+        where: { id: saleId },
+        data: allow
+          ? { customerCanEdit: true }
+          : { customerCanEdit: false, editingPersonId: null },
+        select: { state: true, customerCanEdit: true, editingPersonId: true },
+      });
+      await audit(tx, {
+        action: "UPDATE",
+        actorUserId: user.id,
+        entityType: "SALE",
+        entityId: saleId,
+        before,
+        after,
+      });
+    });
+  } catch (error) {
+    if (error instanceof StateChangeError) return { error: error.message };
+    throw error;
+  }
+
   revalidatePath("/[lang]", "layout");
   return { savedAt: Date.now() };
 }

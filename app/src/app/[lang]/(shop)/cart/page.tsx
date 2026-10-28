@@ -7,6 +7,7 @@ import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { cartTotals, lineTotals } from "@/lib/cart";
+import { db } from "@/lib/db";
 import { getCart, toCartLine } from "@/lib/cart-queries";
 import { finalPrice } from "@/lib/price";
 import { CartLineControls, RemoveCartLine } from "./cart-line";
@@ -37,11 +38,26 @@ async function Cart() {
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
 
-  const { items, available, unavailable } = await getCart(user.personId);
+  const [{ items, available, unavailable }, editing] = await Promise.all([
+    getCart(user.personId),
+    // Si está modificando un pedido, el carrito lo va a reemplazar.
+    db.sale.findFirst({
+      where: { editingPersonId: user.personId },
+      select: { number: true },
+    }),
+  ]);
 
   if (items.length === 0) {
     return (
       <div className="mt-6 flex flex-col items-start gap-4">
+        {editing && (
+          <p
+            role="status"
+            className="rounded border border-current/20 bg-current/5 p-3 text-sm"
+          >
+            {interpolate(t.checkout.editingOrder, { number: editing.number })}
+          </p>
+        )}
         <p className="text-sm opacity-70">{t.cart.empty}</p>
         <Link href="/" className={buttonClass()}>
           {t.cart.goToCatalog}
@@ -54,6 +70,14 @@ async function Cart() {
 
   return (
     <>
+      {editing && (
+        <p
+          role="status"
+          className="mt-4 rounded border border-current/20 bg-current/5 p-3 text-sm"
+        >
+          {interpolate(t.checkout.editingOrder, { number: editing.number })}
+        </p>
+      )}
       {available.length > 0 && (
         <ul className="mt-6 divide-y divide-current/10">
           {available.map((item) => (

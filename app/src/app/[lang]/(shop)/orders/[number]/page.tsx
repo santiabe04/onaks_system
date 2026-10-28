@@ -9,6 +9,7 @@ import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { parseSaleNumber } from "@/lib/checkout";
 import { db } from "@/lib/db";
+import { OrderActions } from "./order-actions";
 
 export async function generateMetadata({
   params,
@@ -119,6 +120,15 @@ async function Order({
           </OrderDetail>
         )}
       </dl>
+
+      {sale.state === "PENDING" && (
+        <OrderActions
+          saleId={sale.id}
+          canEdit={sale.customerCanEdit && !sale.editingPersonId}
+          editingByMe={sale.editingPersonId === user.personId}
+          t={t.orders}
+        />
+      )}
 
       <OrderItems
         items={sale.items}

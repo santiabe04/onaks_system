@@ -67,6 +67,10 @@ comentarios y textos de UI en español.
   de crear el pedido (así un doble envío no lo duplica) y guarda la foto en `sale_items` + auditoría.
 - `sales.number` es el número correlativo que ve la gente (`/orders/[number]`). "Mis pedidos" muestra
   los de **toda la empresa** (filtro por `address.customerId`); uno ajeno da 404.
+- El cliente cancela un pedido Pendiente desde "Mis pedidos". Si el admin lo habilita
+  (`sales.customer_can_edit`, se usa una vez), lo modifica: sus ítems se suman al carrito
+  (`editing_person_id`, uno por persona) y `placeOrder` reemplaza ese pedido (mismo número) en vez de
+  crear otro. Mientras se modifica, el admin no le cambia el estado.
 - Stock reservado = cantidades de pedidos en `RESERVED_SALE_STATES` (`lib/checkout`, hoy solo PENDING);
   se muestra en `/admin/stock` como Reservado y Disponible = total − reservado.
 

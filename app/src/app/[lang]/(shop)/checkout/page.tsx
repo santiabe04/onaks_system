@@ -55,88 +55,104 @@ async function Checkout() {
   ]);
   // Sin nada para pedir no hay nada que confirmar.
   if (available.length === 0) redirect("/cart");
+  // Modificando un pedido: se confirma sobre ese, con su dirección elegida.
+  const editing = await db.sale.findFirst({
+    where: { editingPersonId: user.personId },
+    select: { number: true, addressId: true },
+  });
 
   const totals = cartTotals(available.map(toCartLine));
 
   return (
-    <div className="mt-6 grid gap-8 md:grid-cols-[3fr_2fr]">
-      <section>
-        <div className="flex items-baseline justify-between gap-4">
-          <h2 className="font-semibold">{t.checkout.summary}</h2>
-          <Link href="/cart" className="text-sm hover:underline">
-            {t.checkout.editCart}
-          </Link>
-        </div>
-        <ul className="mt-2 divide-y divide-current/10 text-sm">
-          {available.map((item) => (
-            <li
-              key={item.productId}
-              className="flex justify-between gap-4 py-2"
-            >
-              <span>
-                {item.product.name}
-                <span className="block text-xs opacity-70">
-                  {format.number(item.quantity)}{" "}
-                  {item.product.measurementUnit.name}
+    <>
+      {editing && (
+        <p
+          role="status"
+          className="mt-4 rounded border border-current/20 bg-current/5 p-3 text-sm"
+        >
+          {interpolate(t.checkout.editingOrder, { number: editing.number })}
+        </p>
+      )}
+      <div className="mt-6 grid gap-8 md:grid-cols-[3fr_2fr]">
+        <section>
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 className="font-semibold">{t.checkout.summary}</h2>
+            <Link href="/cart" className="text-sm hover:underline">
+              {t.checkout.editCart}
+            </Link>
+          </div>
+          <ul className="mt-2 divide-y divide-current/10 text-sm">
+            {available.map((item) => (
+              <li
+                key={item.productId}
+                className="flex justify-between gap-4 py-2"
+              >
+                <span>
+                  {item.product.name}
+                  <span className="block text-xs opacity-70">
+                    {format.number(item.quantity)}{" "}
+                    {item.product.measurementUnit.name}
+                  </span>
                 </span>
-              </span>
-              <span className="whitespace-nowrap">
-                {format.money(lineTotals(toCartLine(item)).total)}
-              </span>
-            </li>
-          ))}
-        </ul>
-        {unavailable.length > 0 && (
-          <p className="mt-2 text-xs opacity-70">
-            {interpolate(t.checkout.excluded, {
-              count: unavailable.length,
-            })}
-          </p>
-        )}
-        <dl className="mt-4 flex flex-col gap-1 border-t border-current/20 pt-2 text-sm">
-          <div className="flex justify-between">
-            <dt className="opacity-70">{t.cart.net}</dt>
-            <dd>{format.money(totals.net)}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="opacity-70">{t.cart.tax}</dt>
-            <dd>{format.money(totals.tax)}</dd>
-          </div>
-          <div className="flex justify-between text-lg font-semibold">
-            <dt>{t.cart.total}</dt>
-            <dd>{format.money(totals.total)}</dd>
-          </div>
-          <p className="text-xs opacity-70">
-            {interpolate(t.cart.weight, {
-              weight: format.number(totals.weight),
-            })}
-          </p>
-        </dl>
-      </section>
+                <span className="whitespace-nowrap">
+                  {format.money(lineTotals(toCartLine(item)).total)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {unavailable.length > 0 && (
+            <p className="mt-2 text-xs opacity-70">
+              {interpolate(t.checkout.excluded, {
+                count: unavailable.length,
+              })}
+            </p>
+          )}
+          <dl className="mt-4 flex flex-col gap-1 border-t border-current/20 pt-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="opacity-70">{t.cart.net}</dt>
+              <dd>{format.money(totals.net)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="opacity-70">{t.cart.tax}</dt>
+              <dd>{format.money(totals.tax)}</dd>
+            </div>
+            <div className="flex justify-between text-lg font-semibold">
+              <dt>{t.cart.total}</dt>
+              <dd>{format.money(totals.total)}</dd>
+            </div>
+            <p className="text-xs opacity-70">
+              {interpolate(t.cart.weight, {
+                weight: format.number(totals.weight),
+              })}
+            </p>
+          </dl>
+        </section>
 
-      <section>
-        {addresses.length === 0 ? (
-          <p role="alert" className="text-sm">
-            {t.checkout.noAddresses}
-          </p>
-        ) : (
-          <CheckoutForm
-            addresses={addresses.map((address) => ({
-              id: address.id,
-              name: address.name,
-              detail: [
-                address.address,
-                address.city.name,
-                address.zipCode && `CP ${address.zipCode}`,
-              ]
-                .filter(Boolean)
-                .join(", "),
-            }))}
-            fingerprint={cartFingerprint(available.map(toFingerprintLine))}
-            t={t.checkout}
-          />
-        )}
-      </section>
-    </div>
+        <section>
+          {addresses.length === 0 ? (
+            <p role="alert" className="text-sm">
+              {t.checkout.noAddresses}
+            </p>
+          ) : (
+            <CheckoutForm
+              defaultAddressId={editing?.addressId}
+              addresses={addresses.map((address) => ({
+                id: address.id,
+                name: address.name,
+                detail: [
+                  address.address,
+                  address.city.name,
+                  address.zipCode && `CP ${address.zipCode}`,
+                ]
+                  .filter(Boolean)
+                  .join(", "),
+              }))}
+              fingerprint={cartFingerprint(available.map(toFingerprintLine))}
+              t={t.checkout}
+            />
+          )}
+        </section>
+      </div>
+    </>
   );
 }

@@ -167,6 +167,15 @@ export const en: Dictionary = {
     kinds: { PAYMENT: "Payment", REFUND: "Refund" },
   },
   adminOrders: {
+    customerEdit: {
+      title: "Changes by the customer",
+      hint: "The customer can change the order once, while it is Pending.",
+      allow: "Allow the customer to change it",
+      revoke: "Revoke permission",
+      allowed: "The customer can change this order (once).",
+      editing: "{name} is changing it right now.",
+      saving: "Saving…",
+    },
     stateChange: {
       title: "Change status",
       target: "New status",
@@ -187,6 +196,9 @@ export const en: Dictionary = {
       saved: "Status updated",
       final: "This order no longer changes status.",
       errors: {
+        beingEdited:
+          "The customer is changing the order: revoke the permission or wait until they place it",
+        notEditable: "Only Pending orders can be opened for changes",
         invalid: "The status change could not be read",
         targetRequired: "Choose the new status",
         notFound: "The order no longer exists",
@@ -200,6 +212,11 @@ export const en: Dictionary = {
       },
     },
     history: {
+      editAllowed: "Customer allowed to change it",
+      editRevoked: "Permission to change it was revoked",
+      editStarted: "The customer started changing it",
+      editDiscarded: "The customer discarded the changes",
+      edited: "The customer changed the order",
       title: "History",
       created: "Order placed",
       changed: "{from} → {to}",
@@ -583,6 +600,8 @@ export const en: Dictionary = {
     },
   },
   checkout: {
+    editingOrder:
+      "You are changing order #{number}: placing it replaces its products (same number, current prices).",
     title: "Place order",
     summary: "Your order",
     editCart: "Edit cart",
@@ -607,6 +626,26 @@ export const en: Dictionary = {
     },
   },
   orders: {
+    cancel: "Cancel order",
+    cancelHint: "You can cancel it while it is Pending. This is final.",
+    cancelReason: "Reason (optional)",
+    cancelConfirm: "Confirm cancellation",
+    canceling: "Canceling…",
+    edit: "Change order",
+    editHint:
+      "The distributor allowed you to change this order: its products are added to your cart, you edit them and place it again (same number, current prices).",
+    editing:
+      "You are changing this order: changes are saved when you place it from the cart.",
+    goToCart: "Go to cart",
+    discard: "Discard changes",
+    errors: {
+      notFound: "The order no longer exists",
+      notPending: "The order is no longer Pending",
+      notEditable: "The distributor has not allowed changes to this order",
+      editedByOther: "Someone else in your company is changing this order",
+      alreadyEditing:
+        "You are already changing order #{number}: place it or discard the changes first",
+    },
     title: "My orders",
     empty: "No orders yet.",
     count: "{count} orders",

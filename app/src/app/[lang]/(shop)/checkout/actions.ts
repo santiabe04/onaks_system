@@ -70,38 +70,73 @@ export async function placeOrder(
       }
 
       const totals = cartTotals(available.map(toCartLine));
-      const sale = await tx.sale.create({
-        data: {
-          userId: user.id,
-          addressId,
-          subTotal: totals.net,
-          tax: totals.tax,
-          discount: "0",
-          total: totals.total,
-          paymentMethod: "CASH",
-          notes,
-          // Foto del producto al vender: los cambios posteriores no tocan el pedido.
-          items: {
-            create: available.map((item) => ({
-              productId: item.productId,
-              quantity: item.quantity,
-              unitPrice: item.product.price,
-              unitWeight: item.product.weight,
-              unitVolume: item.product.volume,
-              unitTaxRate: item.product.taxRate.rate,
-            })),
-          },
+      const data = {
+        addressId,
+        subTotal: totals.net,
+        tax: totals.tax,
+        total: totals.total,
+        notes,
+        // Foto del producto al vender: los cambios posteriores no tocan el pedido.
+        items: {
+          create: available.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.product.price,
+            unitWeight: item.product.weight,
+            unitVolume: item.product.volume,
+            unitTaxRate: item.product.taxRate.rate,
+          })),
         },
-        include: { items: true },
-      });
-      await audit(tx, {
-        action: "CREATE",
-        actorUserId: user.id,
-        entityType: "SALE",
-        entityId: sale.id,
-        after: sale,
-      });
-      // Un saldo a favor puede dejar el pedido nuevo ya pagado.
+      };
+
+      // Si estaba modificando un pedido, se reemplaza ese (mismo número) y se
+      // consume el permiso; si no, es un pedido nuevo.
+      const [editing] = await tx.$queryRaw<{ id: string }[]>`
+        SELECT s."id" FROM "sales" s
+        JOIN "customer_addresses" a ON a."id" = s."address_id"
+        WHERE s."editing_person_id" = ${user.personId}
+          AND s."state" = 'PENDING' AND a."customer_id" = ${customerId}
+        FOR UPDATE OF s`;
+      let sale;
+      if (editing) {
+        const before = await tx.sale.findUniqueOrThrow({
+          where: { id: editing.id },
+          include: { items: true },
+        });
+        await tx.saleItem.deleteMany({ where: { saleId: editing.id } });
+        sale = await tx.sale.update({
+          where: { id: editing.id },
+          data: { ...data, customerCanEdit: false, editingPersonId: null },
+          include: { items: true },
+        });
+        await audit(tx, {
+          action: "UPDATE",
+          actorUserId: user.id,
+          entityType: "SALE",
+          entityId: sale.id,
+          before,
+          after: sale,
+          metadata: { editedByCustomer: true },
+        });
+      } else {
+        sale = await tx.sale.create({
+          data: {
+            ...data,
+            userId: user.id,
+            discount: "0",
+            paymentMethod: "CASH",
+          },
+          include: { items: true },
+        });
+        await audit(tx, {
+          action: "CREATE",
+          actorUserId: user.id,
+          entityType: "SALE",
+          entityId: sale.id,
+          after: sale,
+        });
+      }
+      // Un saldo a favor puede dejar el pedido ya pagado (o cambia lo que falta).
       await recomputeAccount(tx, customerId);
       return sale.number;
     });

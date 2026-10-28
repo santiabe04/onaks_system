@@ -169,6 +169,15 @@ export const es = {
     kinds: { PAYMENT: "Pago", REFUND: "Reintegro" },
   },
   adminOrders: {
+    customerEdit: {
+      title: "Modificación por el cliente",
+      hint: "El cliente puede cambiar el pedido una vez, mientras esté Pendiente.",
+      allow: "Habilitar al cliente a modificar",
+      revoke: "Quitar el permiso",
+      allowed: "El cliente puede modificar este pedido (una vez).",
+      editing: "{name} lo está modificando ahora.",
+      saving: "Guardando…",
+    },
     stateChange: {
       title: "Cambiar estado",
       target: "Nuevo estado",
@@ -189,6 +198,9 @@ export const es = {
       saved: "Estado actualizado",
       final: "Este pedido ya no cambia de estado.",
       errors: {
+        beingEdited:
+          "El cliente está modificando el pedido: quitale el permiso o esperá a que lo confirme",
+        notEditable: "Solo se habilita la modificación de pedidos Pendientes",
         invalid: "No se pudo leer el cambio de estado",
         targetRequired: "Elegí el nuevo estado",
         notFound: "El pedido ya no existe",
@@ -202,6 +214,11 @@ export const es = {
       },
     },
     history: {
+      editAllowed: "Modificación habilitada al cliente",
+      editRevoked: "Se quitó el permiso de modificar",
+      editStarted: "El cliente empezó a modificarlo",
+      editDiscarded: "El cliente descartó los cambios",
+      edited: "El cliente modificó el pedido",
       title: "Historial",
       created: "Pedido confirmado",
       changed: "{from} → {to}",
@@ -584,6 +601,8 @@ export const es = {
     },
   },
   checkout: {
+    editingOrder:
+      "Estás modificando el pedido #{number}: al confirmar se reemplazan sus productos (mismo número, precios actuales).",
     title: "Confirmar pedido",
     summary: "Tu pedido",
     editCart: "Modificar el carrito",
@@ -608,6 +627,27 @@ export const es = {
     },
   },
   orders: {
+    cancel: "Cancelar pedido",
+    cancelHint: "Podés cancelarlo mientras esté Pendiente. Es definitivo.",
+    cancelReason: "Motivo (opcional)",
+    cancelConfirm: "Confirmar cancelación",
+    canceling: "Cancelando…",
+    edit: "Modificar pedido",
+    editHint:
+      "La distribuidora te habilitó a modificar este pedido: sus productos se suman a tu carrito, los cambiás y confirmás de nuevo (mismo número, precios actuales).",
+    editing:
+      "Estás modificando este pedido: los cambios se guardan cuando lo confirmás desde el carrito.",
+    goToCart: "Ir al carrito",
+    discard: "Descartar cambios",
+    errors: {
+      notFound: "El pedido ya no existe",
+      notPending: "El pedido ya no está Pendiente",
+      notEditable:
+        "La distribuidora no habilitó la modificación de este pedido",
+      editedByOther: "Otra persona de tu empresa está modificando este pedido",
+      alreadyEditing:
+        "Ya estás modificando el pedido #{number}: confirmalo o descartá los cambios primero",
+    },
     title: "Mis pedidos",
     empty: "Todavía no hay pedidos.",
     count: "{count} pedidos",
