@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.21.0-alpha...v1.22.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **orders:** add admin orders list with filters ([#61](https://github.com/santiabe04/onaks_system/issues/61)) ([23ff1e0](https://github.com/santiabe04/onaks_system/commit/23ff1e07a63b1a2e277dfd6d2a67a90fcaefa0e2))
+
 ## [1.21.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.20.0-alpha...v1.21.0-alpha) (2026-10-28)
 
 
