@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.19.0-alpha...v1.20.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **orders:** add admin orders by zone and order detail ([#55](https://github.com/santiabe04/onaks_system/issues/55)) ([f56819f](https://github.com/santiabe04/onaks_system/commit/f56819f66dce84e4b2ab4b2aff9419ed8518fdc7))
+
 ## [1.19.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.18.0-alpha...v1.19.0-alpha) (2026-10-28)
 
 
