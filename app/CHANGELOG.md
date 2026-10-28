@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.25.0-alpha...v1.26.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **account:** add debtors list and customer balance in my orders ([#69](https://github.com/santiabe04/onaks_system/issues/69)) ([995a152](https://github.com/santiabe04/onaks_system/commit/995a152533c002451c9e2f9101ad0dc7909bc902))
+
 ## [1.25.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.24.0-alpha...v1.25.0-alpha) (2026-10-28)
 
 
