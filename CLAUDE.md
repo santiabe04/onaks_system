@@ -1,9 +1,12 @@
 # Onaks System — contexto del proyecto
 
-Sistema de pedidos B2B para una distribuidora (zona sur del GBA). Dos tipos de usuario:
+Sistema de pedidos B2B para una distribuidora (zona sur del GBA). Tres tipos de usuario:
 
 - **ADMIN**: da de alta a los clientes (no hay registro público), gestiona productos y pedidos.
 - **CLIENT**: entra con usuario y contraseña, ve el catálogo, arma un carrito y compra.
+- **DRIVER** (repartidor): solo carga las entregas de sus hojas de ruta, desde el celular (`/delivery`).
+  Un admin también puede repartir (`routes:deliver`). Los usuarios internos (Admin o Repartidor) se
+  crean en `/admin/users`; el ABM de repartidores (`drivers`) vincula cada uno a un usuario.
 
 El admin ve los pedidos de la semana **agrupados por zona** (partido/localidad) con datos de
 entrega: método de pago, peso y volumen totales, montos. La agrupación es una consulta por rango de
@@ -73,6 +76,12 @@ comentarios y textos de UI en español.
   crear otro. Mientras se modifica, el admin no le cambia el estado.
 - Stock reservado = cantidades de pedidos en `RESERVED_SALE_STATES` (`lib/checkout`, hoy solo PENDING);
   se muestra en `/admin/stock` como Reservado y Disponible = total − reservado.
+
+## Reparto
+
+- Repartidores (`/admin/drivers`: nombre, teléfono, usuario vinculado opcional) y vehículos
+  (`/admin/vehicles`: patente normalizada en mayúsculas, capacidad opcional en kg y litros). Sin
+  borrado: se desactivan. Validación en `lib/fleet`; permiso `routes:manage`.
 
 ## UI del admin
 

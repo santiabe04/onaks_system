@@ -43,6 +43,13 @@ export default async function AdminLayout({
       ],
     },
     {
+      title: t.adminNav.delivery,
+      items: [
+        { href: "/admin/drivers", label: t.adminNav.drivers },
+        { href: "/admin/vehicles", label: t.adminNav.vehicles },
+      ],
+    },
+    {
       title: t.adminNav.purchases,
       items: [{ href: "/admin/suppliers", label: t.adminNav.suppliers }],
     },

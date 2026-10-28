@@ -85,6 +85,18 @@ export function AdminForm({ t, person, common }: Props) {
           maxLength={CUSTOMER_LIMITS.phone}
         />
       </Field>
+      <Field label={t.role}>
+        <select
+          key={state.role ?? "ADMIN"}
+          name="role"
+          defaultValue={state.role ?? "ADMIN"}
+          className="rounded border border-current/20 bg-transparent px-3 py-2"
+        >
+          <option value="ADMIN">{t.roles.ADMIN}</option>
+          <option value="DRIVER">{t.roles.DRIVER}</option>
+        </select>
+        <span className="text-xs opacity-60">{t.roleHint}</span>
+      </Field>
       <FormError messages={errors?.form} />
       <div className="flex gap-3">
         <SubmitButton pending={pending} pendingLabel={common.saving}>

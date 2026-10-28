@@ -28,6 +28,13 @@ describe("safeNextPath", () => {
 describe("proxyRedirect", () => {
   const admin = { role: "ADMIN" as const, mustChangePassword: false };
   const client = { role: "CLIENT" as const, mustChangePassword: false };
+  const driver = { role: "DRIVER" as const, mustChangePassword: false };
+
+  it("el repartidor va a sus repartos y no entra al panel", () => {
+    expect(proxyRedirect("/login", "", driver)).toBe("/delivery");
+    expect(proxyRedirect("/admin/orders", "", driver)).toBe("/delivery");
+    expect(proxyRedirect("/delivery", "", driver)).toBeNull();
+  });
   const pending = { role: "ADMIN" as const, mustChangePassword: true };
 
   it("sin sesión manda al login recordando la ruta", () => {

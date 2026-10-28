@@ -24,6 +24,16 @@ describe("can", () => {
     expect(allowed).toEqual(["sales:create", "catalog:read"]);
   });
 
+  it("el repartidor solo carga entregas", () => {
+    const allowed = PERMISSIONS.filter((p) => can("DRIVER", p));
+    expect(allowed).toEqual(["routes:deliver"]);
+  });
+
+  it("el admin también puede repartir", () => {
+    expect(can("ADMIN", "routes:manage")).toBe(true);
+    expect(can("ADMIN", "routes:deliver")).toBe(true);
+  });
+
   it("el admin no compra a nombre de un cliente", () => {
     expect(can("ADMIN", "sales:create")).toBe(false);
   });

@@ -12,6 +12,8 @@ datasource db {
 enum UserType {
   ADMIN
   CLIENT
+  /// Repartidor: carga las entregas de sus hojas de ruta.
+  DRIVER
 }
 
 enum TaxCondition {
@@ -90,6 +92,8 @@ enum AuditEntity {
   DISCOUNT
   SALE
   CUSTOMER_PAYMENT
+  DRIVER
+  VEHICLE
 }
 
 // --- TABLES ---
@@ -478,6 +482,11 @@ model User {
   customerAddressesUpdated CustomerAddress[] @relation("CustomerAddressUpdatedBy")
   paymentsCreated          CustomerPayment[] @relation("CustomerPaymentCreatedBy")
   paymentsVoided           CustomerPayment[] @relation("CustomerPaymentVoidedBy")
+  driver                   Driver?           @relation("DriverUser")
+  driversCreated           Driver[]          @relation("DriverCreatedBy")
+  driversUpdated           Driver[]          @relation("DriverUpdatedBy")
+  vehiclesCreated          Vehicle[]         @relation("VehicleCreatedBy")
+  vehiclesUpdated          Vehicle[]         @relation("VehicleUpdatedBy")
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")
@@ -638,4 +647,42 @@ model CustomerPayment {
   @@index([customerId, paidOn], map: "idx_customer_payments_customer_id_paid_on")
   @@index([saleId], map: "idx_customer_payments_sale_id")
   @@map("customer_payments")
+}
+
+/// Repartidor de las hojas de ruta. Puede estar vinculado a un usuario (rol
+/// Repartidor o Admin) para cargar las entregas desde el celular.
+model Driver {
+  id          String   @id @default(cuid(2))
+  name        String   @unique
+  phone       String?
+  userId      String?  @unique @map("user_id")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById String?  @map("created_by")
+  updatedById String?  @map("updated_by")
+  user        User?    @relation("DriverUser", fields: [userId], references: [id], onDelete: Restrict)
+  createdBy   User?    @relation("DriverCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?    @relation("DriverUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@map("drivers")
+}
+
+/// Vehículo de reparto. La capacidad es opcional: si está, al armar la hoja
+/// de ruta se avisa cuando se pasa.
+model Vehicle {
+  id             String   @id @default(cuid(2))
+  name           String   @unique
+  plate          String?  @unique
+  capacityKg     Decimal? @map("capacity_kg") @db.Decimal(10, 3)
+  capacityLiters Decimal? @map("capacity_liters") @db.Decimal(10, 3)
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById    String?  @map("created_by")
+  updatedById    String?  @map("updated_by")
+  createdBy      User?    @relation("VehicleCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy      User?    @relation("VehicleUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@map("vehicles")
 }

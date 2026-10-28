@@ -3,7 +3,7 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 28/10/2026: fases 0 a 6 terminadas (v1.23.0-alpha); fase 7 en curso.
+Estado al 28/10/2026: fases 0 a 7 terminadas (v1.28.0-alpha); fase 8 en curso.
 
 | Fase | Contenido                                                        | Estado       |
 | ---- | ---------------------------------------------------------------- | ------------ |
@@ -14,8 +14,8 @@ Estado al 28/10/2026: fases 0 a 6 terminadas (v1.23.0-alpha); fase 7 en curso.
 | 4    | Cliente: carrito y compra                                        | ✅           |
 | 5    | Admin: pedidos por zona                                          | ✅           |
 | 6    | Filtros de pedidos                                               | ✅           |
-| 7    | Gestión de pedidos (estados)                                     | 🔄 en curso  |
-| 8    | Hojas de ruta de entrega                                         | ⏳           |
+| 7    | Gestión de pedidos (estados)                                     | ✅           |
+| 8    | Hojas de ruta de entrega                                         | 🔄 en curso  |
 | 9    | Órdenes de compra a proveedores                                  | ⏳           |
 | 10   | Lista de picking                                                 | ⏳ a debatir |
 
@@ -174,7 +174,7 @@ Estado al 28/10/2026: fases 0 a 6 terminadas (v1.23.0-alpha); fase 7 en curso.
 - Con un producto elegido, cada pedido muestra cuánto se pidió de ese producto y arriba el total del
   filtro (para saber cuánto preparar).
 
-## Fase 7 — Gestión de pedidos 🔄
+## Fase 7 — Gestión de pedidos ✅
 
 | PR  | Contenido                                                                                   | Estado           |
 | --- | ------------------------------------------------------------------------------------------- | ---------------- |
@@ -182,7 +182,7 @@ Estado al 28/10/2026: fases 0 a 6 terminadas (v1.23.0-alpha); fase 7 en curso.
 | 7.2 | Cuenta corriente: cobros, reintegros y anulaciones (detalle del pedido y ficha del cliente) | ✅ v1.25.0-alpha |
 | 7.3 | Listado de deudores y saldo a la vista del cliente                                          | ✅ v1.26.0-alpha |
 | 7.4 | Cliente: cancelar pedido pendiente y modificar (volver al carrito)                          | ✅ v1.27.0-alpha |
-| 7.5 | Cambio de estado masivo                                                                     | 🟡 PR listo      |
+| 7.5 | Cambio de estado masivo                                                                     | ✅ v1.28.0-alpha |
 
 **Decisiones**
 
@@ -204,7 +204,30 @@ Estado al 28/10/2026: fases 0 a 6 terminadas (v1.23.0-alpha); fase 7 en curso.
   cliente ve su saldo en "Mis pedidos".
 - Cambio de estado masivo (p. ej. toda una zona a En reparto) e historial de cambios en el detalle.
 
-## Fase 8 — Hojas de ruta de entrega ⏳
+## Fase 8 — Hojas de ruta de entrega 🔄
+
+| PR  | Contenido                                                                  | Estado      |
+| --- | -------------------------------------------------------------------------- | ----------- |
+| 8.1 | Rol Repartidor, repartidores (vinculables a un usuario) y vehículos        | 🟡 PR listo |
+| 8.2 | Hoja de ruta: armado, orden de paradas, salida e impresión                 | ⏳          |
+| 8.3 | Carga por parada (celular): entrega, firma o foto, cobro, hora y ubicación | ⏳          |
+| 8.4 | Entrega parcial: ajuste del pedido y del stock                             | ⏳          |
+| 8.5 | Cierre de la hoja y rendición de efectivo                                  | ⏳          |
+
+**Decisiones**
+
+- La hoja de ruta es un **reparto guardado**: fecha, repartidor, vehículo y pedidos en orden de visita.
+  Estados: Armando → En reparto → Cerrada. Entran pedidos en Listo para despachar; un pedido está en
+  una sola hoja abierta. Al salir, los pedidos pasan a En reparto.
+- **ABM de repartidores** (nombre, teléfono) **y vehículos** (descripción, patente, capacidad en kg y
+  litros): al armar la hoja se avisa si se pasa de la capacidad.
+- **En cada parada** (desde el celular): entregado o **no entregado con motivo** (vuelve a Listo para
+  despachar), **firma en pantalla con aclaración o foto del remito**, **cobro en el momento** (a la
+  cuenta corriente), **entrega parcial** y **hora y ubicación**. Lo carga un usuario con rol nuevo
+  **Repartidor** o un **Admin** (un admin puede ser también repartidor). Al cerrar la hoja, **rendición
+  de efectivo** del repartidor.
+- Impresión por parada: cliente, dirección y contacto, productos y peso, **monto a cobrar** (pedido +
+  deuda anterior o saldo a favor) y firma de recepción.
 
 ## Fase 9 — Órdenes de compra a proveedores ⏳
 

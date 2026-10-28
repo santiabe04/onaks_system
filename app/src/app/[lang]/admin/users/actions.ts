@@ -194,12 +194,19 @@ export async function unlockLogin(userId: string): Promise<UserActionState> {
 }
 
 /** Estado del alta de admin: el form, o la contraseña generada si salió bien. */
+/** Roles de los usuarios internos (los clientes se crean desde su empresa). */
+export type InternalRole = "ADMIN" | "DRIVER";
+
 export type AdminFormState = FormState<PersonValues> & {
   password?: string;
   name?: string;
+  role?: InternalRole;
 };
 
-/** Alta de un administrador: persona sin cliente + usuario ADMIN con contraseña generada. */
+/**
+ * Alta de un usuario interno: persona sin cliente + usuario Admin o
+ * Repartidor con contraseña generada.
+ */
 export async function createAdmin(
   _prev: AdminFormState,
   formData: FormData,
@@ -207,8 +214,10 @@ export async function createAdmin(
   const admin = await requirePermission(PERMISSION);
   const t = getActionDictionary().customers.errors;
 
+  const role: InternalRole =
+    formData.get("role") === "DRIVER" ? "DRIVER" : "ADMIN";
   const result = validatePersonForm(formData, t);
-  if (!result.ok) return result.state;
+  if (!result.ok) return { ...result.state, role };
 
   const password = generateTempPassword();
   const passwordHash = await hashPassword(password);
@@ -225,7 +234,7 @@ export async function createAdmin(
       const user = await tx.user.create({
         data: {
           personId: person.id,
-          userType: "ADMIN",
+          userType: role,
           passwordHash,
           passwordMustChange: true,
         },
@@ -250,7 +259,11 @@ export async function createAdmin(
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      return { errors: { mail: [t.duplicateMail] }, values: result.values };
+      return {
+        errors: { mail: [t.duplicateMail] },
+        values: result.values,
+        role,
+      };
     }
     throw error;
   }
