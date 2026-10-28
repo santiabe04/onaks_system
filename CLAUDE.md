@@ -44,6 +44,15 @@ comentarios y textos de UI en español.
   cambiar al entrar. También blanquea, desactiva/reactiva y desbloquea el login (`/admin/users` y la
   pantalla de cada cliente). Un admin no se blanquea ni se desactiva a sí mismo.
 
+## Tienda (clientes)
+
+- Route group `app/src/app/[lang]/(shop)/`: catálogo en `/` (búsqueda, árbol de categorías con solo
+  las ramas que tienen productos, tarjetas o lista con selector guardado por navegador, 24 por página)
+  y detalle en `/products/[id]`. Los admins también entran (link al panel en el header).
+- El cliente ve los productos vigentes y **activos** (`VISIBLE_PRODUCT` en `lib/catalog`); el stock no
+  se muestra ni oculta nada: si no se quiere vender, el admin pausa el producto.
+- Precio: final grande + "neto + IVA x%" (`lib/catalog-queries` formatea todo en el server).
+
 ## UI del admin
 
 - Menú lateral agrupado por secciones, definido en `app/src/app/[lang]/admin/layout.tsx` (un grupo aparece
