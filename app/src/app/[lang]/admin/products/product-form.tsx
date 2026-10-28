@@ -212,6 +212,14 @@ export function ProductForm({
             placeholder="25"
           />
         </Field>
+        <Field label={t.minStock} error={errors?.minStock}>
+          <Input
+            name="minStock"
+            defaultValue={values.minStock}
+            inputMode="decimal"
+            placeholder="10"
+          />
+        </Field>
       </div>
 
       <Field label={t.image} error={errors?.image}>

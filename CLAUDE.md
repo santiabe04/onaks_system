@@ -105,6 +105,18 @@ comentarios y textos de UI en español.
   hoja bloqueada); si lo entregado no coincide, comentario obligatorio. Se guardan esperado, recibido,
   comentario y quién cerró. Con la hoja cerrada, los pedidos no entregados quedan libres para otra.
 
+## Compras
+
+- Stock mínimo opcional por producto (`products.min_stock`); en `/admin/stock` el nivel "Bajo el mínimo"
+  compara contra el total de depósitos. Permiso `purchases:manage` (ADMIN).
+- Órdenes de compra (`/admin/purchases`, `purchase_orders` + `purchase_order_items`): Borrador →
+  Enviada → Recibida parcial / Recibida, o Anulada (solo sin nada recibido). Se arman por proveedor con
+  sus productos y la sugerencia `suggestQuantity` (`lib/purchase-order`): mínimo + reservado − stock −
+  pendiente de otras OC enviadas, redondeada para arriba si la unidad no admite decimales. El costo se
+  precarga con el último del proveedor. Las líneas guardan foto de costo e IVA. Consultas en
+  `lib/purchase-queries`. Impresión en `[number]/print` y texto para WhatsApp sin precios (si el
+  portapapeles no se puede usar, se muestra el texto para copiar a mano).
+
 ## UI del admin
 
 - Menú lateral agrupado por secciones, definido en `app/src/app/[lang]/admin/layout.tsx` (un grupo aparece

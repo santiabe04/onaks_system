@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { QUANTITY_LIMITS } from "./quantity";
 import { isCuid } from "./ids";
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
@@ -34,6 +35,7 @@ export type ProductValues = {
   price: string;
   weight: string;
   volume: string;
+  minStock: string;
   isActive: boolean;
 };
 
@@ -55,6 +57,8 @@ export type ProductInput = {
   price: string;
   weight: string;
   volume: string | null;
+  /** Stock mínimo (opcional): debajo se alerta y se sugiere comprar. */
+  minStock: string | null;
   isActive: boolean;
 };
 
@@ -114,6 +118,13 @@ function productSchema(t: Messages) {
       ctx.addIssue({ code: "custom", message: t.volumeInvalid });
       return z.NEVER;
     }),
+    minStock: z.string().transform((value, ctx) => {
+      if (value.trim() === "") return null;
+      const parsed = parseDecimalInput(value, QUANTITY_LIMITS);
+      if (parsed !== null) return parsed;
+      ctx.addIssue({ code: "custom", message: t.minStockInvalid });
+      return z.NEVER;
+    }),
     isActive: z.boolean(),
   });
 }
@@ -134,6 +145,7 @@ export function readProductForm(formData: FormData): ProductValues {
     price: get("price"),
     weight: get("weight"),
     volume: get("volume"),
+    minStock: get("minStock"),
     // Checkbox: solo viene en el form si está tildado.
     isActive: formData.get("isActive") === "on",
   };

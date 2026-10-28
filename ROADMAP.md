@@ -3,7 +3,7 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 28/10/2026: fases 0 a 7 terminadas (v1.28.0-alpha); fase 8 en curso.
+Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
 
 | Fase | Contenido                                                        | Estado       |
 | ---- | ---------------------------------------------------------------- | ------------ |
@@ -15,8 +15,8 @@ Estado al 28/10/2026: fases 0 a 7 terminadas (v1.28.0-alpha); fase 8 en curso.
 | 5    | Admin: pedidos por zona                                          | ✅           |
 | 6    | Filtros de pedidos                                               | ✅           |
 | 7    | Gestión de pedidos (estados)                                     | ✅           |
-| 8    | Hojas de ruta de entrega                                         | 🔄 en curso  |
-| 9    | Órdenes de compra a proveedores                                  | ⏳           |
+| 8    | Hojas de ruta de entrega                                         | ✅           |
+| 9    | Órdenes de compra a proveedores                                  | 🔄 en curso  |
 | 10   | Lista de picking                                                 | ⏳ a debatir |
 
 ---
@@ -204,7 +204,7 @@ Estado al 28/10/2026: fases 0 a 7 terminadas (v1.28.0-alpha); fase 8 en curso.
   cliente ve su saldo en "Mis pedidos".
 - Cambio de estado masivo (p. ej. toda una zona a En reparto) e historial de cambios en el detalle.
 
-## Fase 8 — Hojas de ruta de entrega 🔄
+## Fase 8 — Hojas de ruta de entrega ✅
 
 | PR  | Contenido                                                                  | Estado           |
 | --- | -------------------------------------------------------------------------- | ---------------- |
@@ -212,7 +212,7 @@ Estado al 28/10/2026: fases 0 a 7 terminadas (v1.28.0-alpha); fase 8 en curso.
 | 8.2 | Hoja de ruta: armado, orden de paradas, salida e impresión                 | ✅ v1.30.0-alpha |
 | 8.3 | Carga por parada (celular): entrega, firma o foto, cobro, hora y ubicación | ✅ v1.31.0-alpha |
 | 8.4 | Entrega parcial: ajuste del pedido y del stock                             | ✅ v1.32.0-alpha |
-| 8.5 | Cierre de la hoja y rendición de efectivo                                  | 🟡 PR listo      |
+| 8.5 | Cierre de la hoja y rendición de efectivo                                  | ✅ v1.33.0-alpha |
 
 **Decisiones**
 
@@ -233,7 +233,30 @@ Estado al 28/10/2026: fases 0 a 7 terminadas (v1.28.0-alpha); fase 8 en curso.
 - Impresión por parada: cliente, dirección y contacto, productos y peso, **monto a cobrar** (pedido +
   deuda anterior o saldo a favor) y firma de recepción.
 
-## Fase 9 — Órdenes de compra a proveedores ⏳
+## Fase 9 — Compras a proveedores 🔄
+
+| PR  | Contenido                                                                          | Estado      |
+| --- | ---------------------------------------------------------------------------------- | ----------- |
+| 9.1 | Stock mínimo + orden de compra (sugerencia, estados, impresión y WhatsApp)         | 🟡 PR listo |
+| 9.2 | Informe de recepción: depósito, remito, cantidades, diferencias e ingreso de stock | ⏳          |
+| 9.3 | Factura de proveedor con control de 3 vías y actualización del último costo        | ⏳          |
+| 9.4 | Cuenta corriente del proveedor: órdenes de pago y notas de crédito                 | ⏳          |
+
+**Decisiones**
+
+- Circuito administrativo con comprobantes: **orden de compra (OC)** → **informe de recepción (IR)**,
+  puede haber varios por OC → **factura de proveedor** → **orden de pago (OP)**, más **notas de
+  crédito** del proveedor (devoluciones, diferencias).
+- OC: Borrador → Enviada → Recibida parcial / Recibida; se cancela mientras no llegó nada. Se arma con
+  **sugerencia**: stock mínimo + reservado − stock − lo pedido en OC sin recibir. Impresión / PDF y
+  texto para WhatsApp.
+- IR: depósito, remito del proveedor, cantidades recibidas y **diferencias con lo pedido** (menos, más,
+  otro precio); el stock entra como ingreso con referencia a la OC.
+- Factura: tipo A/B/C, punto de venta y número, fecha, vencimiento, neto, IVA, total. **Control de 3
+  vías** (OC vs IR vs factura) marca diferencias antes de pagar. Actualiza el **último costo** del
+  producto en ese proveedor.
+- **Deuda con el proveedor por las facturas**: suman facturas, restan notas de crédito y órdenes de pago.
+- **Stock mínimo por producto** para alertar y sugerir compras.
 
 ## Fase 10 — Lista de picking ⏳ a debatir
 

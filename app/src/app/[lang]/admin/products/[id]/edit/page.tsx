@@ -66,6 +66,7 @@ async function EditForm({ params }: { params: Promise<{ id: string }> }) {
         price: decimal(product.price),
         weight: decimal(product.weight),
         volume: product.volume === null ? "" : decimal(product.volume),
+        minStock: product.minStock === null ? "" : decimal(product.minStock),
         isActive: product.isActive,
       }}
       imageFile={product.imageFile}

@@ -95,6 +95,7 @@ enum AuditEntity {
   DRIVER
   VEHICLE
   ROUTE_SHEET
+  PURCHASE_ORDER
 }
 
 // --- TABLES ---
@@ -182,40 +183,43 @@ model TaxRate {
 }
 
 model Product {
-  id                String            @id @default(cuid(2))
-  name              String            @unique
+  id                String              @id @default(cuid(2))
+  name              String              @unique
   // Código interno, obligatorio. El de barras es opcional (no todo tiene EAN).
-  sku               String            @unique
-  barcode           String?           @unique
+  sku               String              @unique
+  barcode           String?             @unique
   description       String?
   // Solo categorías finales (sin hijas): lo controla la app.
-  categoryId        Int               @map("category_id")
+  categoryId        Int                 @map("category_id")
   // Precio neto, sin IVA. El final se calcula con la alícuota.
-  price             Decimal           @db.Decimal(12, 2)
-  taxRateId         Int               @map("tax_rate_id")
-  measurementUnitId Int               @map("measurement_unit_id")
+  price             Decimal             @db.Decimal(12, 2)
+  taxRateId         Int                 @map("tax_rate_id")
+  measurementUnitId Int                 @map("measurement_unit_id")
   // Peso en kg y volumen en litros, por unidad de venta.
-  weight            Decimal           @db.Decimal(10, 3)
-  volume            Decimal?          @db.Decimal(10, 3)
+  weight            Decimal             @db.Decimal(10, 3)
+  volume            Decimal?            @db.Decimal(10, 3)
+  /// Stock mínimo: debajo de esto se alerta y se sugiere comprar.
+  minStock          Decimal?            @map("min_stock") @db.Decimal(12, 3)
   // Archivo WebP en UPLOADS_DIR/products (ver lib/product-image).
-  imageFile         String?           @map("image_file")
+  imageFile         String?             @map("image_file")
   // Pausado: no se ve en el catálogo, pero conserva historial y stock.
-  isActive          Boolean           @default(true) @map("is_active")
-  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
-  deletedAt         DateTime?         @map("deleted_at") @db.Timestamptz(3)
-  createdById       String?           @map("created_by")
-  updatedById       String?           @map("updated_by")
-  category          Category          @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  measurementUnit   MeasurementUnit   @relation(fields: [measurementUnitId], references: [id], onDelete: Restrict)
-  taxRate           TaxRate           @relation(fields: [taxRateId], references: [id], onDelete: Restrict)
-  createdBy         User?             @relation("ProductCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy         User?             @relation("ProductUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  isActive          Boolean             @default(true) @map("is_active")
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt         DateTime?           @map("deleted_at") @db.Timestamptz(3)
+  createdById       String?             @map("created_by")
+  updatedById       String?             @map("updated_by")
+  category          Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  measurementUnit   MeasurementUnit     @relation(fields: [measurementUnitId], references: [id], onDelete: Restrict)
+  taxRate           TaxRate             @relation(fields: [taxRateId], references: [id], onDelete: Restrict)
+  createdBy         User?               @relation("ProductCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy         User?               @relation("ProductUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   saleItems         SaleItem[]
   stocks            ProductStock[]
   suppliers         SupplierProduct[]
   cartItems         CartItem[]
   stockMovements    StockMovement[]
+  purchaseItems     PurchaseOrderItem[]
 
   @@index([categoryId], map: "idx_products_category_id")
   @@index([measurementUnitId], map: "idx_products_measurement_unit_id")
@@ -270,25 +274,26 @@ model StockMovement {
 // Proveedores. Inactivo: no se ofrece para compras nuevas, pero se conserva.
 // Dirección y localidad van juntas o ninguna de las dos (lo controla la app).
 model Supplier {
-  id           String            @id @default(cuid(2))
-  legalName    String            @map("legal_name")
-  tradeName    String?           @map("trade_name")
-  cuit         String            @unique @db.VarChar(11)
-  taxCondition TaxCondition      @map("tax_condition")
-  contactName  String?           @map("contact_name")
-  contactMail  String?           @map("contact_mail")
-  contactPhone String?           @map("contact_phone")
-  address      String?
-  cityId       Int?              @map("city_id")
-  isActive     Boolean           @default(true) @map("is_active")
-  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
-  createdById  String?           @map("created_by")
-  updatedById  String?           @map("updated_by")
-  city         City?             @relation(fields: [cityId], references: [id], onDelete: Restrict)
-  createdBy    User?             @relation("SupplierCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy    User?             @relation("SupplierUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
-  products     SupplierProduct[]
+  id             String            @id @default(cuid(2))
+  legalName      String            @map("legal_name")
+  tradeName      String?           @map("trade_name")
+  cuit           String            @unique @db.VarChar(11)
+  taxCondition   TaxCondition      @map("tax_condition")
+  contactName    String?           @map("contact_name")
+  contactMail    String?           @map("contact_mail")
+  contactPhone   String?           @map("contact_phone")
+  address        String?
+  cityId         Int?              @map("city_id")
+  isActive       Boolean           @default(true) @map("is_active")
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById    String?           @map("created_by")
+  updatedById    String?           @map("updated_by")
+  city           City?             @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  createdBy      User?             @relation("SupplierCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy      User?             @relation("SupplierUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  products       SupplierProduct[]
+  purchaseOrders PurchaseOrder[]
 
   @@index([cityId], map: "idx_suppliers_city_id")
   @@map("suppliers")
@@ -492,6 +497,8 @@ model User {
   routeSheetsUpdated       RouteSheet[]      @relation("RouteSheetUpdatedBy")
   routeStopsRecorded       RouteStop[]       @relation("RouteStopRecordedBy")
   routeSheetsClosed        RouteSheet[]      @relation("RouteSheetClosedBy")
+  purchaseOrdersCreated    PurchaseOrder[]   @relation("PurchaseOrderCreatedBy")
+  purchaseOrdersUpdated    PurchaseOrder[]   @relation("PurchaseOrderUpdatedBy")
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")
@@ -781,4 +788,64 @@ enum RouteStopStatus {
   PENDING
   DELIVERED
   NOT_DELIVERED
+}
+
+enum PurchaseOrderState {
+  /// Se arma: se cambian productos, cantidades y costos.
+  DRAFT
+  /// Se mandó al proveedor.
+  SENT
+  /// Llegó una parte (informes de recepción).
+  PARTIALLY_RECEIVED
+  /// Llegó todo.
+  RECEIVED
+  /// Se canceló antes de recibir nada.
+  CANCELED
+}
+
+/// Orden de compra (OC) a un proveedor.
+model PurchaseOrder {
+  id           String              @id @default(cuid(2))
+  /// Número correlativo ("OC #12").
+  number       Int                 @unique @default(autoincrement())
+  supplierId   String              @map("supplier_id")
+  state        PurchaseOrderState  @default(DRAFT)
+  /// Fecha de entrega esperada (opcional).
+  expectedDate DateTime?           @map("expected_date") @db.Date
+  notes        String?             @db.VarChar(300)
+  /// Totales con los costos pactados (neto + IVA de cada producto).
+  subTotal     Decimal             @default(0) @map("sub_total") @db.Decimal(12, 2)
+  tax          Decimal             @default(0) @db.Decimal(12, 2)
+  total        Decimal             @default(0) @db.Decimal(12, 2)
+  sentAt       DateTime?           @map("sent_at") @db.Timestamptz(3)
+  canceledAt   DateTime?           @map("canceled_at") @db.Timestamptz(3)
+  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById  String?             @map("created_by")
+  updatedById  String?             @map("updated_by")
+  supplier     Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  createdBy    User?               @relation("PurchaseOrderCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy    User?               @relation("PurchaseOrderUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  items        PurchaseOrderItem[]
+
+  @@index([supplierId, state], map: "idx_purchase_orders_supplier_id_state")
+  @@index([state], map: "idx_purchase_orders_state")
+  @@map("purchase_orders")
+}
+
+/// Producto pedido en una OC, con el costo pactado (neto) y la alícuota de IVA del momento.
+model PurchaseOrderItem {
+  purchaseOrderId  String        @map("purchase_order_id")
+  productId        String        @map("product_id")
+  quantity         Decimal       @db.Decimal(12, 3)
+  unitCost         Decimal       @map("unit_cost") @db.Decimal(12, 2)
+  taxRate          Decimal       @map("tax_rate") @db.Decimal(5, 4)
+  /// Lo recibido hasta ahora (lo actualizan los informes de recepción).
+  receivedQuantity Decimal       @default(0) @map("received_quantity") @db.Decimal(12, 3)
+  purchaseOrder    PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  product          Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@id([purchaseOrderId, productId])
+  @@index([productId], map: "idx_purchase_order_items_product_id")
+  @@map("purchase_order_items")
 }
