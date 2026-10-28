@@ -174,6 +174,18 @@ async function PrintableSheet({
           })}{" "}
           · {p.toCollect}: {format.money(fromCents(toCollect))}
         </p>
+        {sheet.state === "CLOSED" && (
+          <p className="mt-2">
+            {interpolate(r.closing.cashExpected, {
+              amount: format.money(sheet.cashExpected ?? 0),
+            })}{" "}
+            ·{" "}
+            {interpolate(r.closing.received, {
+              amount: format.money(sheet.cashReceived ?? 0),
+            })}
+            {sheet.closingNotes && ` · ${sheet.closingNotes}`}
+          </p>
+        )}
         <p className="mt-8 w-64 border-t border-current/50 pt-1 text-xs">
           {p.driverSignature}
         </p>

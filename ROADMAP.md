@@ -211,8 +211,8 @@ Estado al 28/10/2026: fases 0 a 7 terminadas (v1.28.0-alpha); fase 8 en curso.
 | 8.1 | Rol Repartidor, repartidores (vinculables a un usuario) y vehículos        | ✅ v1.29.0-alpha |
 | 8.2 | Hoja de ruta: armado, orden de paradas, salida e impresión                 | ✅ v1.30.0-alpha |
 | 8.3 | Carga por parada (celular): entrega, firma o foto, cobro, hora y ubicación | ✅ v1.31.0-alpha |
-| 8.4 | Entrega parcial: ajuste del pedido y del stock                             | 🟡 PR listo      |
-| 8.5 | Cierre de la hoja y rendición de efectivo                                  | ⏳               |
+| 8.4 | Entrega parcial: ajuste del pedido y del stock                             | ✅ v1.32.0-alpha |
+| 8.5 | Cierre de la hoja y rendición de efectivo                                  | 🟡 PR listo      |
 
 **Decisiones**
 

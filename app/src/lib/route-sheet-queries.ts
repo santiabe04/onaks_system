@@ -44,6 +44,9 @@ export async function getRouteSheet(number: number) {
     where: { number },
     include: {
       driver: { select: { id: true, name: true, phone: true, userId: true } },
+      closedBy: {
+        select: { person: { select: { name: true, surname: true } } },
+      },
       vehicle: {
         select: {
           id: true,

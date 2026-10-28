@@ -100,6 +100,10 @@ comentarios y textos de UI en español.
   donde salió (`SALE_RETURN`) y, si se rompió o venció, además lo da de baja (`WRITE_OFF`), ajusta las
   cantidades y totales del pedido y lo audita. Lo faltante queda en `route_stops.shortages`. Una entrega
   parcial no se deshace desde la parada.
+- Cierre (`closeRouteSheet`, admin): con todas las paradas cargadas, rendición del efectivo. Lo esperado
+  es la suma de cobros en efectivo de las paradas sin anular (`summarizeCollections`, calculado con la
+  hoja bloqueada); si lo entregado no coincide, comentario obligatorio. Se guardan esperado, recibido,
+  comentario y quién cerró. Con la hoja cerrada, los pedidos no entregados quedan libres para otra.
 
 ## UI del admin
 
