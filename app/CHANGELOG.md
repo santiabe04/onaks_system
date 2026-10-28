@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.28.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.27.0-alpha...v1.28.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **orders:** add bulk order state change ([#73](https://github.com/santiabe04/onaks_system/issues/73)) ([3356eb4](https://github.com/santiabe04/onaks_system/commit/3356eb4131ec8eb5a185eda0fbb2132fe04b6104))
+
 ## [1.27.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.26.0-alpha...v1.27.0-alpha) (2026-10-28)
 
 
