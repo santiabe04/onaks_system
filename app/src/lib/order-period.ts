@@ -33,7 +33,7 @@ function first(value: string | string[] | undefined): string | undefined {
 }
 
 /** "2026-10-24" → 00:00 de ese día en Argentina. */
-function dayStart(raw: string | undefined): Date | undefined {
+export function dayStart(raw: string | undefined): Date | undefined {
   if (!raw || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) return undefined;
   const utc = Date.parse(`${raw}T00:00:00Z`);
   if (Number.isNaN(utc)) return undefined;

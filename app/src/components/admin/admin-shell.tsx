@@ -127,6 +127,15 @@ function NavList({
   pathname: string | null;
   onNavigate: () => void;
 }) {
+  // Si varias coinciden (/admin/orders y /admin/orders/list), gana la más específica.
+  const activeHref =
+    pathname === null
+      ? null
+      : (sections
+          .flatMap((section) => section.items)
+          .filter((item) => isActive(pathname, item.href))
+          .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? null);
+
   return sections.map((section, index) => (
     <div key={section.title ?? index} className="mt-4 first:mt-0">
       {section.title && (
@@ -136,7 +145,7 @@ function NavList({
       )}
       <ul>
         {section.items.map((item) => {
-          const active = pathname !== null && isActive(pathname, item.href);
+          const active = item.href === activeHref;
           return (
             <li key={item.href}>
               <Link

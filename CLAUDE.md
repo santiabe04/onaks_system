@@ -13,6 +13,8 @@ viernes**, `lib/order-period`, o rango libre) sin los cancelados y los agrupa po
 La consulta del período es `getPeriodOrders` (`lib/orders-by-zone-queries`), compartida con el CSV
 (`/admin/orders/export`, `;` y coma decimal en español, con BOM para Excel) y el widget del dashboard.
 Para imprimir: `print:hidden` en lo que no va al papel (menú, controles); en papel el tema es siempre claro.
+"Todos los pedidos" (`/admin/orders/list`) filtra con `lib/order-filters` (estados múltiples, pago, cliente,
+localidad, producto, número y fechas, todo por URL); con un producto muestra cuánto se pidió de él.
 
 Idioma: el usuario habla en español rioplatense. Código, commits y nombres en inglés;
 comentarios y textos de UI en español.

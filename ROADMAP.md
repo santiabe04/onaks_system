@@ -3,7 +3,7 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 28/10/2026: fases 0 a 4 terminadas (v1.19.0-alpha); fase 5 en curso (5.1 en v1.20.0-alpha).
+Estado al 28/10/2026: fases 0 a 5 terminadas (v1.21.0-alpha); fase 6 en curso.
 
 | Fase | Contenido                                                        | Estado       |
 | ---- | ---------------------------------------------------------------- | ------------ |
@@ -12,8 +12,8 @@ Estado al 28/10/2026: fases 0 a 4 terminadas (v1.19.0-alpha); fase 5 en curso (5
 | 2    | Admin: localidades, proveedores, clientes y usuarios             | ✅           |
 | 3    | Cliente: catálogo                                                | ✅           |
 | 4    | Cliente: carrito y compra                                        | ✅           |
-| 5    | Admin: pedidos por zona                                          | 🔄 en curso  |
-| 6    | Filtros de pedidos                                               | ⏳           |
+| 5    | Admin: pedidos por zona                                          | ✅           |
+| 6    | Filtros de pedidos                                               | 🔄 en curso  |
 | 7    | Gestión de pedidos (estados)                                     | ⏳           |
 | 8    | Hojas de ruta de entrega                                         | ⏳           |
 | 9    | Órdenes de compra a proveedores                                  | ⏳           |
@@ -139,12 +139,12 @@ Estado al 28/10/2026: fases 0 a 4 terminadas (v1.19.0-alpha); fase 5 en curso (5
 
 ---
 
-## Fase 5 — Admin: pedidos por zona 🔄
+## Fase 5 — Admin: pedidos por zona ✅
 
 | PR  | Contenido                                     | Estado           |
 | --- | --------------------------------------------- | ---------------- |
 | 5.1 | Pedidos por zona + detalle del pedido (admin) | ✅ v1.20.0-alpha |
-| 5.2 | Impresión, CSV y widget del dashboard         | 🟡 PR listo      |
+| 5.2 | Impresión, CSV y widget del dashboard         | ✅ v1.21.0-alpha |
 
 **Decisiones**
 
@@ -158,9 +158,21 @@ Estado al 28/10/2026: fases 0 a 4 terminadas (v1.19.0-alpha); fase 5 en curso (5
 
 ---
 
-## Fase 6 — Filtros de pedidos ⏳
+## Fase 6 — Filtros de pedidos 🔄
 
-- Por producto, localidad, fechas, estado, etc.
+| PR  | Contenido                                           | Estado      |
+| --- | --------------------------------------------------- | ----------- |
+| 6.1 | Lista "Todos los pedidos" con filtros               | 🟡 PR listo |
+| 6.2 | Los mismos filtros en la vista por zona y en el CSV | ⏳          |
+
+**Decisiones**
+
+- Pantalla nueva "Todos los pedidos" (tabla paginada, más recientes primero) con filtros; después
+  los mismos filtros se aplican a la vista por zona y al CSV.
+- Filtros: estado y estado de pago (varios a la vez, incluido Cancelado), producto, cliente,
+  localidad, número de pedido, forma de pago y fechas.
+- Con un producto elegido, cada pedido muestra cuánto se pidió de ese producto y arriba el total del
+  filtro (para saber cuánto preparar).
 
 ## Fase 7 — Gestión de pedidos ⏳
 
