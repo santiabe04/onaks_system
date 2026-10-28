@@ -210,8 +210,8 @@ Estado al 28/10/2026: fases 0 a 7 terminadas (v1.28.0-alpha); fase 8 en curso.
 | --- | -------------------------------------------------------------------------- | ---------------- |
 | 8.1 | Rol Repartidor, repartidores (vinculables a un usuario) y vehículos        | ✅ v1.29.0-alpha |
 | 8.2 | Hoja de ruta: armado, orden de paradas, salida e impresión                 | ✅ v1.30.0-alpha |
-| 8.3 | Carga por parada (celular): entrega, firma o foto, cobro, hora y ubicación | 🟡 PR listo      |
-| 8.4 | Entrega parcial: ajuste del pedido y del stock                             | ⏳               |
+| 8.3 | Carga por parada (celular): entrega, firma o foto, cobro, hora y ubicación | ✅ v1.31.0-alpha |
+| 8.4 | Entrega parcial: ajuste del pedido y del stock                             | 🟡 PR listo      |
 | 8.5 | Cierre de la hoja y rendición de efectivo                                  | ⏳               |
 
 **Decisiones**
@@ -226,6 +226,10 @@ Estado al 28/10/2026: fases 0 a 7 terminadas (v1.28.0-alpha); fase 8 en curso.
   cuenta corriente), **entrega parcial** y **hora y ubicación**. Lo carga un usuario con rol nuevo
   **Repartidor** o un **Admin** (un admin puede ser también repartidor). Al cerrar la hoja, **rendición
   de efectivo** del repartidor.
+- **Entrega parcial** (repartidor o admin, desde la parada): por producto, cuánto se entregó y, si falta,
+  el motivo. "Vuelve al depósito" (rechazado, sobrante) devuelve el stock al depósito de donde salió;
+  "Se da de baja" (roto, vencido) queda como baja en el libro. El pedido se ajusta a lo entregado (lo
+  original queda en la auditoría y en la parada) y la deuda es solo por eso.
 - Impresión por parada: cliente, dirección y contacto, productos y peso, **monto a cobrar** (pedido +
   deuda anterior o saldo a favor) y firma de recepción.
 

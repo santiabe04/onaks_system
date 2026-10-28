@@ -256,7 +256,23 @@ export const en: Dictionary = {
     undo: "Undo this record",
     undoConfirm:
       "Undo the record of this stop? The order goes back to Out for delivery. Any payment stays in the customer account (void it there).",
+    partial: "Partial delivery",
+    partialHint:
+      "Enter how much of each product was delivered and why the rest was not.",
+    deliveredOf: "Delivered (of {ordered} {unit})",
+    shortageReasons: {
+      RETURNED: "Back to the warehouse (refused, extra)",
+      WRITTEN_OFF: "Written off (broken, expired)",
+    },
+    shortageLine:
+      "{product}: delivered {delivered} of {ordered} {unit} · {reason}",
     errors: {
+      deliveredQuantity: "Check the delivered quantities",
+      deliveredTooMuch: "You cannot deliver more than ordered",
+      shortageReason: "Choose why the rest was not delivered",
+      nothingDelivered: "Nothing was delivered: mark the stop as Not delivered",
+      partialNoUndo:
+        "A partial delivery cannot be undone: fix the order and stock by hand",
       outcomeRequired: "Choose whether it was delivered",
       reasonRequired: "Enter the reason",
       proofRequired: "The signature or the delivery note photo is missing",

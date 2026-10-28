@@ -122,6 +122,13 @@ async function Stop({
           sheet.state === "OUT" ? (
             <StopForm
               stopId={stop.id}
+              items={sale.items.map((item) => ({
+                productId: item.productId,
+                name: item.product.name,
+                unit: item.product.measurementUnit.name,
+                quantity: format.input(item.quantity),
+                allowsDecimals: item.product.measurementUnit.allowsDecimals,
+              }))}
               suggestedAmount={
                 collect > BigInt(0) ? format.input(stop.collect.total) : ""
               }

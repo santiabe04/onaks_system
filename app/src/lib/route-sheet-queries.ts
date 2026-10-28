@@ -103,7 +103,9 @@ export async function getRouteSheet(number: number) {
                     select: {
                       name: true,
                       sku: true,
-                      measurementUnit: { select: { name: true } },
+                      measurementUnit: {
+                        select: { name: true, allowsDecimals: true },
+                      },
                     },
                   },
                 },

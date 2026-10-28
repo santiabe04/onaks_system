@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { FormError, SubmitButton } from "@/components/ui/form";
 import type { PaymentMethod } from "@/generated/prisma/enums";
+import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { STOP_LIMITS } from "@/lib/stop-record";
 import { recordStop, type StopActionState } from "../../actions";
@@ -27,11 +28,21 @@ function currentPosition(): Promise<GeolocationPosition | null> {
 /** Carga de una parada: entregado (firma o foto, cobro) o no entregado (motivo). */
 export function StopForm({
   stopId,
+  items,
   suggestedAmount,
   t,
   methods,
 }: {
   stopId: string;
+  /** Productos del pedido, para la entrega parcial. */
+  items: {
+    productId: string;
+    name: string;
+    unit: string;
+    /** Con el separador decimal del idioma ("1,25"). */
+    quantity: string;
+    allowsDecimals: boolean;
+  }[];
   /** Lo que hay que cobrar, para precargar ("29860,5"); vacío si no hay. */
   suggestedAmount: string;
   t: Dictionary["delivery"];
@@ -40,6 +51,7 @@ export function StopForm({
   const [outcome, setOutcome] = useState<"DELIVERED" | "NOT_DELIVERED">(
     "DELIVERED",
   );
+  const [partial, setPartial] = useState(false);
   const [state, action, pending] = useActionState<StopActionState, FormData>(
     async (prev, formData) => {
       const position = await currentPosition();
@@ -114,6 +126,59 @@ export function StopForm({
                 className="text-sm"
               />
             </label>
+          </section>
+
+          <section className="flex flex-col gap-3">
+            <label className="flex items-center gap-2 font-medium">
+              <input
+                type="checkbox"
+                name="partial"
+                checked={partial}
+                onChange={(event) => setPartial(event.target.checked)}
+                className="size-5"
+              />
+              {t.partial}
+            </label>
+            {partial && (
+              <>
+                <p className="text-sm opacity-70">{t.partialHint}</p>
+                {items.map((item) => (
+                  <fieldset
+                    key={item.productId}
+                    className="flex flex-col gap-2 rounded border border-current/20 p-3 text-sm"
+                  >
+                    <legend className="px-1 font-medium">{item.name}</legend>
+                    <label className="flex flex-col gap-1">
+                      <span>
+                        {interpolate(t.deliveredOf, {
+                          ordered: item.quantity,
+                          unit: item.unit,
+                        })}
+                      </span>
+                      <input
+                        name={`delivered_${item.productId}`}
+                        inputMode={item.allowsDecimals ? "decimal" : "numeric"}
+                        defaultValue={item.quantity}
+                        className={CONTROL}
+                      />
+                    </label>
+                    <select
+                      name={`reason_${item.productId}`}
+                      defaultValue=""
+                      aria-label={t.reason}
+                      className={CONTROL}
+                    >
+                      <option value="">—</option>
+                      {(["RETURNED", "WRITTEN_OFF"] as const).map((reason) => (
+                        <option key={reason} value={reason}>
+                          {t.shortageReasons[reason]}
+                        </option>
+                      ))}
+                    </select>
+                  </fieldset>
+                ))}
+              </>
+            )}
           </section>
 
           <section className="flex flex-col gap-3">
