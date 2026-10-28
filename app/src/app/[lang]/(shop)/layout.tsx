@@ -5,6 +5,10 @@ import { UserMenu } from "@/components/user-menu";
 import { getT } from "@/i18n/server";
 import { APP_NAME } from "@/lib/app";
 import { getCurrentUser } from "@/lib/auth";
+import { VISIBLE_PRODUCT } from "@/lib/catalog";
+import { db } from "@/lib/db";
+import { can } from "@/lib/permissions";
+import { interpolate } from "@/i18n/config";
 
 // La tienda que ven los clientes (catálogo, y en la fase 4 el carrito). Los
 // admins también pueden entrar, para ver lo mismo que el cliente.
@@ -24,6 +28,9 @@ export default async function ShopLayout({ children }: LayoutProps<"/[lang]">) {
               <AdminLink label={t.catalog.adminPanel} />
             </Suspense>
             <Suspense fallback={null}>
+              <CartLink label={t.cart.link} />
+            </Suspense>
+            <Suspense fallback={null}>
               <UserMenu />
             </Suspense>
             <ThemeSelector labels={t.theme} />
@@ -32,6 +39,20 @@ export default async function ShopLayout({ children }: LayoutProps<"/[lang]">) {
       </header>
       {children}
     </div>
+  );
+}
+
+/** "Carrito (N)" para los clientes: cuenta solo productos que se siguen vendiendo. */
+async function CartLink({ label }: { label: string }) {
+  const user = await getCurrentUser();
+  if (!can(user.role, "sales:create")) return null;
+  const count = await db.cartItem.count({
+    where: { personId: user.personId, product: VISIBLE_PRODUCT },
+  });
+  return (
+    <Link href="/cart" className="text-sm font-medium hover:underline">
+      {interpolate(label, { count })}
+    </Link>
   );
 }
 

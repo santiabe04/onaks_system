@@ -44,7 +44,11 @@ async function EditForm({ params }: { params: Promise<{ id: string }> }) {
   return (
     <MeasurementUnitForm
       action={updateMeasurementUnit.bind(null, unit.id)}
-      defaultValues={{ name: unit.name, description: unit.description ?? "" }}
+      defaultValues={{
+        name: unit.name,
+        description: unit.description ?? "",
+        allowsDecimals: unit.allowsDecimals,
+      }}
       submitLabel={t.common.save}
       t={t.measurementUnits}
       common={t.common}

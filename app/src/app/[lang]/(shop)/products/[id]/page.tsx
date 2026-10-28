@@ -11,6 +11,8 @@ import { VISIBLE_PRODUCT } from "@/lib/catalog";
 import { CATALOG_PRODUCT_SELECT, toCatalogItem } from "@/lib/catalog-queries";
 import { flattenCategoryTree } from "@/lib/category";
 import { db } from "@/lib/db";
+import { can } from "@/lib/permissions";
+import { AddToCart } from "@/components/catalog/add-to-cart";
 import { isProductId } from "@/lib/product";
 
 export async function generateMetadata({
@@ -47,7 +49,7 @@ export default async function ProductPage({
 }
 
 async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
-  await getUserWithPermission("catalog:read");
+  const user = await getUserWithPermission("catalog:read");
   const { id } = await params;
   if (!isProductId(id)) notFound();
 
@@ -123,6 +125,14 @@ async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
               volume: format.number(product.volume),
             })}`}
         </p>
+        {can(user.role, "sales:create") && (
+          <AddToCart
+            productId={item.id}
+            unitName={item.unitName}
+            allowsDecimals={item.allowsDecimals}
+            t={t.cart}
+          />
+        )}
         {item.description && (
           <p className="text-sm whitespace-pre-line">{item.description}</p>
         )}

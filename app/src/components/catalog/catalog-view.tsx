@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import type { CatalogItem } from "@/lib/catalog-queries";
+import { AddToCart } from "./add-to-cart";
 
 type View = "cards" | "list";
 
@@ -71,21 +72,37 @@ export function ViewToggle({ t }: { t: Dictionary["catalog"] }) {
 /** Los productos de la página, en tarjetas o en lista según la preferencia. */
 export function CatalogView({
   items,
+  canBuy,
   t,
+  cart,
 }: {
   items: CatalogItem[];
+  /** Solo los clientes compran: el admin ve el catálogo sin "Agregar". */
+  canBuy: boolean;
   t: Dictionary["catalog"];
+  cart: Dictionary["cart"];
 }) {
   const view = useSyncExternalStore(subscribe, readView, () => "cards");
+  // El form queda fuera del link: un form dentro de un <a> no es HTML válido.
+  const add = (item: CatalogItem, compact?: boolean) =>
+    canBuy && (
+      <AddToCart
+        productId={item.id}
+        unitName={item.unitName}
+        allowsDecimals={item.allowsDecimals}
+        t={cart}
+        compact={compact}
+      />
+    );
 
   if (view === "list") {
     return (
       <ul className="divide-y divide-current/10">
         {items.map((item) => (
-          <li key={item.id}>
+          <li key={item.id} className="flex flex-col gap-2 py-3">
             <Link
               href={`/products/${item.id}`}
-              className="flex items-center gap-4 py-3 hover:bg-current/5"
+              className="flex items-center gap-4 hover:bg-current/5"
             >
               <Thumb item={item} size={56} t={t} />
               <div className="min-w-0 flex-1">
@@ -102,6 +119,7 @@ export function CatalogView({
                 <p className="text-xs opacity-70">{item.netLine}</p>
               </div>
             </Link>
+            {canBuy && <div className="self-end">{add(item)}</div>}
           </li>
         ))}
       </ul>
@@ -111,10 +129,13 @@ export function CatalogView({
   return (
     <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
       {items.map((item) => (
-        <li key={item.id}>
+        <li
+          key={item.id}
+          className="flex h-full flex-col overflow-hidden rounded border border-current/20"
+        >
           <Link
             href={`/products/${item.id}`}
-            className="flex h-full flex-col overflow-hidden rounded border border-current/20 hover:bg-current/5"
+            className="flex flex-1 flex-col hover:bg-current/5"
           >
             <Thumb item={item} t={t} />
             <div className="flex flex-1 flex-col gap-1 p-3">
@@ -132,6 +153,7 @@ export function CatalogView({
               </div>
             </div>
           </Link>
+          {canBuy && <div className="px-3 pb-3">{add(item, true)}</div>}
         </li>
       ))}
     </ul>

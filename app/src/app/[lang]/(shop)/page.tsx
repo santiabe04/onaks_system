@@ -22,6 +22,7 @@ import {
 } from "@/lib/catalog-queries";
 import { descendantIds, type CategoryNode } from "@/lib/category";
 import { db } from "@/lib/db";
+import { can } from "@/lib/permissions";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -50,7 +51,7 @@ async function Catalog({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await getUserWithPermission("catalog:read");
+  const user = await getUserWithPermission("catalog:read");
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const filters = parseCatalogFilters(await searchParams);
 
@@ -124,7 +125,12 @@ async function Catalog({
           {items.length === 0 ? (
             <p className="text-sm opacity-70">{t.catalog.empty}</p>
           ) : (
-            <CatalogView items={items} t={t.catalog} />
+            <CatalogView
+              items={items}
+              canBuy={can(user.role, "sales:create")}
+              t={t.catalog}
+              cart={t.cart}
+            />
           )}
         </div>
 
