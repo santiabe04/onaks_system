@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.31.0-alpha...v1.32.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **delivery:** support partial deliveries with stock returns and write-offs ([#81](https://github.com/santiabe04/onaks_system/issues/81)) ([e83df38](https://github.com/santiabe04/onaks_system/commit/e83df38acbb6aaea594eb0b9c84f9ac3541703b7))
+
 ## [1.31.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.30.0-alpha...v1.31.0-alpha) (2026-10-28)
 
 
