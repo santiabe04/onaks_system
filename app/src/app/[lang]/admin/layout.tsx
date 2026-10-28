@@ -36,7 +36,10 @@ export default async function AdminLayout({
     },
     {
       title: t.adminNav.orders,
-      items: [{ href: "/admin/orders", label: t.adminNav.ordersByZone }],
+      items: [
+        { href: "/admin/orders/list", label: t.adminNav.allOrders },
+        { href: "/admin/orders", label: t.adminNav.ordersByZone },
+      ],
     },
     {
       title: t.adminNav.purchases,
