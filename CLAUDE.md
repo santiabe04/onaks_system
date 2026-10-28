@@ -10,6 +10,9 @@ entrega: método de pago, peso y volumen totales, montos. La agrupación es una 
 fechas, no un job programado: `/admin/orders` lee los pedidos del período (semana de **sábado a
 viernes**, `lib/order-period`, o rango libre) sin los cancelados y los agrupa por localidad con
 `lib/orders-by-zone` (en enteros). El detalle de solo lectura está en `/admin/orders/[number]`.
+La consulta del período es `getPeriodOrders` (`lib/orders-by-zone-queries`), compartida con el CSV
+(`/admin/orders/export`, `;` y coma decimal en español, con BOM para Excel) y el widget del dashboard.
+Para imprimir: `print:hidden` en lo que no va al papel (menú, controles); en papel el tema es siempre claro.
 
 Idioma: el usuario habla en español rioplatense. Código, commits y nombres en inglés;
 comentarios y textos de UI en español.

@@ -38,6 +38,16 @@
   color-scheme: dark;
 }
 
+/* En papel, siempre claro: el tema oscuro gasta tinta y se lee mal. */
+@media print {
+  :root,
+  :root[data-theme="dark"] {
+    --background: #ffffff;
+    --foreground: #000000;
+    color-scheme: light;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
