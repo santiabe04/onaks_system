@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { es } from "@/i18n/dictionaries/es";
-import { parseStateChangeForm, resolveWarehouses } from "./sale-state-form";
+import {
+  parseBulkStateChangeForm,
+  parseStateChangeForm,
+  resolveWarehouses,
+} from "./sale-state-form";
 
 const t = es.adminOrders.stateChange.errors;
 
@@ -78,5 +82,45 @@ describe("resolveWarehouses", () => {
         itemWarehouses: { prodsuelto: "depnorte" },
       }),
     ).toBeNull();
+  });
+});
+
+describe("parseBulkStateChangeForm", () => {
+  it("lee los pedidos elegidos con su estado y descarta repetidos e inválidos", () => {
+    expect(
+      parseBulkStateChangeForm(
+        form([
+          ["sale", "sale1:READY_TO_SHIP"],
+          ["sale", "sale2:PREPARING"],
+          ["sale", "sale1:READY_TO_SHIP"],
+          ["sale", "../x:PENDING"],
+          ["sale", "sale3:LOST"],
+          ["to", "OUT_FOR_DELIVERY"],
+          ["comment", "Reparto del lunes, zona sur"],
+        ]),
+        t,
+      ),
+    ).toEqual({
+      ok: true,
+      data: {
+        sales: [
+          { id: "sale1", from: "READY_TO_SHIP" },
+          { id: "sale2", from: "PREPARING" },
+        ],
+        to: "OUT_FOR_DELIVERY",
+        warehouseId: null,
+        comment: "Reparto del lunes, zona sur",
+      },
+    });
+  });
+
+  it("exige al menos un pedido y un estado de destino", () => {
+    expect(parseBulkStateChangeForm(form([["to", "DELIVERED"]]), t)).toEqual({
+      ok: false,
+      error: t.noneSelected,
+    });
+    expect(
+      parseBulkStateChangeForm(form([["sale", "sale1:PENDING"]]), t),
+    ).toEqual({ ok: false, error: t.targetRequired });
   });
 });

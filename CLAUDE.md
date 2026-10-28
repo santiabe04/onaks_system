@@ -123,6 +123,9 @@ comentarios y textos de UI en español.
   cambió mientras se miraba y, al llegar a En preparación, descuenta el stock (`SALE`) del depósito
   del pedido o del elegido por producto; al volver a Pendiente o cancelar devuelve el neto
   (`SALE_RETURN`, `pendingReturns`). Los movimientos llevan `sale_id`. El historial sale de la auditoría.
+  El núcleo es `applySaleStateChange` (`lib/sale-state-change`), compartido con el cambio masivo
+  (`changeSalesStateBulk`: un pedido por transacción, informa el resultado de cada uno). Las casillas
+  de las tablas se asocian a la barra con el atributo `form` (`components/orders/bulk-state-bar`).
 - Cuenta corriente por cliente (`customer_payments`: cobros y reintegros, se anulan con motivo, no se
   borran). Un pedido es deuda al entregarse (`CHARGED_SALE_STATES`); lo cobrado se imputa solo al pedido
   más viejo (`summarizeAccount` en `lib/account`, en centavos) y `recomputeAccount` guarda el estado de

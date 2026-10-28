@@ -84,3 +84,63 @@ export function resolveWarehouses(
   }
   return result;
 }
+
+/** Tope de pedidos por cambio masivo (una zona entera entra de sobra). */
+export const BULK_MAX_SALES = 200;
+
+export type BulkStateChangeInput = {
+  /** Cada pedido con el estado que vio el admin (para rechazar si cambió). */
+  sales: { id: string; from: SaleState }[];
+  to: SaleState;
+  warehouseId: string | null;
+  comment: string | null;
+};
+
+export type BulkStateChangeState = {
+  error?: string;
+  results?: { number: number; error?: string }[];
+  savedAt?: number;
+};
+
+/** Las casillas llegan como "id:ESTADO"; repetidas o inválidas se descartan. */
+export function parseBulkStateChangeForm(
+  formData: FormData,
+  t: Messages,
+): { ok: true; data: BulkStateChangeInput } | { ok: false; error: string } {
+  const seen = new Set<string>();
+  const sales: BulkStateChangeInput["sales"] = [];
+  for (const raw of formData.getAll("sale")) {
+    if (typeof raw !== "string") continue;
+    const [id, state] = raw.split(":");
+    const from = stateValue(state ?? null);
+    if (!isCuid(id) || !from || seen.has(id)) continue;
+    seen.add(id);
+    sales.push({ id, from });
+  }
+  if (sales.length === 0) return { ok: false, error: t.noneSelected };
+  if (sales.length > BULK_MAX_SALES) {
+    return {
+      ok: false,
+      error: interpolate(t.tooMany, { max: BULK_MAX_SALES }),
+    };
+  }
+
+  // El resto se valida igual que el cambio individual.
+  const single = new FormData();
+  single.set("from", sales[0].from);
+  for (const key of ["to", "warehouse", "comment"]) {
+    const value = formData.get(key);
+    if (typeof value === "string") single.set(key, value);
+  }
+  const parsed = parseStateChangeForm(single, t);
+  if (!parsed.ok) return parsed;
+  return {
+    ok: true,
+    data: {
+      sales,
+      to: parsed.data.to,
+      warehouseId: parsed.data.warehouseId,
+      comment: parsed.data.comment,
+    },
+  };
+}

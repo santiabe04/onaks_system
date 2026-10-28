@@ -169,6 +169,24 @@ export const es = {
     kinds: { PAYMENT: "Pago", REFUND: "Reintegro" },
   },
   adminOrders: {
+    bulk: {
+      title: "Cambiar estado de los seleccionados",
+      selected: "{count} seleccionados",
+      none: "Elegí pedidos con las casillas.",
+      target: "Nuevo estado",
+      choose: "Elegí un estado",
+      warehouse: "Depósito (si hay que descontar stock)",
+      warehouseHint:
+        "Se usa solo para los pedidos que pasan a En preparación o más adelante desde Pendiente.",
+      comment: "Comentario (opcional)",
+      submit: "Aplicar",
+      saving: "Aplicando…",
+      done: "{ok} de {total} pedidos actualizados.",
+      failed: "#{number}: {error}",
+      selectOrder: "Elegir el pedido #{number}",
+      selectGroup: "Elegir todos los pedidos de {group}",
+      selectAll: "Elegir todos",
+    },
     customerEdit: {
       title: "Modificación por el cliente",
       hint: "El cliente puede cambiar el pedido una vez, mientras esté Pendiente.",
@@ -198,6 +216,8 @@ export const es = {
       saved: "Estado actualizado",
       final: "Este pedido ya no cambia de estado.",
       errors: {
+        noneSelected: "Elegí al menos un pedido",
+        tooMany: "Se pueden cambiar hasta {max} pedidos a la vez",
         beingEdited:
           "El cliente está modificando el pedido: quitale el permiso o esperá a que lo confirme",
         notEditable: "Solo se habilita la modificación de pedidos Pendientes",

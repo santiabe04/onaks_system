@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import {
+  BulkStateBar,
+  SelectGroup,
+  SelectOrder,
+} from "@/components/orders/bulk-state-bar";
 import { OrderFilterFields } from "@/components/orders/order-filter-fields";
 import { buttonClass } from "@/components/ui/button";
 import { PrintButton } from "@/components/ui/print-button";
@@ -10,6 +15,7 @@ import type { Dictionary } from "@/i18n/dictionary";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
+import { db } from "@/lib/db";
 import {
   MAX_RANGE_DAYS,
   parseOrderPeriod,
@@ -31,6 +37,7 @@ import {
   type Totals,
 } from "@/lib/orders-by-zone";
 import { getPeriodOrders } from "@/lib/orders-by-zone-queries";
+import { can } from "@/lib/permissions";
 
 const PATH = "/admin/orders";
 
@@ -62,7 +69,8 @@ async function OrdersByZone({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await getUserWithPermission("sales:read-all");
+  const user = await getUserWithPermission("sales:read-all");
+  const canManage = can(user.role, "sales:manage");
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
   // La semana actual depende de la hora del request, no de la del build.
@@ -74,9 +82,15 @@ async function OrdersByZone({
   const filters = parseOrderFilters(params);
   const filterParams = zoneFilterParams(filters);
 
-  const [orders, options] = await Promise.all([
+  const [orders, options, warehouses] = await Promise.all([
     getPeriodOrders(period, filters),
     getOrderFilterOptions(),
+    // Para el cambio masivo: depósitos activos.
+    db.warehouse.findMany({
+      where: { isActive: true },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
   ]);
   const { zones, totals } = groupOrdersByZone(orders, locale);
   const product = options.products.find((p) => p.id === filters.product);
@@ -164,6 +178,13 @@ async function OrdersByZone({
           {t.adminOrders.exportCsv}
         </a>
       </div>
+      {canManage && zones.length > 0 && (
+        <BulkStateBar
+          warehouses={warehouses}
+          t={t.adminOrders.bulk}
+          states={t.orders.states}
+        />
+      )}
       <p className="hidden text-xs opacity-70 print:block">
         {interpolate(t.adminOrders.printedAt, {
           date: format.dateTime(now),
@@ -210,6 +231,16 @@ async function OrdersByZone({
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-current/20">
                     <tr>
+                      {canManage && (
+                        <th className="w-6 py-2 pr-2 print:hidden">
+                          <SelectGroup
+                            group={String(zone.cityId)}
+                            label={interpolate(t.adminOrders.bulk.selectGroup, {
+                              group: zone.cityName,
+                            })}
+                          />
+                        </th>
+                      )}
                       <th className="py-2 pr-3 font-medium">
                         {t.adminOrders.columns.number}
                       </th>
@@ -250,6 +281,17 @@ async function OrdersByZone({
                         key={sale.number}
                         className="border-b border-current/10 align-top"
                       >
+                        {canManage && (
+                          <td className="py-2 pr-2 print:hidden">
+                            <SelectOrder
+                              id={sale.id}
+                              state={sale.state}
+                              number={sale.number}
+                              group={String(zone.cityId)}
+                              label={t.adminOrders.bulk.selectOrder}
+                            />
+                          </td>
+                        )}
                         <td className="py-2 pr-3">
                           <Link
                             href={`${PATH}/${sale.number}`}

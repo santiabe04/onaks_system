@@ -23,6 +23,7 @@ export async function getPeriodOrders(
     },
     orderBy: { number: "asc" },
     select: {
+      id: true,
       number: true,
       createdAt: true,
       state: true,
