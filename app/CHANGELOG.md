@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.28.0-alpha...v1.29.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **delivery:** add driver role, drivers and vehicles ([#75](https://github.com/santiabe04/onaks_system/issues/75)) ([2683758](https://github.com/santiabe04/onaks_system/commit/268375876bf4eb961433e684ccbd41d17ad21b62))
+
 ## [1.28.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.27.0-alpha...v1.28.0-alpha) (2026-10-28)
 
 
