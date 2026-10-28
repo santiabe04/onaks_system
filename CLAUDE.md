@@ -63,7 +63,7 @@ comentarios y textos de UI en español.
 - Modelo en `app/prisma/schema.prisma` (traducido de `schema.dbml`). Tablas en snake_case con `@@map`/`@map`.
 - IDs: CUID2 (`@default(cuid(2))`), excepto catálogos chicos (`measurement_units`, `states`, `cities`) con autoincrement.
 - Fechas en `timestamptz`. Plata en `Decimal(12,2)`, tasas (IVA, % descuento) en `Decimal(5,4)` como fracción (0.21, 0.105).
-- Soft delete con `deleted_at` en products, customers, persons, users, person_addresses.
+- Soft delete con `deleted_at` en products, customers, persons, users, customer_addresses.
 - `sale_items` guarda una foto del producto al vender (`unit_price`, `unit_weight`, `unit_volume`, `unit_tax_rate`).
 - El IVA del producto es una FK a `tax_rates` (ABM propio; el seed carga 21 / 10,5 / 27 / 0 %): cambiar
   una tasa afecta a todos sus productos, no a los pedidos ya hechos.
@@ -80,7 +80,10 @@ comentarios y textos de UI en español.
   desactiva solo sin stock.
 - Estados separados: `SaleState` (logística) y `SalePaymentState` (pago).
 - `customers` es la empresa (CUIT, razón social, condición IVA). `persons.customer_id` es null para admins.
-- Las direcciones de entrega son `person_addresses` y la zona sale de `city_id`.
+  Un cliente tiene varias personas (cada una puede tener usuario; el mail es el login, único y en minúsculas).
+- Las direcciones de entrega son del **cliente** (`customer_addresses`), no de la persona: cualquier persona
+  del cliente compra a cualquiera de ellas. La zona de reparto sale de `city_id`.
+- Dar de baja un cliente da de baja (soft delete) también sus personas y direcciones.
 - **CHECK constraints** en `app/prisma/migrations/20261023000001_checks` (Prisma no los soporta).
   Para nuevos: `npm run db:migrate -- --create-only --name <x>` y escribir el SQL a mano.
 - `categories`: árbol de hasta 3 niveles (reglas en `lib/category`, validadas con lock de tabla en la

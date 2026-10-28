@@ -79,7 +79,7 @@ enum AuditEntity {
   PRODUCT
   CUSTOMER
   PERSON
-  PERSON_ADDRESS
+  CUSTOMER_ADDRESS
   USER
   DISCOUNT
   SALE
@@ -299,32 +299,42 @@ model SupplierProduct {
 }
 
 model Customer {
-  id           String       @id @default(cuid(2))
-  tradeName    String       @map("trade_name")
-  legalName    String       @map("legal_name")
-  cuit         String       @unique @db.VarChar(11)
-  taxCondition TaxCondition @map("tax_condition")
-  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
-  deletedAt    DateTime?    @map("deleted_at") @db.Timestamptz(3)
+  id           String            @id @default(cuid(2))
+  tradeName    String            @map("trade_name")
+  legalName    String            @map("legal_name")
+  cuit         String            @unique @db.VarChar(11)
+  taxCondition TaxCondition      @map("tax_condition")
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt    DateTime?         @map("deleted_at") @db.Timestamptz(3)
+  createdById  String?           @map("created_by")
+  updatedById  String?           @map("updated_by")
+  createdBy    User?             @relation("CustomerCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy    User?             @relation("CustomerUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   persons      Person[]
+  // Las direcciones de entrega son del cliente: cualquier persona del cliente las usa.
+  addresses    CustomerAddress[]
 
+  @@index([deletedAt], map: "idx_customers_deleted_at")
   @@map("customers")
 }
 
 model Person {
-  id         String          @id @default(cuid(2))
-  customerId String?         @map("customer_id")
-  name       String
-  surname    String
-  mail       String          @unique
-  phone      String
-  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt  DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
-  deletedAt  DateTime?       @map("deleted_at") @db.Timestamptz(3)
-  customer   Customer?       @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  addresses  PersonAddress[]
-  user       User?
+  id          String    @id @default(cuid(2))
+  customerId  String?   @map("customer_id")
+  name        String
+  surname     String
+  mail        String    @unique
+  phone       String?
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(3)
+  createdById String?   @map("created_by")
+  updatedById String?   @map("updated_by")
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  createdBy   User?     @relation("PersonCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?     @relation("PersonUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  user        User?
 
   @@index([customerId], map: "idx_persons_customer_id")
   @@index([deletedAt], map: "idx_persons_deleted_at")
@@ -348,17 +358,17 @@ model State {
 }
 
 model City {
-  id          Int             @id @default(autoincrement())
+  id          Int               @id @default(autoincrement())
   name        String
-  stateId     Int             @map("state_id")
-  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
-  createdById String?         @map("created_by")
-  updatedById String?         @map("updated_by")
-  state       State           @relation(fields: [stateId], references: [id], onDelete: Restrict)
-  createdBy   User?           @relation("CityCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy   User?           @relation("CityUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
-  addresses   PersonAddress[]
+  stateId     Int               @map("state_id")
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById String?           @map("created_by")
+  updatedById String?           @map("updated_by")
+  state       State             @relation(fields: [stateId], references: [id], onDelete: Restrict)
+  createdBy   User?             @relation("CityCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?             @relation("CityUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  addresses   CustomerAddress[]
   warehouses  Warehouse[]
   suppliers   Supplier[]
 
@@ -367,9 +377,11 @@ model City {
   @@map("cities")
 }
 
-model PersonAddress {
+// Dirección de entrega de un cliente (p. ej. cada sucursal de un pet shop). La
+// localidad es la zona de reparto. Soft delete: los pedidos la referencian.
+model CustomerAddress {
   id          String    @id @default(cuid(2))
-  personId    String    @map("person_id")
+  customerId  String    @map("customer_id")
   name        String
   description String?
   address     String
@@ -378,49 +390,59 @@ model PersonAddress {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
   deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(3)
-  person      Person    @relation(fields: [personId], references: [id], onDelete: Restrict)
+  createdById String?   @map("created_by")
+  updatedById String?   @map("updated_by")
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Restrict)
   city        City      @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  createdBy   User?     @relation("CustomerAddressCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?     @relation("CustomerAddressUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   sales       Sale[]
 
-  @@index([personId], map: "idx_person_addresses_person_id")
-  @@index([cityId], map: "idx_person_addresses_city_id")
-  @@map("person_addresses")
+  @@index([customerId], map: "idx_customer_addresses_customer_id")
+  @@index([cityId], map: "idx_customer_addresses_city_id")
+  @@map("customer_addresses")
 }
 
 model User {
-  id                      String            @id @default(cuid(2))
-  personId                String            @unique @map("person_id")
-  userType                UserType          @map("user_type")
-  passwordHash            String            @map("password_hash")
-  passwordMustChange      Boolean           @default(true) @map("password_must_change")
-  isActive                Boolean           @default(true) @map("is_active")
+  id                       String            @id @default(cuid(2))
+  personId                 String            @unique @map("person_id")
+  userType                 UserType          @map("user_type")
+  passwordHash             String            @map("password_hash")
+  passwordMustChange       Boolean           @default(true) @map("password_must_change")
+  isActive                 Boolean           @default(true) @map("is_active")
   // Va en el token: incrementarlo invalida las sesiones emitidas antes.
-  sessionVersion          Int               @default(0) @map("session_version")
-  createdAt               DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt               DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
-  deletedAt               DateTime?         @map("deleted_at") @db.Timestamptz(3)
-  person                  Person            @relation(fields: [personId], references: [id], onDelete: Restrict)
-  sales                   Sale[]
-  auditLogs               AuditLog[]
-  measurementUnitsCreated MeasurementUnit[] @relation("MeasurementUnitCreatedBy")
-  measurementUnitsUpdated MeasurementUnit[] @relation("MeasurementUnitUpdatedBy")
-  categoriesCreated       Category[]        @relation("CategoryCreatedBy")
-  categoriesUpdated       Category[]        @relation("CategoryUpdatedBy")
-  warehousesCreated       Warehouse[]       @relation("WarehouseCreatedBy")
-  warehousesUpdated       Warehouse[]       @relation("WarehouseUpdatedBy")
-  taxRatesCreated         TaxRate[]         @relation("TaxRateCreatedBy")
-  taxRatesUpdated         TaxRate[]         @relation("TaxRateUpdatedBy")
-  productsCreated         Product[]         @relation("ProductCreatedBy")
-  productsUpdated         Product[]         @relation("ProductUpdatedBy")
-  stockMovements          StockMovement[]
-  statesCreated           State[]           @relation("StateCreatedBy")
-  statesUpdated           State[]           @relation("StateUpdatedBy")
-  citiesCreated           City[]            @relation("CityCreatedBy")
-  citiesUpdated           City[]            @relation("CityUpdatedBy")
-  suppliersCreated        Supplier[]        @relation("SupplierCreatedBy")
-  suppliersUpdated        Supplier[]        @relation("SupplierUpdatedBy")
-  supplierProductsCreated SupplierProduct[] @relation("SupplierProductCreatedBy")
-  supplierProductsUpdated SupplierProduct[] @relation("SupplierProductUpdatedBy")
+  sessionVersion           Int               @default(0) @map("session_version")
+  createdAt                DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt                DateTime?         @map("deleted_at") @db.Timestamptz(3)
+  person                   Person            @relation(fields: [personId], references: [id], onDelete: Restrict)
+  sales                    Sale[]
+  auditLogs                AuditLog[]
+  measurementUnitsCreated  MeasurementUnit[] @relation("MeasurementUnitCreatedBy")
+  measurementUnitsUpdated  MeasurementUnit[] @relation("MeasurementUnitUpdatedBy")
+  categoriesCreated        Category[]        @relation("CategoryCreatedBy")
+  categoriesUpdated        Category[]        @relation("CategoryUpdatedBy")
+  warehousesCreated        Warehouse[]       @relation("WarehouseCreatedBy")
+  warehousesUpdated        Warehouse[]       @relation("WarehouseUpdatedBy")
+  taxRatesCreated          TaxRate[]         @relation("TaxRateCreatedBy")
+  taxRatesUpdated          TaxRate[]         @relation("TaxRateUpdatedBy")
+  productsCreated          Product[]         @relation("ProductCreatedBy")
+  productsUpdated          Product[]         @relation("ProductUpdatedBy")
+  stockMovements           StockMovement[]
+  statesCreated            State[]           @relation("StateCreatedBy")
+  statesUpdated            State[]           @relation("StateUpdatedBy")
+  citiesCreated            City[]            @relation("CityCreatedBy")
+  citiesUpdated            City[]            @relation("CityUpdatedBy")
+  suppliersCreated         Supplier[]        @relation("SupplierCreatedBy")
+  suppliersUpdated         Supplier[]        @relation("SupplierUpdatedBy")
+  supplierProductsCreated  SupplierProduct[] @relation("SupplierProductCreatedBy")
+  supplierProductsUpdated  SupplierProduct[] @relation("SupplierProductUpdatedBy")
+  customersCreated         Customer[]        @relation("CustomerCreatedBy")
+  customersUpdated         Customer[]        @relation("CustomerUpdatedBy")
+  personsCreated           Person[]          @relation("PersonCreatedBy")
+  personsUpdated           Person[]          @relation("PersonUpdatedBy")
+  customerAddressesCreated CustomerAddress[] @relation("CustomerAddressCreatedBy")
+  customerAddressesUpdated CustomerAddress[] @relation("CustomerAddressUpdatedBy")
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")
@@ -476,7 +498,7 @@ model Sale {
   createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
   user          User             @relation(fields: [userId], references: [id], onDelete: Restrict)
-  address       PersonAddress    @relation(fields: [addressId], references: [id], onDelete: Restrict)
+  address       CustomerAddress  @relation(fields: [addressId], references: [id], onDelete: Restrict)
   items         SaleItem[]
   usedDiscounts UsedDiscount[]
 
