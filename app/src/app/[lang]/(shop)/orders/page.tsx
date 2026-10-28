@@ -7,6 +7,7 @@ import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { MyAccount } from "./my-account";
 
 const PATH = "/orders";
 const PAGE_SIZE = 20;
@@ -84,6 +85,14 @@ async function Orders({
 
   return (
     <>
+      {user.customerId && (
+        <MyAccount
+          customerId={user.customerId}
+          t={t.myAccount}
+          methods={t.orders.paymentMethods}
+          format={format}
+        />
+      )}
       <div className="mt-6 overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-current/20">
