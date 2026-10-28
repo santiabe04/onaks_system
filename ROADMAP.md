@@ -160,10 +160,10 @@ Estado al 28/10/2026: fases 0 a 5 terminadas (v1.21.0-alpha); fase 6 en curso.
 
 ## Fase 6 — Filtros de pedidos 🔄
 
-| PR  | Contenido                                           | Estado      |
-| --- | --------------------------------------------------- | ----------- |
-| 6.1 | Lista "Todos los pedidos" con filtros               | 🟡 PR listo |
-| 6.2 | Los mismos filtros en la vista por zona y en el CSV | ⏳          |
+| PR  | Contenido                                           | Estado           |
+| --- | --------------------------------------------------- | ---------------- |
+| 6.1 | Lista "Todos los pedidos" con filtros               | ✅ v1.22.0-alpha |
+| 6.2 | Los mismos filtros en la vista por zona y en el CSV | 🟡 PR listo      |
 
 **Decisiones**
 

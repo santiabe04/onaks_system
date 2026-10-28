@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   hasOrderFilters,
+  NO_ZONE_FILTERS,
   orderQuery,
   orderWhere,
   parseOrderFilters,
+  zoneFilterParams,
+  zoneOrderWhere,
 } from "./order-filters";
 
 describe("parseOrderFilters", () => {
@@ -105,5 +108,49 @@ describe("orderQuery", () => {
       "?state=PENDING&state=CANCELED&city=3&page=3",
     );
     expect(orderQuery(filters, 1)).toBe("?state=PENDING&state=CANCELED&city=3");
+  });
+});
+
+describe("zoneOrderWhere", () => {
+  it("sin estados elegidos deja afuera los cancelados", () => {
+    expect(zoneOrderWhere(NO_ZONE_FILTERS).state).toEqual({
+      not: "CANCELED",
+    });
+  });
+
+  it("con estados elegidos usa esos, aunque incluyan Cancelado", () => {
+    const filters = parseOrderFilters({ state: "CANCELED", city: "3" });
+    expect(zoneOrderWhere(filters)).toMatchObject({
+      state: { in: ["CANCELED"] },
+      address: { cityId: 3 },
+    });
+  });
+
+  it("ignora número, fechas y página: el período lo pone la vista", () => {
+    const where = zoneOrderWhere(
+      parseOrderFilters({ number: "5", from: "2026-10-01", page: "2" }),
+    );
+    expect(where.number).toBeUndefined();
+    expect(where.createdAt).toBeUndefined();
+  });
+});
+
+describe("zoneFilterParams", () => {
+  it("devuelve solo los filtros que aplican a la vista por zona", () => {
+    expect(
+      zoneFilterParams(
+        parseOrderFilters({
+          state: ["PENDING", "PREPARING"],
+          product: "prodbolsa15",
+          number: "5",
+          from: "2026-10-01",
+          page: "2",
+        }),
+      ),
+    ).toEqual([
+      ["state", "PENDING"],
+      ["state", "PREPARING"],
+      ["product", "prodbolsa15"],
+    ]);
   });
 });

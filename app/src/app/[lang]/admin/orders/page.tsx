@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { OrderFilterFields } from "@/components/orders/order-filter-fields";
 import { buttonClass } from "@/components/ui/button";
 import { PrintButton } from "@/components/ui/print-button";
 import { interpolate } from "@/i18n/config";
@@ -14,7 +15,20 @@ import {
   periodQuery,
   type OrderPeriod,
 } from "@/lib/order-period";
-import { groupOrdersByZone, type Totals } from "@/lib/orders-by-zone";
+import {
+  getOrderFilterOptions,
+  type OrderFilterOptions,
+} from "@/lib/order-filter-options";
+import {
+  parseOrderFilters,
+  zoneFilterParams,
+  type ZoneFilters,
+} from "@/lib/order-filters";
+import {
+  groupOrdersByZone,
+  productQuantity,
+  type Totals,
+} from "@/lib/orders-by-zone";
 import { getPeriodOrders } from "@/lib/orders-by-zone-queries";
 
 const PATH = "/admin/orders";
@@ -51,17 +65,40 @@ async function OrdersByZone({
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
   const now = new Date();
-  const period = parseOrderPeriod(await searchParams, now);
+  const params = await searchParams;
+  const period = parseOrderPeriod(params, now);
+  // Los mismos filtros que la lista, salvo número y fechas (el período manda).
+  const filters = parseOrderFilters(params);
+  const filterParams = zoneFilterParams(filters);
 
-  const { zones, totals } = groupOrdersByZone(
-    await getPeriodOrders(period),
-    locale,
-  );
-  // El CSV siempre lleva el período explícito (también la semana actual).
-  const exportQuery =
+  const [orders, options] = await Promise.all([
+    getPeriodOrders(period, filters),
+    getOrderFilterOptions(),
+  ]);
+  const { zones, totals } = groupOrdersByZone(orders, locale);
+  const product = options.products.find((p) => p.id === filters.product);
+  const productLine = (list: typeof orders) =>
+    product &&
+    interpolate(t.adminOrders.productLine, {
+      product: product.name,
+      quantity: format.number(productQuantity(list, product.id)),
+      unit: product.measurementUnit.name,
+    });
+
+  /** Período + filtros en una URL: navegar entre semanas no pierde los filtros. */
+  const withFilters = (base: [string, string][]) => {
+    const query = new URLSearchParams([...base, ...filterParams]).toString();
+    return query ? `?${query}` : "";
+  };
+  // El CSV y el form de filtros siempre llevan el período explícito.
+  const periodParams: [string, string][] =
     period.mode === "range"
-      ? `?${new URLSearchParams({ from: period.from, to: period.to })}`
-      : `?week=${period.from}`;
+      ? [
+          ["from", period.from],
+          ["to", period.to],
+        ]
+      : [["week", period.from]];
+  const activeFilters = describeFilters(filters, options, t);
 
   return (
     <>
@@ -70,12 +107,55 @@ async function OrdersByZone({
         isCurrent={periodQuery(period, now) === ""}
         t={t.adminOrders}
         formatDay={(day) => format.date(new Date(`${day}T12:00:00-03:00`))}
+        withFilters={withFilters}
+        filterParams={filterParams}
       />
+
+      <details
+        className="mt-4 text-sm print:hidden"
+        open={filterParams.length > 0}
+      >
+        <summary className="cursor-pointer font-medium">
+          {t.adminOrders.filters}
+          {filterParams.length > 0 && ` (${filterParams.length})`}
+        </summary>
+        <form
+          action={PATH}
+          key={withFilters(periodParams)}
+          className="mt-3 flex flex-col gap-4"
+        >
+          {/* El período elegido viaja con los filtros. */}
+          {periodParams.map(([name, value]) => (
+            <input key={name} type="hidden" name={name} value={value} />
+          ))}
+          <OrderFilterFields filters={filters} options={options} t={t} />
+          <div className="flex gap-3">
+            <button type="submit" className={buttonClass()}>
+              {t.adminOrdersList.filter}
+            </button>
+            {filterParams.length > 0 && (
+              <Link
+                href={`${PATH}?${new URLSearchParams(periodParams)}`}
+                className={buttonClass("secondary")}
+              >
+                {t.adminOrdersList.clear}
+              </Link>
+            )}
+          </div>
+        </form>
+      </details>
+      {activeFilters && (
+        <p className="mt-2 text-sm">
+          {interpolate(t.adminOrders.activeFilters, {
+            filters: activeFilters,
+          })}
+        </p>
+      )}
 
       <div className="mt-4 flex flex-wrap gap-3 print:hidden">
         <PrintButton label={t.adminOrders.print} />
         <a
-          href={`${PATH}/export${exportQuery}`}
+          href={`${PATH}/export${withFilters(periodParams)}`}
           className={buttonClass("secondary")}
         >
           {t.adminOrders.exportCsv}
@@ -93,10 +173,17 @@ async function OrdersByZone({
         <>
           <section className="mt-8 rounded border border-current/20 p-4">
             <h2 className="font-semibold">{t.adminOrders.periodTotal}</h2>
-            <TotalsLine totals={totals} t={t} format={format} />
-            <p className="mt-1 text-xs opacity-70">
-              {t.adminOrders.excludesCanceled}
-            </p>
+            <TotalsLine
+              totals={totals}
+              t={t}
+              format={format}
+              productLine={productLine(orders)}
+            />
+            {filters.states.length === 0 && (
+              <p className="mt-1 text-xs opacity-70">
+                {t.adminOrders.excludesCanceled}
+              </p>
+            )}
           </section>
 
           {zones.map((zone) => (
@@ -110,7 +197,12 @@ async function OrdersByZone({
                   ({zone.stateName})
                 </span>
               </h2>
-              <TotalsLine totals={zone.totals} t={t} format={format} />
+              <TotalsLine
+                totals={zone.totals}
+                t={t}
+                format={format}
+                productLine={productLine(zone.orders)}
+              />
               <div className="mt-2 overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-current/20">
@@ -133,6 +225,11 @@ async function OrdersByZone({
                       <th className="py-2 pr-3 font-medium">
                         {t.adminOrders.columns.payment}
                       </th>
+                      {product && (
+                        <th className="py-2 pr-3 text-right font-medium">
+                          {t.adminOrdersList.columns.productQuantity}
+                        </th>
+                      )}
                       <th className="py-2 pr-3 text-right font-medium">
                         {t.adminOrders.columns.weight}
                       </th>
@@ -179,6 +276,12 @@ async function OrdersByZone({
                             {t.orders.paymentStates[sale.paymentState]}
                           </span>
                         </td>
+                        {product && (
+                          <td className="py-2 pr-3 text-right whitespace-nowrap">
+                            {format.number(productQuantity([sale], product.id))}{" "}
+                            {product.measurementUnit.name}
+                          </td>
+                        )}
                         <td className="py-2 pr-3 text-right whitespace-nowrap">
                           {interpolate(t.adminOrders.kg, {
                             value: format.number(sale.weight),
@@ -210,10 +313,13 @@ function TotalsLine({
   totals,
   t,
   format,
+  productLine,
 }: {
   totals: Totals;
   t: Dictionary;
   format: ReturnType<typeof formatters>;
+  /** Con el filtro de producto: cuánto se pidió de él. */
+  productLine?: string;
 }) {
   const byMethod = Object.entries(totals.byPaymentMethod) as [
     keyof Dictionary["orders"]["paymentMethods"],
@@ -241,6 +347,7 @@ function TotalsLine({
           )}
         </span>
         <span className="font-semibold">{format.money(totals.total)}</span>
+        {productLine && <span className="font-semibold">{productLine}</span>}
         {byMethod.length > 1 &&
           byMethod.map(([method, amount]) => (
             <span key={method} className="opacity-70">
@@ -266,11 +373,16 @@ function PeriodControls({
   isCurrent,
   t,
   formatDay,
+  withFilters,
+  filterParams,
 }: {
   period: OrderPeriod;
   isCurrent: boolean;
   t: Dictionary["adminOrders"];
   formatDay: (day: string) => string;
+  /** Arma la URL de un período sin perder los filtros aplicados. */
+  withFilters: (base: [string, string][]) => string;
+  filterParams: [string, string][];
 }) {
   const control = "rounded border border-current/20 bg-transparent px-3 py-2";
   const label = interpolate(period.mode === "week" ? t.week : t.range, {
@@ -283,7 +395,7 @@ function PeriodControls({
       <div className="flex flex-wrap items-center gap-3 text-sm">
         {period.mode === "week" && (
           <Link
-            href={`${PATH}?week=${period.previousWeek}`}
+            href={`${PATH}${withFilters([["week", period.previousWeek!]])}`}
             className={`${buttonClass("secondary")} print:hidden`}
           >
             {t.previousWeek}
@@ -292,14 +404,17 @@ function PeriodControls({
         <span className="font-medium">{label}</span>
         {period.mode === "week" && (
           <Link
-            href={`${PATH}?week=${period.nextWeek}`}
+            href={`${PATH}${withFilters([["week", period.nextWeek!]])}`}
             className={`${buttonClass("secondary")} print:hidden`}
           >
             {t.nextWeek}
           </Link>
         )}
         {!isCurrent && (
-          <Link href={PATH} className="hover:underline print:hidden">
+          <Link
+            href={`${PATH}${withFilters([])}`}
+            className="hover:underline print:hidden"
+          >
             {t.thisWeek}
           </Link>
         )}
@@ -314,6 +429,14 @@ function PeriodControls({
         // key: al cambiar de período, los inputs vuelven a sus valores.
         key={`${period.from}-${period.to}`}
       >
+        {filterParams.map(([name, value]) => (
+          <input
+            key={`${name}-${value}`}
+            type="hidden"
+            name={name}
+            value={value}
+          />
+        ))}
         <label className="flex flex-col gap-1">
           <span className="font-medium">{t.from}</span>
           <input
@@ -343,4 +466,24 @@ function PeriodControls({
       </form>
     </div>
   );
+}
+
+/** "Pendiente, En preparación · Lanús · Piedras sanitarias 4 kg": en pantalla y en papel. */
+function describeFilters(
+  filters: ZoneFilters,
+  options: OrderFilterOptions,
+  t: Dictionary,
+): string {
+  return [
+    filters.states.map((state) => t.orders.states[state]).join(", "),
+    filters.paymentStates
+      .map((state) => t.orders.paymentStates[state])
+      .join(", "),
+    filters.paymentMethod && t.orders.paymentMethods[filters.paymentMethod],
+    options.customers.find((c) => c.id === filters.customer)?.tradeName,
+    options.cities.find((c) => c.id === filters.city)?.name,
+    options.products.find((p) => p.id === filters.product)?.name,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }

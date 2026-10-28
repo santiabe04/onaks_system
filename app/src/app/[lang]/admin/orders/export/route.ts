@@ -1,11 +1,13 @@
 import type { NextRequest } from "next/server";
-import { appLocale } from "@/i18n/config";
+import { appLocale, interpolate } from "@/i18n/config";
 import { getActionDictionary } from "@/i18n/dictionary";
 import { requirePermission } from "@/lib/auth";
 import { csvNumber, toCsv } from "@/lib/csv";
 import { formatCuit } from "@/lib/cuit";
 import { parseOrderPeriod } from "@/lib/order-period";
-import { groupOrdersByZone } from "@/lib/orders-by-zone";
+import { db } from "@/lib/db";
+import { parseOrderFilters } from "@/lib/order-filters";
+import { groupOrdersByZone, productQuantity } from "@/lib/orders-by-zone";
 import { getPeriodOrders } from "@/lib/orders-by-zone-queries";
 
 const TZ_OFFSET_MS = -3 * 60 * 60 * 1000;
@@ -18,20 +20,30 @@ function localDateTime(date: Date): string {
     .replace("T", " ");
 }
 
-// Los pedidos del período (mismos parámetros que la pantalla) en CSV, ordenados
+// Los pedidos del período y los filtros (mismos parámetros que la pantalla) en CSV, ordenados
 // por zona como en pantalla: para Excel o para cargar en otra herramienta.
 export async function GET(request: NextRequest) {
   await requirePermission("sales:read-all");
   const t = getActionDictionary();
   const decimalComma = appLocale() === "es";
 
-  const period = parseOrderPeriod(
-    Object.fromEntries(request.nextUrl.searchParams),
-  );
-  const { zones } = groupOrdersByZone(
-    await getPeriodOrders(period),
-    appLocale(),
-  );
+  // Mismo período y filtros que la pantalla (estados múltiples incluidos).
+  const params: Record<string, string[]> = {};
+  for (const [key, value] of request.nextUrl.searchParams) {
+    (params[key] ??= []).push(value);
+  }
+  const period = parseOrderPeriod(params);
+  const filters = parseOrderFilters(params);
+  const [orders, product] = await Promise.all([
+    getPeriodOrders(period, filters),
+    filters.product
+      ? db.product.findUnique({
+          where: { id: filters.product },
+          select: { name: true, measurementUnit: { select: { name: true } } },
+        })
+      : null,
+  ]);
+  const { zones } = groupOrdersByZone(orders, appLocale());
 
   const columns = t.adminOrders.csv;
   const rows = [
@@ -48,6 +60,15 @@ export async function GET(request: NextRequest) {
       columns.status,
       columns.paymentMethod,
       columns.paymentState,
+      // Con el filtro de producto: cuánto se pidió de él en cada pedido.
+      ...(product
+        ? [
+            interpolate(columns.productQuantity, {
+              product: product.name,
+              unit: product.measurementUnit.name,
+            }),
+          ]
+        : []),
       columns.weight,
       columns.volume,
       columns.net,
@@ -69,6 +90,9 @@ export async function GET(request: NextRequest) {
         t.orders.states[sale.state],
         t.orders.paymentMethods[sale.paymentMethod],
         t.orders.paymentStates[sale.paymentState],
+        ...(filters.product
+          ? [csvNumber(productQuantity([sale], filters.product), decimalComma)]
+          : []),
         csvNumber(sale.weight, decimalComma),
         csvNumber(sale.volume, decimalComma),
         csvNumber(sale.subTotal, decimalComma),

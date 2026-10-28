@@ -130,3 +130,41 @@ export function orderQuery(filters: OrderFilters, page = filters.page): string {
   const query = params.toString();
   return query ? `?${query}` : "";
 }
+
+/**
+ * Lo que también se aplica a la vista por zona, al CSV y al dashboard: el
+ * período lo ponen ellos, así que no van número, fechas ni página.
+ */
+export type ZoneFilters = Pick<
+  OrderFilters,
+  "states" | "paymentStates" | "paymentMethod" | "customer" | "city" | "product"
+>;
+
+export const NO_ZONE_FILTERS: ZoneFilters = { states: [], paymentStates: [] };
+
+function onlyZoneFilters(filters: ZoneFilters): OrderFilters {
+  return {
+    states: filters.states,
+    paymentStates: filters.paymentStates,
+    paymentMethod: filters.paymentMethod,
+    customer: filters.customer,
+    city: filters.city,
+    product: filters.product,
+    page: 1,
+  };
+}
+
+/** Sin estados elegidos, los cancelados quedan afuera: no se reparten. */
+export function zoneOrderWhere(filters: ZoneFilters): Prisma.SaleWhereInput {
+  return {
+    ...orderWhere(onlyZoneFilters(filters)),
+    state: filters.states.length ? { in: filters.states } : { not: "CANCELED" },
+  };
+}
+
+/** Los filtros como pares para sumar a otra URL (la del período). */
+export function zoneFilterParams(filters: ZoneFilters): [string, string][] {
+  return [
+    ...new URLSearchParams(orderQuery(onlyZoneFilters(filters))).entries(),
+  ];
+}

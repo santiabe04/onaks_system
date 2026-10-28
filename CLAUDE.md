@@ -15,6 +15,8 @@ La consulta del período es `getPeriodOrders` (`lib/orders-by-zone-queries`), co
 Para imprimir: `print:hidden` en lo que no va al papel (menú, controles); en papel el tema es siempre claro.
 "Todos los pedidos" (`/admin/orders/list`) filtra con `lib/order-filters` (estados múltiples, pago, cliente,
 localidad, producto, número y fechas, todo por URL); con un producto muestra cuánto se pidió de él.
+La vista por zona y el CSV aceptan los mismos filtros salvo número y fechas (`zoneOrderWhere`: sin
+estados elegidos excluye cancelados); los campos del form son `components/orders/order-filter-fields`.
 
 Idioma: el usuario habla en español rioplatense. Código, commits y nombres en inglés;
 comentarios y textos de UI en español.
