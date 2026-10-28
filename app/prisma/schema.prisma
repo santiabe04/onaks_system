@@ -52,6 +52,8 @@ enum StockMovementType {
   TRANSFER_OUT
   TRANSFER_IN
   SALE
+  /// Devolución al depósito de lo descontado por un pedido (volver a Pendiente o cancelar).
+  SALE_RETURN
 }
 
 enum AuditAction {
@@ -243,13 +245,17 @@ model StockMovement {
   comment      String?
   // Agrupa las dos patas de una transferencia.
   transferId   String?           @map("transfer_id")
+  /// Pedido que descontó o devolvió el stock (SALE / SALE_RETURN).
+  saleId       String?           @map("sale_id")
   createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
   createdById  String?           @map("created_by")
   product      Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
   warehouse    Warehouse         @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
   createdBy    User?             @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  sale         Sale?             @relation(fields: [saleId], references: [id], onDelete: Restrict)
 
   @@index([productId, createdAt], map: "idx_stock_movements_product_id_created_at")
+  @@index([saleId], map: "idx_stock_movements_sale_id")
   @@index([warehouseId, createdAt], map: "idx_stock_movements_warehouse_id_created_at")
   @@index([transferId], map: "idx_stock_movements_transfer_id")
   @@map("stock_movements")
@@ -508,27 +514,28 @@ model SaleItem {
 }
 
 model Sale {
-  id            String           @id @default(cuid(2))
+  id             String           @id @default(cuid(2))
   /// Número correlativo para el cliente y el admin ("Pedido #12").
-  number        Int              @unique @default(autoincrement())
-  userId        String           @map("user_id")
-  addressId     String           @map("address_id")
-  subTotal      Decimal          @map("sub_total") @db.Decimal(12, 2)
-  tax           Decimal          @db.Decimal(12, 2)
-  discount      Decimal          @db.Decimal(12, 2)
-  total         Decimal          @db.Decimal(12, 2)
-  paymentMethod PaymentMethod    @map("payment_method")
-  state         SaleState        @default(PENDING)
-  paymentState  SalePaymentState @default(PENDING) @map("payment_state")
-  paidAt        DateTime?        @map("paid_at") @db.Timestamptz(3)
+  number         Int              @unique @default(autoincrement())
+  userId         String           @map("user_id")
+  addressId      String           @map("address_id")
+  subTotal       Decimal          @map("sub_total") @db.Decimal(12, 2)
+  tax            Decimal          @db.Decimal(12, 2)
+  discount       Decimal          @db.Decimal(12, 2)
+  total          Decimal          @db.Decimal(12, 2)
+  paymentMethod  PaymentMethod    @map("payment_method")
+  state          SaleState        @default(PENDING)
+  paymentState   SalePaymentState @default(PENDING) @map("payment_state")
+  paidAt         DateTime?        @map("paid_at") @db.Timestamptz(3)
   /// Comentario del cliente al confirmar (horario de entrega, etc.).
-  notes         String?          @db.VarChar(500)
-  createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt     DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
-  user          User             @relation(fields: [userId], references: [id], onDelete: Restrict)
-  address       CustomerAddress  @relation(fields: [addressId], references: [id], onDelete: Restrict)
-  items         SaleItem[]
-  usedDiscounts UsedDiscount[]
+  notes          String?          @db.VarChar(500)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  address        CustomerAddress  @relation(fields: [addressId], references: [id], onDelete: Restrict)
+  items          SaleItem[]
+  usedDiscounts  UsedDiscount[]
+  stockMovements StockMovement[]
 
   @@index([userId], map: "idx_sales_user_id")
   @@index([addressId], map: "idx_sales_address_id")

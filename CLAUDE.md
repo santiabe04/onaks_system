@@ -113,7 +113,14 @@ comentarios y textos de UI en español.
   negocio hasta confirmar el pedido. Solo compra quien tiene `sales:create` (CLIENT). Los totales salen
   de `lib/cart` (en centavos/milésimas con BigInt); productos pausados o borrados quedan fuera del total.
 - `measurement_units.allows_decimals`: si la unidad admite cantidades con decimales (kg, l) o solo enteras (u).
-- Estados separados: `SaleState` (logística) y `SalePaymentState` (pago).
+- Estados separados: `SaleState` (logística) y `SalePaymentState` (pago). Reglas en `lib/sale-state`:
+  adelante (salteando pasos) o un paso atrás; cancelar hasta antes de Entregado; Cancelado es final.
+  `changeSaleState` (permiso `sales:manage`) bloquea el pedido (`FOR UPDATE`), rechaza si el estado
+  cambió mientras se miraba y, al llegar a En preparación, descuenta el stock (`SALE`) del depósito
+  del pedido o del elegido por producto; al volver a Pendiente o cancelar devuelve el neto
+  (`SALE_RETURN`, `pendingReturns`). Los movimientos llevan `sale_id`. El historial sale de la auditoría.
+- `new Date()` / `Date.now()` en un Server Component: antes, `await connection()` (si no, Next avisa
+  que lee la hora del prerender).
 - `customers` es la empresa (CUIT, razón social, condición IVA). `persons.customer_id` es null para admins.
   Un cliente tiene varias personas (cada una puede tener usuario; el mail es el login, único y en minúsculas).
 - Las direcciones de entrega son del **cliente** (`customer_addresses`), no de la persona: cualquier persona

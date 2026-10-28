@@ -84,6 +84,45 @@ export const en: Dictionary = {
     },
   },
   adminOrders: {
+    stateChange: {
+      title: "Change status",
+      target: "New status",
+      choose: "Choose a status",
+      back: "{state} (go back)",
+      deductHint:
+        "Moving to this status deducts the stock, which stops being reserved.",
+      returnHint:
+        "The deducted stock goes back to the warehouses it came from.",
+      cancelHint: "Canceling is final: the order no longer changes status.",
+      warehouse: "Warehouse for the whole order",
+      itemWarehouses: "Warehouse per product (optional)",
+      sameAsOrder: "Same as the order",
+      comment: "Comment (optional)",
+      commentPlaceholder: "Cancellation reason, note to the customer…",
+      submit: "Change status",
+      saving: "Saving…",
+      saved: "Status updated",
+      final: "This order no longer changes status.",
+      errors: {
+        invalid: "The status change could not be read",
+        targetRequired: "Choose the new status",
+        notFound: "The order no longer exists",
+        stale:
+          "The order changed while you were looking at it: check its current status and try again.",
+        notAllowed: "That status change is not allowed",
+        warehouseRequired: "Choose which warehouse each product comes from",
+        warehouseInactive:
+          "One of the warehouses is inactive: reactivate it or choose another",
+        commentTooLong: "Maximum {max} characters",
+      },
+    },
+    history: {
+      title: "History",
+      created: "Order placed",
+      changed: "{from} → {to}",
+      by: "by {name}",
+      stock: "Stock: {detail}",
+    },
     filters: "Filters",
     activeFilters: "Filtered by: {filters}",
     productLine: "{product}: {quantity} {unit}",
@@ -407,6 +446,7 @@ export const en: Dictionary = {
       TRANSFER_OUT: "Transfer (out)",
       TRANSFER_IN: "Transfer (in)",
       SALE: "Sale",
+      SALE_RETURN: "Order return",
     },
     errors: {
       typeRequired: "Choose the movement type",

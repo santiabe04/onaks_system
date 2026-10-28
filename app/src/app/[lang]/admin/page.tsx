@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense, type ReactNode } from "react";
 import type { AuditAction } from "@/generated/prisma/enums";
 import { interpolate } from "@/i18n/config";
@@ -13,8 +14,7 @@ import { getPeriodOrders } from "@/lib/orders-by-zone-queries";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Fuera del componente: es un Server Component que corre en cada request (va
-// en Suspense), así que leer la hora acá es lo esperado.
+// Se llama después de `connection()`: la hora es la del request, no la del build.
 function hoursAgo24(): Date {
   return new Date(Date.now() - DAY_MS);
 }
@@ -177,6 +177,8 @@ async function ThisWeek() {
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
 
+  // La semana actual depende de la hora del request, no de la del build.
+  await connection();
   const period = parseOrderPeriod({});
   const orders = await getPeriodOrders(period);
   const { zones, totals } = groupOrdersByZone(orders, locale);
@@ -246,6 +248,7 @@ async function Security() {
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
 
+  await connection();
   const since = hoursAgo24();
   const count = (action: AuditAction) =>
     db.auditLog.count({ where: { action, createdAt: { gte: since } } });
