@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.27.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.26.0-alpha...v1.27.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **orders:** let customers cancel pending orders and change them whe… ([#71](https://github.com/santiabe04/onaks_system/issues/71)) ([f745c27](https://github.com/santiabe04/onaks_system/commit/f745c27fc907f9200d1d769f2bbc33f768915933))
+* **orders:** let customers cancel pending orders and change them when allowed ([f745c27](https://github.com/santiabe04/onaks_system/commit/f745c27fc907f9200d1d769f2bbc33f768915933))
+
 ## [1.26.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.25.0-alpha...v1.26.0-alpha) (2026-10-28)
 
 
