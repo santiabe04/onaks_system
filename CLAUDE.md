@@ -124,6 +124,8 @@ comentarios y textos de UI en español.
   más viejo (`summarizeAccount` en `lib/account`, en centavos) y `recomputeAccount` guarda el estado de
   pago en `sales` en la misma transacción. Orden de bloqueo: **cuenta del cliente (`lockAccount`) y
   después el pedido**, en cobros, cambios de estado y confirmación. Reintegro: hasta el saldo a favor.
+  Deudores (`/admin/debtors`): la misma cuenta en SQL para todos (`lib/debtors`). El cliente ve su saldo
+  y últimos pagos en "Mis pedidos" (sin anulados ni quién los cargó).
 - `new Date()` / `Date.now()` en un Server Component: antes, `await connection()` (si no, Next avisa
   que lee la hora del prerender).
 - `customers` es la empresa (CUIT, razón social, condición IVA). `persons.customer_id` es null para admins.

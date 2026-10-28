@@ -33,6 +33,7 @@ export const en: Dictionary = {
     home: "Home",
     catalog: "Catalog",
     customers: "Customers",
+    debtors: "Debtors",
     orders: "Orders",
     ordersByZone: "By zone",
     allOrders: "All",
@@ -136,6 +137,34 @@ export const en: Dictionary = {
       notFound: "The customer no longer exists",
       alreadyVoided: "That movement was already voided",
     },
+  },
+  debtors: {
+    title: "Debtors",
+    intro:
+      "Customers who owe (delivered orders not yet collected), largest debt first.",
+    totalDebt: "Total debt: {amount}",
+    totalCredit: "Total credit: {amount}",
+    empty: "Nobody owes anything.",
+    credit: "With credit balance",
+    deleted: "deleted",
+    columns: {
+      customer: "Customer",
+      balance: "Balance",
+      oldestUnpaid: "Owing since",
+      lastPayment: "Last payment",
+    },
+    days: "{date} ({days} days ago)",
+    never: "—",
+  },
+  myAccount: {
+    title: "My account",
+    owes: "You owe {amount}",
+    credit: "You have a credit of {amount}",
+    settled: "You're all settled",
+    hint: "Orders are charged when delivered; payments settle the oldest first.",
+    payments: "Latest payments",
+    noPayments: "No payments recorded yet.",
+    kinds: { PAYMENT: "Payment", REFUND: "Refund" },
   },
   adminOrders: {
     stateChange: {

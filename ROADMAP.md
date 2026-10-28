@@ -179,8 +179,8 @@ Estado al 28/10/2026: fases 0 a 6 terminadas (v1.23.0-alpha); fase 7 en curso.
 | PR  | Contenido                                                                                   | Estado           |
 | --- | ------------------------------------------------------------------------------------------- | ---------------- |
 | 7.1 | Cambios de estado, descuento de stock al preparar e historial                               | ✅ v1.24.0-alpha |
-| 7.2 | Cuenta corriente: cobros, reintegros y anulaciones (detalle del pedido y ficha del cliente) | 🟡 PR listo      |
-| 7.3 | Listado de deudores y saldo a la vista del cliente                                          | ⏳               |
+| 7.2 | Cuenta corriente: cobros, reintegros y anulaciones (detalle del pedido y ficha del cliente) | ✅ v1.25.0-alpha |
+| 7.3 | Listado de deudores y saldo a la vista del cliente                                          | 🟡 PR listo      |
 | 7.4 | Cliente: cancelar pedido pendiente y modificar (volver al carrito)                          | ⏳               |
 | 7.5 | Cambio de estado masivo                                                                     | ⏳               |
 

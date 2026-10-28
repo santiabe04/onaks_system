@@ -35,6 +35,7 @@ export const es = {
     home: "Inicio",
     catalog: "Catálogo",
     customers: "Clientes",
+    debtors: "Deudores",
     orders: "Pedidos",
     ordersByZone: "Por zona",
     allOrders: "Todos",
@@ -138,6 +139,34 @@ export const es = {
       notFound: "El cliente ya no existe",
       alreadyVoided: "Ese movimiento ya estaba anulado",
     },
+  },
+  debtors: {
+    title: "Deudores",
+    intro:
+      "Clientes que deben (pedidos entregados sin cobrar), de mayor a menor deuda.",
+    totalDebt: "Deuda total: {amount}",
+    totalCredit: "Saldo a favor total: {amount}",
+    empty: "Nadie debe nada.",
+    credit: "Con saldo a favor",
+    deleted: "dado de baja",
+    columns: {
+      customer: "Cliente",
+      balance: "Saldo",
+      oldestUnpaid: "Deuda desde",
+      lastPayment: "Último cobro",
+    },
+    days: "{date} (hace {days} días)",
+    never: "—",
+  },
+  myAccount: {
+    title: "Mi cuenta",
+    owes: "Debés {amount}",
+    credit: "Tenés saldo a favor: {amount}",
+    settled: "Estás al día",
+    hint: "Los pedidos suman cuando se entregan; los pagos cancelan primero lo más viejo.",
+    payments: "Últimos pagos",
+    noPayments: "Todavía no hay pagos registrados.",
+    kinds: { PAYMENT: "Pago", REFUND: "Reintegro" },
   },
   adminOrders: {
     stateChange: {

@@ -31,6 +31,7 @@ export default async function AdminLayout({
       title: t.adminNav.customers,
       items: [
         { href: "/admin/customers", label: t.customers.title },
+        { href: "/admin/debtors", label: t.adminNav.debtors },
         { href: "/admin/locations", label: t.adminNav.locations },
       ],
     },
