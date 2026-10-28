@@ -10,7 +10,7 @@ import { db } from "@/lib/db";
 import { can } from "@/lib/permissions";
 import { interpolate } from "@/i18n/config";
 
-// La tienda que ven los clientes (catálogo, y en la fase 4 el carrito). Los
+// La tienda que ven los clientes (catálogo, carrito y pedidos). Los
 // admins también pueden entrar, para ver lo mismo que el cliente.
 export default async function ShopLayout({ children }: LayoutProps<"/[lang]">) {
   const t = await getT();
@@ -28,7 +28,7 @@ export default async function ShopLayout({ children }: LayoutProps<"/[lang]">) {
               <AdminLink label={t.catalog.adminPanel} />
             </Suspense>
             <Suspense fallback={null}>
-              <CartLink label={t.cart.link} />
+              <BuyerLinks cart={t.cart.link} orders={t.orders.title} />
             </Suspense>
             <Suspense fallback={null}>
               <UserMenu />
@@ -42,17 +42,25 @@ export default async function ShopLayout({ children }: LayoutProps<"/[lang]">) {
   );
 }
 
-/** "Carrito (N)" para los clientes: cuenta solo productos que se siguen vendiendo. */
-async function CartLink({ label }: { label: string }) {
+/**
+ * "Mis pedidos" y "Carrito (N)" para los clientes. El carrito cuenta solo
+ * productos que se siguen vendiendo.
+ */
+async function BuyerLinks({ cart, orders }: { cart: string; orders: string }) {
   const user = await getCurrentUser();
   if (!can(user.role, "sales:create")) return null;
   const count = await db.cartItem.count({
     where: { personId: user.personId, product: VISIBLE_PRODUCT },
   });
   return (
-    <Link href="/cart" className="text-sm font-medium hover:underline">
-      {interpolate(label, { count })}
-    </Link>
+    <>
+      <Link href="/orders" className="text-sm hover:underline">
+        {orders}
+      </Link>
+      <Link href="/cart" className="text-sm font-medium hover:underline">
+        {interpolate(cart, { count })}
+      </Link>
+    </>
   );
 }
 

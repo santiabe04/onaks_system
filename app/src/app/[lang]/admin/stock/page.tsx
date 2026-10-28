@@ -8,6 +8,7 @@ import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { descendantIds, flattenCategoryTree } from "@/lib/category";
+import { RESERVED_SALE_STATES } from "@/lib/checkout";
 import { db } from "@/lib/db";
 import { productWhere } from "@/lib/product-filters";
 import { fromMilli, toMilli } from "@/lib/quantity";
@@ -117,10 +118,22 @@ async function StockContent({
       select: { id: true, name: true, sku: true, isActive: true },
     }),
   ]);
-  const stocks = await db.productStock.findMany({
-    where: { productId: { in: products.map((p) => p.id) }, ...stockWhere },
-    select: { productId: true, warehouseId: true, quantity: true },
-  });
+  const productIds = products.map((p) => p.id);
+  const [stocks, reservedRows] = await Promise.all([
+    db.productStock.findMany({
+      where: { productId: { in: productIds }, ...stockWhere },
+      select: { productId: true, warehouseId: true, quantity: true },
+    }),
+    // Lo pedido y todavía sin descontar: no es de un depósito, sino del total.
+    db.saleItem.groupBy({
+      by: ["productId"],
+      where: {
+        productId: { in: productIds },
+        sale: { state: { in: RESERVED_SALE_STATES } },
+      },
+      _sum: { quantity: true },
+    }),
+  ]);
   const balance = (productId: string, warehouseId: string) =>
     stocks.find(
       (s) => s.productId === productId && s.warehouseId === warehouseId,
@@ -130,6 +143,11 @@ async function StockContent({
       stocks
         .filter((s) => s.productId === productId)
         .reduce((sum, s) => sum + toMilli(s.quantity), BigInt(0)),
+    );
+  const reservedOf = (productId: string) =>
+    toMilli(
+      reservedRows.find((row) => row.productId === productId)?._sum.quantity ??
+        0,
     );
   const pages = Math.max(1, Math.ceil(total / STOCK_PAGE_SIZE));
 
@@ -162,9 +180,20 @@ async function StockContent({
                   </th>
                 ))}
                 {!filters.warehouse && (
-                  <th className="py-2 pr-3 text-right font-medium">
-                    {t.stock.total}
-                  </th>
+                  <>
+                    <th className="py-2 pr-3 text-right font-medium">
+                      {t.stock.total}
+                    </th>
+                    <th
+                      className="py-2 pr-3 text-right font-medium"
+                      title={t.stock.reservedHint}
+                    >
+                      {t.stock.reserved}
+                    </th>
+                    <th className="py-2 pr-3 text-right font-medium">
+                      {t.stock.available}
+                    </th>
+                  </>
                 )}
                 <th className="py-2">
                   <span className="sr-only">{t.common.actions}</span>
@@ -192,11 +221,23 @@ async function StockContent({
                     />
                   ))}
                   {!filters.warehouse && (
-                    <Quantity
-                      value={totalOf(product.id)}
-                      format={format.number}
-                      strong
-                    />
+                    <>
+                      <Quantity
+                        value={totalOf(product.id)}
+                        format={format.number}
+                      />
+                      <Quantity
+                        value={fromMilli(reservedOf(product.id))}
+                        format={format.number}
+                      />
+                      <Quantity
+                        value={fromMilli(
+                          toMilli(totalOf(product.id)) - reservedOf(product.id),
+                        )}
+                        format={format.number}
+                        strong
+                      />
+                    </>
                   )}
                   <td className="py-2 text-right">
                     <Link
