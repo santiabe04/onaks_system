@@ -80,18 +80,20 @@ async function StockContent({
   const levelIds =
     filters.level === "all"
       ? undefined
-      : await db.productStock
-          .groupBy({
-            by: ["productId"],
-            where: stockWhere,
-            _sum: { quantity: true },
-            having: {
-              quantity: {
-                _sum: filters.level === "out" ? { gt: 0 } : { lt: 0 },
+      : filters.level === "low"
+        ? await lowStockIds(stockWhere)
+        : await db.productStock
+            .groupBy({
+              by: ["productId"],
+              where: stockWhere,
+              _sum: { quantity: true },
+              having: {
+                quantity: {
+                  _sum: filters.level === "out" ? { gt: 0 } : { lt: 0 },
+                },
               },
-            },
-          })
-          .then((rows) => rows.map((row) => row.productId));
+            })
+            .then((rows) => rows.map((row) => row.productId));
 
   const categoryIds = filters.category
     ? [filters.category, ...descendantIds(categories, filters.category)]
@@ -282,6 +284,27 @@ async function StockContent({
   );
 }
 
+/** Productos con stock mínimo cargado cuyo saldo (total o del depósito) está por debajo. */
+async function lowStockIds(stockWhere: { warehouseId?: string }) {
+  const products = await db.product.findMany({
+    where: { minStock: { not: null }, deletedAt: null },
+    select: { id: true, minStock: true },
+  });
+  const sums = await db.productStock.groupBy({
+    by: ["productId"],
+    where: { ...stockWhere, productId: { in: products.map((p) => p.id) } },
+    _sum: { quantity: true },
+  });
+  return products
+    .filter((product) => {
+      const sum = sums.find((row) => row.productId === product.id)?._sum
+        .quantity;
+      // Sin movimientos no hay fila de saldo: cuenta como 0.
+      return toMilli(sum ?? 0) < toMilli(product.minStock!);
+    })
+    .map((product) => product.id);
+}
+
 /** Celda de cantidad: los negativos en rojo, para verlos de un vistazo. */
 function Quantity({
   value,
@@ -369,6 +392,7 @@ function FiltersForm({
           <option value="all">{t.levelAll}</option>
           <option value="out">{t.levelOut}</option>
           <option value="negative">{t.levelNegative}</option>
+          <option value="low">{t.levelLow}</option>
         </select>
       </label>
       <div className="flex gap-3">

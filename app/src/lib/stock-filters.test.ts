@@ -22,9 +22,13 @@ describe("parseStockFilters", () => {
     });
   });
 
+  it("acepta el nivel bajo el stock mínimo", () => {
+    expect(parseStockFilters({ level: "low" }).level).toBe("low");
+  });
+
   it("ignora valores inválidos", () => {
     expect(
-      parseStockFilters({ warehouse: "../x", level: "low", page: "-2" }),
+      parseStockFilters({ warehouse: "../x", level: "lowest", page: "-2" }),
     ).toEqual({
       q: undefined,
       category: undefined,

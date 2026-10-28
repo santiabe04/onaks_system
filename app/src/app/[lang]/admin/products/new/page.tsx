@@ -50,6 +50,7 @@ async function NewForm() {
         price: "",
         weight: "",
         volume: "",
+        minStock: "",
         isActive: true,
       }}
       options={options}

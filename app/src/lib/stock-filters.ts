@@ -5,8 +5,11 @@ import { isCuid } from "./ids";
 export const STOCK_PAGE_SIZE = 50;
 export const MOVEMENTS_PAGE_SIZE = 50;
 
-/** "out": total 0 o menos (incluye productos sin movimientos); "negative": menor a 0. */
-export type StockLevel = "all" | "out" | "negative";
+/**
+ * "out": total 0 o menos (incluye productos sin movimientos); "negative": menor
+ * a 0; "low": por debajo del stock mínimo del producto (los que lo tienen cargado).
+ */
+export type StockLevel = "all" | "out" | "negative" | "low";
 
 export type StockFilters = {
   q?: string;
@@ -40,7 +43,10 @@ export function parseStockFilters(params: SearchParams): StockFilters {
     q: q && q.length <= 100 ? q : undefined,
     category: Number.isInteger(category) && category > 0 ? category : undefined,
     warehouse: isCuid(warehouse) ? warehouse : undefined,
-    level: level === "out" || level === "negative" ? level : "all",
+    level:
+      level === "out" || level === "negative" || level === "low"
+        ? level
+        : "all",
     page: parsePage(params),
   };
 }

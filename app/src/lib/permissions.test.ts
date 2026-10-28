@@ -32,6 +32,7 @@ describe("can", () => {
   it("el admin también puede repartir", () => {
     expect(can("ADMIN", "routes:manage")).toBe(true);
     expect(can("ADMIN", "routes:deliver")).toBe(true);
+    expect(can("ADMIN", "purchases:manage")).toBe(true);
   });
 
   it("el admin no compra a nombre de un cliente", () => {
