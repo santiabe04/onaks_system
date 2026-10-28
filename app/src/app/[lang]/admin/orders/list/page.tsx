@@ -5,6 +5,11 @@ import {
   FilterInput,
   OrderFilterFields,
 } from "@/components/orders/order-filter-fields";
+import {
+  BulkStateBar,
+  SelectGroup,
+  SelectOrder,
+} from "@/components/orders/bulk-state-bar";
 import { buttonClass } from "@/components/ui/button";
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionary";
@@ -12,6 +17,7 @@ import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { can } from "@/lib/permissions";
 import {
   getOrderFilterOptions,
   type OrderFilterOptions,
@@ -55,13 +61,14 @@ async function OrdersList({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await getUserWithPermission("sales:read-all");
+  const user = await getUserWithPermission("sales:read-all");
+  const canManage = can(user.role, "sales:manage");
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
   const filters = parseOrderFilters(await searchParams);
   const where = orderWhere(filters);
 
-  const [options, summary, sales] = await Promise.all([
+  const [options, summary, sales, warehouses] = await Promise.all([
     getOrderFilterOptions(),
     db.sale.aggregate({ where, _count: true, _sum: { total: true } }),
     db.sale.findMany({
@@ -70,6 +77,7 @@ async function OrdersList({
       skip: (filters.page - 1) * ORDERS_PAGE_SIZE,
       take: ORDERS_PAGE_SIZE,
       select: {
+        id: true,
         number: true,
         createdAt: true,
         state: true,
@@ -91,6 +99,12 @@ async function OrdersList({
           : false,
       },
     }),
+    // Para el cambio masivo: depósitos activos.
+    db.warehouse.findMany({
+      where: { isActive: true },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
   ]);
   const product = options.products.find((p) => p.id === filters.product);
   const productTotal = product
@@ -110,6 +124,13 @@ async function OrdersList({
         <p className="mt-6 text-sm opacity-70">{t.adminOrdersList.empty}</p>
       ) : (
         <>
+          {canManage && (
+            <BulkStateBar
+              warehouses={warehouses}
+              t={t.adminOrders.bulk}
+              states={t.orders.states}
+            />
+          )}
           <p className="mt-6 flex flex-wrap gap-x-4 gap-y-1 text-sm">
             <span>
               {interpolate(t.adminOrdersList.count, {
@@ -136,6 +157,11 @@ async function OrdersList({
             <table className="w-full text-left text-sm">
               <thead className="border-b border-current/20">
                 <tr>
+                  {canManage && (
+                    <th className="w-6 py-2 pr-2">
+                      <SelectGroup label={t.adminOrders.bulk.selectAll} />
+                    </th>
+                  )}
                   <th className="py-2 pr-3 font-medium">
                     {t.adminOrdersList.columns.number}
                   </th>
@@ -170,6 +196,16 @@ async function OrdersList({
                     key={sale.number}
                     className="border-b border-current/10 align-top"
                   >
+                    {canManage && (
+                      <td className="py-2 pr-2">
+                        <SelectOrder
+                          id={sale.id}
+                          state={sale.state}
+                          number={sale.number}
+                          label={t.adminOrders.bulk.selectOrder}
+                        />
+                      </td>
+                    )}
                     <td className="py-2 pr-3">
                       <Link
                         href={`/admin/orders/${sale.number}`}

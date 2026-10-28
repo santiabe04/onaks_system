@@ -167,6 +167,24 @@ export const en: Dictionary = {
     kinds: { PAYMENT: "Payment", REFUND: "Refund" },
   },
   adminOrders: {
+    bulk: {
+      title: "Change status of selected orders",
+      selected: "{count} selected",
+      none: "Choose orders with the checkboxes.",
+      target: "New status",
+      choose: "Choose a status",
+      warehouse: "Warehouse (if stock must be deducted)",
+      warehouseHint:
+        "Only used for orders moving from Pending to Preparing or later.",
+      comment: "Comment (optional)",
+      submit: "Apply",
+      saving: "Applying…",
+      done: "{ok} of {total} orders updated.",
+      failed: "#{number}: {error}",
+      selectOrder: "Select order #{number}",
+      selectGroup: "Select all orders in {group}",
+      selectAll: "Select all",
+    },
     customerEdit: {
       title: "Changes by the customer",
       hint: "The customer can change the order once, while it is Pending.",
@@ -196,6 +214,8 @@ export const en: Dictionary = {
       saved: "Status updated",
       final: "This order no longer changes status.",
       errors: {
+        noneSelected: "Choose at least one order",
+        tooMany: "Up to {max} orders can be changed at once",
         beingEdited:
           "The customer is changing the order: revoke the permission or wait until they place it",
         notEditable: "Only Pending orders can be opened for changes",
