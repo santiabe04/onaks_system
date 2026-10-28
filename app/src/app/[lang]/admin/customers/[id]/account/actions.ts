@@ -5,7 +5,11 @@ import { getActionDictionary } from "@/i18n/dictionary";
 import { appLocale, interpolate } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { maxRefund, toCents } from "@/lib/account";
-import { lockAccount, recomputeAccount } from "@/lib/account-ledger";
+import {
+  createCustomerPayment,
+  lockAccount,
+  recomputeAccount,
+} from "@/lib/account-ledger";
 import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -66,26 +70,11 @@ export async function registerPayment(
           );
         }
       }
-      const payment = await tx.customerPayment.create({
-        data: {
-          customerId,
-          saleId,
-          kind: input.kind,
-          amount: input.amount,
-          method: input.method,
-          paidOn: new Date(`${input.paidOn}T00:00:00Z`),
-          notes: input.notes,
-          createdById: user.id,
-        },
-      });
-      await audit(tx, {
-        action: "CREATE",
-        actorUserId: user.id,
-        entityType: ENTITY,
-        entityId: payment.id,
-        after: payment,
-      });
-      await recomputeAccount(tx, customerId);
+      await createCustomerPayment(
+        tx,
+        { customerId, saleId, ...input },
+        user.id,
+      );
     });
   } catch (error) {
     if (error instanceof AccountError) {

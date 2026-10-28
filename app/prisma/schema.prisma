@@ -490,6 +490,7 @@ model User {
   vehiclesUpdated          Vehicle[]         @relation("VehicleUpdatedBy")
   routeSheetsCreated       RouteSheet[]      @relation("RouteSheetCreatedBy")
   routeSheetsUpdated       RouteSheet[]      @relation("RouteSheetUpdatedBy")
+  routeStopsRecorded       RouteStop[]       @relation("RouteStopRecordedBy")
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")
@@ -647,6 +648,7 @@ model CustomerPayment {
   sale        Sale?               @relation(fields: [saleId], references: [id], onDelete: Restrict)
   createdBy   User                @relation("CustomerPaymentCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   voidedBy    User?               @relation("CustomerPaymentVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict)
+  routeStop   RouteStop?
 
   @@index([customerId, paidOn], map: "idx_customer_payments_customer_id_paid_on")
   @@index([saleId], map: "idx_customer_payments_sale_id")
@@ -732,16 +734,41 @@ model RouteSheet {
 
 /// Parada de una hoja de ruta: un pedido, en el orden de visita.
 model RouteStop {
-  id           String     @id @default(cuid(2))
-  routeSheetId String     @map("route_sheet_id")
-  saleId       String     @map("sale_id")
+  id                 String           @id @default(cuid(2))
+  routeSheetId       String           @map("route_sheet_id")
+  saleId             String           @map("sale_id")
   /// Orden de visita (1, 2, 3…).
-  position     Int
-  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
-  routeSheet   RouteSheet @relation(fields: [routeSheetId], references: [id], onDelete: Cascade)
-  sale         Sale       @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  position           Int
+  /// Lo que pasó en la parada (lo carga el repartidor o un admin).
+  status             RouteStopStatus  @default(PENDING)
+  recordedAt         DateTime?        @map("recorded_at") @db.Timestamptz(3)
+  recordedById       String?          @map("recorded_by")
+  /// Aclaración de quien recibió (con la firma en pantalla).
+  receiverName       String?          @map("receiver_name") @db.VarChar(80)
+  receiverDni        String?          @map("receiver_dni") @db.VarChar(15)
+  /// Firma dibujada en pantalla y/o foto del remito firmado (UPLOADS_DIR/deliveries).
+  signatureFile      String?          @map("signature_file")
+  photoFile          String?          @map("photo_file")
+  notDeliveredReason String?          @map("not_delivered_reason") @db.VarChar(200)
+  /// Ubicación del celular al cargar la parada, si la dio.
+  latitude           Decimal?         @db.Decimal(9, 6)
+  longitude          Decimal?         @db.Decimal(9, 6)
+  accuracyMeters     Int?             @map("accuracy_meters")
+  /// Cobro cargado en la parada (va a la cuenta corriente del cliente).
+  paymentId          String?          @unique @map("payment_id")
+  createdAt          DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  routeSheet         RouteSheet       @relation(fields: [routeSheetId], references: [id], onDelete: Cascade)
+  sale               Sale             @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  recordedBy         User?            @relation("RouteStopRecordedBy", fields: [recordedById], references: [id], onDelete: Restrict)
+  payment            CustomerPayment? @relation(fields: [paymentId], references: [id], onDelete: Restrict)
 
   @@unique([routeSheetId, saleId])
   @@index([saleId], map: "idx_route_stops_sale_id")
   @@map("route_stops")
+}
+
+enum RouteStopStatus {
+  PENDING
+  DELIVERED
+  NOT_DELIVERED
 }
