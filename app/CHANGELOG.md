@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.29.0-alpha...v1.30.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **delivery:** add route sheets with stops, departure and printing ([#77](https://github.com/santiabe04/onaks_system/issues/77)) ([9ad9006](https://github.com/santiabe04/onaks_system/commit/9ad9006bc4ad76df887640704028ef15b6e3b566))
+
 ## [1.29.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.28.0-alpha...v1.29.0-alpha) (2026-10-28)
 
 
