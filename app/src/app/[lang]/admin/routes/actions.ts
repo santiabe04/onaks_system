@@ -480,6 +480,15 @@ export async function undoDeparture(
     db.$transaction(async (tx) => {
       const sheet = await lockSheet(tx, sheetId);
       if (sheet.state !== "OUT") throw new RouteError(messages().notOut);
+      // Con paradas ya cargadas, los pedidos no están todos En reparto.
+      const recorded = await tx.routeStop.count({
+        where: { routeSheetId: sheet.id, status: { not: "PENDING" } },
+      });
+      if (recorded > 0) {
+        throw new RouteError(
+          getActionDictionary().delivery.errors.recordedStops,
+        );
+      }
       await moveSales(
         tx,
         sheet.id,

@@ -87,7 +87,14 @@ comentarios y textos de UI en español.
   Se arman desde la hoja o desde "Por zona" (usa las casillas de la barra masiva). Salir pasa todos
   los pedidos a En reparto con `applySaleStateChange` en una transacción (todo o nada, ordenados por
   cliente para no cruzar bloqueos); "Volver a armando" los devuelve. Impresión en `[number]/print`
-  con el monto a cobrar por parada (`amountsToCollect`: pedido + deuda anterior una vez por cliente).
+  con el monto a cobrar por parada (`amountsToCollect`: pedido + deuda anterior una vez por cliente,
+  solo paradas pendientes).
+- Carga por parada (`/delivery/[hoja]/[posición]`, pensada para celular): el repartidor vinculado o un
+  admin marca entregado (firma en pantalla con aclaración o foto del remito, cobro opcional a la cuenta
+  corriente con `createCustomerPayment`) o no entregado con motivo; se guarda hora y GPS si el
+  celular lo da. Entregado → pedido Entregado (deuda); no entregado → Listo para despachar. Un admin
+  puede deshacer una carga mientras la hoja está en reparto. Firmas y fotos: `lib/delivery-files`
+  (WebP en `UPLOADS_DIR/deliveries`), servidas **con sesión** por `app/media/deliveries/[file]`.
 
 ## UI del admin
 

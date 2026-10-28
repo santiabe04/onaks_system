@@ -4,6 +4,12 @@ import { db } from "./db";
 import { groupOrdersByZone } from "./orders-by-zone";
 import { amountsToCollect, ROUTE_SALE_STATE } from "./route-sheet";
 
+const NOTHING_TO_COLLECT = {
+  order: "0.00",
+  previousDebt: "0.00",
+  total: "0.00",
+};
+
 /** Repartidores y vehículos activos, para elegir al armar una hoja. */
 export async function getFleetOptions() {
   const [drivers, vehicles] = await Promise.all([
@@ -37,7 +43,7 @@ export async function getRouteSheet(number: number) {
   const sheet = await db.routeSheet.findUnique({
     where: { number },
     include: {
-      driver: { select: { id: true, name: true, phone: true } },
+      driver: { select: { id: true, name: true, phone: true, userId: true } },
       vehicle: {
         select: {
           id: true,
@@ -50,6 +56,12 @@ export async function getRouteSheet(number: number) {
       stops: {
         orderBy: { position: "asc" },
         include: {
+          recordedBy: {
+            select: { person: { select: { name: true, surname: true } } },
+          },
+          payment: {
+            select: { amount: true, method: true, voidedAt: true },
+          },
           sale: {
             select: {
               id: true,
@@ -136,16 +148,20 @@ export async function getRouteSheet(number: number) {
       ),
     ),
   );
+  // Solo las paradas pendientes: en las cargadas ya se cobró (o no) y la
+  // deuda anterior va en la primera pendiente de cada cliente.
   const collect = amountsToCollect(
-    sheet.stops.map((stop) => {
-      const account = accounts.get(stop.sale.address.customerId)!;
-      return {
-        stopId: stop.id,
-        customerId: stop.sale.address.customerId,
-        salePending: account.sales[stop.sale.id]?.pending ?? "0",
-        customerBalance: account.balance,
-      };
-    }),
+    sheet.stops
+      .filter((stop) => stop.status === "PENDING")
+      .map((stop) => {
+        const account = accounts.get(stop.sale.address.customerId)!;
+        return {
+          stopId: stop.id,
+          customerId: stop.sale.address.customerId,
+          salePending: account.sales[stop.sale.id]?.pending ?? "0",
+          customerBalance: account.balance,
+        };
+      }),
   );
 
   return {
@@ -153,7 +169,7 @@ export async function getRouteSheet(number: number) {
     stops: sheet.stops.map((stop) => ({
       ...stop,
       load: load.get(stop.id) ?? { weight: "0", volume: "0" },
-      collect: collect[stop.id],
+      collect: collect[stop.id] ?? NOTHING_TO_COLLECT,
       customerBalance:
         accounts.get(stop.sale.address.customerId)?.balance ?? "0",
     })),
@@ -182,4 +198,40 @@ export async function getRouteCandidates() {
       },
     },
   });
+}
+
+/**
+ * Las hojas en reparto que ve quien carga las paradas: las del repartidor
+ * vinculado a su usuario o, para un admin, todas.
+ */
+export async function getDeliverySheets(user: {
+  id: string;
+  canManage: boolean;
+}) {
+  const sheets = await db.routeSheet.findMany({
+    where: {
+      state: "OUT",
+      ...(user.canManage ? {} : { driver: { userId: user.id } }),
+    },
+    orderBy: [{ date: "asc" }, { number: "asc" }],
+    select: {
+      number: true,
+      date: true,
+      driver: { select: { name: true } },
+      stops: { select: { status: true } },
+    },
+  });
+  return sheets.map((sheet) => ({
+    ...sheet,
+    done: sheet.stops.filter((stop) => stop.status !== "PENDING").length,
+    total: sheet.stops.length,
+  }));
+}
+
+/** Si el usuario puede cargar las paradas de esta hoja. */
+export function canRecordSheet(
+  sheet: { driver: { userId: string | null } },
+  user: { id: string; canManage: boolean },
+): boolean {
+  return user.canManage || sheet.driver.userId === user.id;
 }

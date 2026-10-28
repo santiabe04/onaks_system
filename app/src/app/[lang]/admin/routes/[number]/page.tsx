@@ -195,6 +195,21 @@ async function RouteSheet({ params }: { params: Promise<{ number: string }> }) {
                     <td className="py-2 pr-3 text-right whitespace-nowrap">
                       {format.money(stop.collect.total)}
                     </td>
+                    {!draft && (
+                      <td className="py-2 pr-3 whitespace-nowrap">
+                        {/* Lo cargado en la parada, o cargarla (el admin también puede). */}
+                        <Link
+                          href={`/delivery/${sheet.number}/${stop.position}`}
+                          className={`hover:underline ${
+                            stop.status === "NOT_DELIVERED"
+                              ? "text-red-600"
+                              : ""
+                          }`}
+                        >
+                          {t.delivery.statuses[stop.status]}
+                        </Link>
+                      </td>
+                    )}
                     {draft && (
                       <td className="py-2 text-right whitespace-nowrap">
                         <div className="flex justify-end gap-3">

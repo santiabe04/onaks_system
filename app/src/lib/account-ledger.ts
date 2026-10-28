@@ -1,6 +1,7 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { summarizeAccount } from "./account";
+import { audit } from "./audit";
 import { db } from "./db";
 
 type Client = Prisma.TransactionClient | typeof db;
@@ -87,4 +88,46 @@ export async function recomputeAccount(
     }
   }
   return account;
+}
+
+/**
+ * Registra un cobro o reintegro (ya validado) con auditoría y recalcula la
+ * cuenta. La cuenta tiene que estar bloqueada (`lockAccount`) por quien llama.
+ * Lo usan la cuenta corriente, el detalle del pedido y la carga por parada.
+ */
+export async function createCustomerPayment(
+  tx: Prisma.TransactionClient,
+  input: {
+    customerId: string;
+    saleId: string | null;
+    kind: "PAYMENT" | "REFUND";
+    amount: string;
+    method: "CASH" | "TRANSFER" | "CARD";
+    /** YYYY-MM-DD. */
+    paidOn: string;
+    notes: string | null;
+  },
+  userId: string,
+) {
+  const payment = await tx.customerPayment.create({
+    data: {
+      customerId: input.customerId,
+      saleId: input.saleId,
+      kind: input.kind,
+      amount: input.amount,
+      method: input.method,
+      paidOn: new Date(`${input.paidOn}T00:00:00Z`),
+      notes: input.notes,
+      createdById: userId,
+    },
+  });
+  await audit(tx, {
+    action: "CREATE",
+    actorUserId: userId,
+    entityType: "CUSTOMER_PAYMENT",
+    entityId: payment.id,
+    after: payment,
+  });
+  await recomputeAccount(tx, input.customerId);
+  return payment;
 }
