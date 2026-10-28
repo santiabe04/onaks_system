@@ -9,7 +9,9 @@ El admin ve los pedidos de la semana **agrupados por zona** (partido/localidad) 
 entrega: método de pago, peso y volumen totales, montos. La agrupación es una consulta por rango de
 fechas, no un job programado: `/admin/orders` lee los pedidos del período (semana de **sábado a
 viernes**, `lib/order-period`, o rango libre) sin los cancelados y los agrupa por localidad con
-`lib/orders-by-zone` (en enteros). El detalle de solo lectura está en `/admin/orders/[number]`.
+`lib/orders-by-zone` (en enteros); la consulta compartida es `lib/orders-by-zone-queries` (pantalla,
+CSV en `/admin/orders/export` con `lib/csv` y widget del dashboard). El detalle de solo lectura está en
+`/admin/orders/[number]`. Para imprimir: variante `print:` de Tailwind (`print:hidden` en menú y controles).
 
 Idioma: el usuario habla en español rioplatense. Código, commits y nombres en inglés;
 comentarios y textos de UI en español.

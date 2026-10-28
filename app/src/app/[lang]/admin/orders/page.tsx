@@ -2,19 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { buttonClass } from "@/components/ui/button";
+import { PrintButton } from "@/components/ui/print-button";
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionary";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
-import { db } from "@/lib/db";
 import {
   MAX_RANGE_DAYS,
   parseOrderPeriod,
   periodQuery,
   type OrderPeriod,
 } from "@/lib/order-period";
-import { groupOrdersByZone, type Totals } from "@/lib/orders-by-zone";
+import type { Totals } from "@/lib/orders-by-zone";
+import { getOrdersByZone } from "@/lib/orders-by-zone-queries";
 
 const PATH = "/admin/orders";
 
@@ -29,7 +30,7 @@ export default async function OrdersByZonePage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-6xl p-8">
+    <main className="mx-auto w-full max-w-6xl p-8 print:max-w-none print:p-0">
       <h1 className="text-2xl font-semibold">{t.adminOrders.title}</h1>
       {/* El período viene de la URL y los pedidos de la DB: van en Suspense. */}
       <Suspense
@@ -52,48 +53,13 @@ async function OrdersByZone({
   const now = new Date();
   const period = parseOrderPeriod(await searchParams, now);
 
-  // Los cancelados no se reparten: quedan fuera de la agrupación.
-  const sales = await db.sale.findMany({
-    where: {
-      createdAt: { gte: period.start, lt: period.end },
-      state: { not: "CANCELED" },
-    },
-    orderBy: { number: "asc" },
-    select: {
-      number: true,
-      createdAt: true,
-      state: true,
-      paymentMethod: true,
-      paymentState: true,
-      total: true,
-      address: {
-        select: {
-          name: true,
-          address: true,
-          customer: { select: { tradeName: true } },
-          city: {
-            select: { id: true, name: true, state: { select: { name: true } } },
-          },
-        },
-      },
-      items: { select: { quantity: true, unitWeight: true, unitVolume: true } },
-    },
-  });
-  const { zones, totals } = groupOrdersByZone(
-    sales.map((sale) => ({
-      ...sale,
-      cityId: sale.address.city.id,
-      cityName: sale.address.city.name,
-      stateName: sale.address.city.state.name,
-    })),
-    locale,
-  );
+  const { zones, totals } = await getOrdersByZone(period, locale);
 
   return (
     <>
       <PeriodControls
         period={period}
-        isCurrent={periodQuery(period, now) === ""}
+        query={periodQuery(period, now)}
         t={t.adminOrders}
         formatDay={(day) => format.date(new Date(`${day}T12:00:00-03:00`))}
       />
@@ -111,7 +77,7 @@ async function OrdersByZone({
           </section>
 
           {zones.map((zone) => (
-            <section key={zone.cityId} className="mt-8">
+            <section key={zone.cityId} className="mt-8 print:mt-6">
               <h2 className="text-lg font-semibold">
                 {zone.cityName}{" "}
                 <span className="text-sm font-normal opacity-70">
@@ -119,7 +85,7 @@ async function OrdersByZone({
                 </span>
               </h2>
               <TotalsLine totals={zone.totals} t={t} format={format} />
-              <div className="mt-2 overflow-x-auto">
+              <div className="mt-2 overflow-x-auto print:overflow-visible">
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-current/20">
                     <tr>
@@ -156,7 +122,7 @@ async function OrdersByZone({
                     {zone.orders.map((sale) => (
                       <tr
                         key={sale.number}
-                        className="border-b border-current/10 align-top"
+                        className="border-b border-current/10 align-top print:break-inside-avoid"
                       >
                         <td className="py-2 pr-3">
                           <Link
@@ -271,12 +237,13 @@ function TotalsLine({
 // Formulario GET: el período queda en la URL, se puede compartir y recargar.
 function PeriodControls({
   period,
-  isCurrent,
+  query,
   t,
   formatDay,
 }: {
   period: OrderPeriod;
-  isCurrent: boolean;
+  /** Vacío para la semana actual. */
+  query: string;
   t: Dictionary["adminOrders"];
   formatDay: (day: string) => string;
 }) {
@@ -292,7 +259,7 @@ function PeriodControls({
         {period.mode === "week" && (
           <Link
             href={`${PATH}?week=${period.previousWeek}`}
-            className={buttonClass("secondary")}
+            className={`${buttonClass("secondary")} print:hidden`}
           >
             {t.previousWeek}
           </Link>
@@ -301,24 +268,34 @@ function PeriodControls({
         {period.mode === "week" && (
           <Link
             href={`${PATH}?week=${period.nextWeek}`}
-            className={buttonClass("secondary")}
+            className={`${buttonClass("secondary")} print:hidden`}
           >
             {t.nextWeek}
           </Link>
         )}
-        {!isCurrent && (
-          <Link href={PATH} className="hover:underline">
+        {query !== "" && (
+          <Link href={PATH} className="hover:underline print:hidden">
             {t.thisWeek}
           </Link>
         )}
+        <div className="ml-auto flex gap-3 print:hidden">
+          <PrintButton label={t.print} />
+          <a
+            href={`${PATH}/export${query}`}
+            download
+            className={buttonClass("secondary")}
+          >
+            {t.exportCsv}
+          </a>
+        </div>
       </div>
       {period.mode === "week" && (
-        <p className="-mt-2 text-xs opacity-70">{t.weekHint}</p>
+        <p className="-mt-2 text-xs opacity-70 print:hidden">{t.weekHint}</p>
       )}
 
       <form
         action={PATH}
-        className="flex flex-wrap items-end gap-3 text-sm"
+        className="flex flex-wrap items-end gap-3 text-sm print:hidden"
         // key: al cambiar de período, los inputs vuelven a sus valores.
         key={`${period.from}-${period.to}`}
       >

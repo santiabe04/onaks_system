@@ -50,3 +50,21 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+/*
+ * Impresión (p. ej. pedidos por zona): siempre en claro, sin importar el tema,
+ * y sin colores de fondo que gastan tinta. El menú y los controles se ocultan
+ * con la variante `print:hidden`.
+ */
+@media print {
+  :root,
+  :root[data-theme="dark"],
+  :root:not([data-theme="light"]) {
+    --background: #ffffff;
+    --foreground: #000000;
+    color-scheme: light;
+  }
+  @page {
+    margin: 12mm;
+  }
+}

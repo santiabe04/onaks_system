@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import type { AuditAction } from "@/generated/prisma/enums";
+import { interpolate } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { parseOrderPeriod } from "@/lib/order-period";
+import { getOrdersByZone } from "@/lib/orders-by-zone-queries";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -21,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.dashboard.title };
 }
 
-// Dashboard v1: crece con cada fase (pedidos de la semana, stock bajo, etc.).
+// Dashboard: crece con cada fase (stock bajo, etc.).
 export default async function DashboardPage() {
   const t = await getT();
   const loading = <p className="mt-3 text-sm opacity-70">{t.common.loading}</p>;
@@ -31,7 +34,8 @@ export default async function DashboardPage() {
       <h1 className="text-2xl font-semibold">{t.dashboard.title}</h1>
 
       <Section title={t.dashboard.shortcuts}>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+          <Shortcut href="/admin/orders">{t.adminOrders.title}</Shortcut>
           <Shortcut href="/admin/measurement-units/new">
             {t.dashboard.newMeasurementUnit}
           </Shortcut>
@@ -43,6 +47,19 @@ export default async function DashboardPage() {
       </Section>
 
       {/* Datos de la DB en cada request: cada bloque en su Suspense. */}
+      <Section
+        title={t.dashboard.weekOrders}
+        action={
+          <Link href="/admin/orders" className="text-sm hover:underline">
+            {t.dashboard.viewByZone}
+          </Link>
+        }
+      >
+        <Suspense fallback={loading}>
+          <WeekOrders />
+        </Suspense>
+      </Section>
+
       <Section title={t.dashboard.summary}>
         <Suspense fallback={loading}>
           <Summary />
@@ -150,6 +167,64 @@ async function Summary() {
       <Stat label={t.dashboard.customers} value={format.number(customers)} />
       <Stat label={t.dashboard.users} value={format.number(users)} />
     </div>
+  );
+}
+
+/** La semana de reparto actual (sábado a viernes), como en "Pedidos por zona". */
+async function WeekOrders() {
+  await getUserWithPermission("sales:read-all");
+  const [t, locale] = await Promise.all([getT(), getLocale()]);
+  const format = formatters(locale);
+
+  const period = parseOrderPeriod({});
+  const { zones, totals } = await getOrdersByZone(period, locale);
+  const pending = zones
+    .flatMap((zone) => zone.orders)
+    .filter((sale) => sale.state === "PENDING").length;
+  const day = (value: string) =>
+    format.date(new Date(`${value}T12:00:00-03:00`));
+
+  return (
+    <>
+      <p className="mt-1 text-sm opacity-70">
+        {interpolate(t.adminOrders.week, {
+          from: day(period.from),
+          to: day(period.to),
+        })}
+      </p>
+      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Stat
+          label={t.dashboard.orders}
+          value={format.number(totals.count)}
+          href="/admin/orders"
+        />
+        <Stat
+          label={t.dashboard.pendingOrders}
+          value={format.number(pending)}
+        />
+        <Stat
+          label={t.dashboard.ordersTotal}
+          value={format.money(totals.total)}
+        />
+        <Stat
+          label={t.dashboard.ordersWeight}
+          value={interpolate(t.adminOrders.kg, {
+            value: format.number(totals.weight),
+          })}
+        />
+      </div>
+      {zones.length > 0 && (
+        <p className="mt-3 text-sm">
+          <span className="opacity-70">{t.dashboard.byZone}: </span>
+          {zones
+            .map(
+              (zone) =>
+                `${zone.cityName} (${format.number(zone.totals.count)})`,
+            )
+            .join(" · ")}
+        </p>
+      )}
+    </>
   );
 }
 
