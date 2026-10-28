@@ -10,8 +10,7 @@ export default async function AdminLayout({
 }: LayoutProps<"/[lang]/admin">) {
   const t = await getT();
 
-  // Un grupo aparece cuando existe alguna de sus pantallas: Clientes, Pedidos
-  // y Compras se suman en sus fases.
+  // Un grupo aparece cuando existe alguna de sus pantallas.
   const sections: NavSection[] = [
     { items: [{ href: "/admin", label: t.adminNav.home }] },
     {
@@ -34,6 +33,10 @@ export default async function AdminLayout({
         { href: "/admin/customers", label: t.customers.title },
         { href: "/admin/locations", label: t.adminNav.locations },
       ],
+    },
+    {
+      title: t.adminNav.orders,
+      items: [{ href: "/admin/orders", label: t.adminNav.ordersByZone }],
     },
     {
       title: t.adminNav.purchases,

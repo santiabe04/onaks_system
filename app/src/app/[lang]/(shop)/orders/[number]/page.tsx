@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense, type ReactNode } from "react";
+import { Suspense } from "react";
+import { OrderDetail, OrderItems } from "@/components/orders/order-items";
 import { interpolate } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
-import { cartTotals, lineTotals } from "@/lib/cart";
 import { parseSaleNumber } from "@/lib/checkout";
 import { db } from "@/lib/db";
-import { finalPrice } from "@/lib/price";
 
 export async function generateMetadata({
   params,
@@ -77,18 +76,6 @@ async function Order({
   });
   if (!sale) notFound();
 
-  // Todo sale de la foto guardada al confirmar, no del producto actual.
-  const items = [...sale.items].sort((a, b) =>
-    a.product.name.localeCompare(b.product.name, locale),
-  );
-  const line = (item: (typeof items)[number]) => ({
-    price: item.unitPrice,
-    rate: item.unitTaxRate,
-    quantity: item.quantity,
-    weight: item.unitWeight,
-  });
-  const { weight } = cartTotals(items.map(line));
-
   return (
     <>
       {created && (
@@ -110,97 +97,38 @@ async function Order({
       </div>
 
       <dl className="mt-4 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
-        <Detail label={t.orders.date}>{format.dateTime(sale.createdAt)}</Detail>
-        <Detail label={t.orders.orderedBy}>
+        <OrderDetail label={t.orders.date}>
+          {format.dateTime(sale.createdAt)}
+        </OrderDetail>
+        <OrderDetail label={t.orders.orderedBy}>
           {sale.user.person.name} {sale.user.person.surname}
-        </Detail>
-        <Detail label={t.orders.address}>
+        </OrderDetail>
+        <OrderDetail label={t.orders.address}>
           {sale.address.name}
           <span className="block opacity-70">
             {sale.address.address}, {sale.address.city.name}
           </span>
-        </Detail>
-        <Detail label={t.orders.payment}>
+        </OrderDetail>
+        <OrderDetail label={t.orders.payment}>
           {t.orders.paymentMethods[sale.paymentMethod]} ·{" "}
           {t.orders.paymentStates[sale.paymentState]}
-        </Detail>
+        </OrderDetail>
         {sale.notes && (
-          <Detail label={t.orders.notes}>
+          <OrderDetail label={t.orders.notes}>
             <span className="whitespace-pre-line">{sale.notes}</span>
-          </Detail>
+          </OrderDetail>
         )}
       </dl>
 
-      <div className="mt-6 overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-current/20">
-            <tr>
-              <th className="py-2 pr-3 font-medium">{t.cart.product}</th>
-              <th className="py-2 pr-3 text-right font-medium">
-                {t.cart.quantity}
-              </th>
-              <th className="py-2 pr-3 text-right font-medium">
-                {t.cart.unitPrice}
-              </th>
-              <th className="py-2 text-right font-medium">
-                {t.cart.lineTotal}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item) => (
-              <tr
-                key={item.productId}
-                className="border-b border-current/10 align-top"
-              >
-                <td className="py-2 pr-3">
-                  {item.product.name}
-                  <span className="block font-mono text-xs opacity-70">
-                    {item.product.sku}
-                  </span>
-                </td>
-                <td className="py-2 pr-3 text-right whitespace-nowrap">
-                  {format.number(item.quantity)}{" "}
-                  {item.product.measurementUnit.name}
-                </td>
-                <td className="py-2 pr-3 text-right whitespace-nowrap">
-                  {format.money(finalPrice(item.unitPrice, item.unitTaxRate))}
-                </td>
-                <td className="py-2 text-right whitespace-nowrap">
-                  {format.money(lineTotals(line(item)).total)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <dl className="mt-6 ml-auto flex w-full max-w-xs flex-col gap-1 text-sm">
-        <div className="flex justify-between">
-          <dt className="opacity-70">{t.cart.net}</dt>
-          <dd>{format.money(sale.subTotal)}</dd>
-        </div>
-        <div className="flex justify-between">
-          <dt className="opacity-70">{t.cart.tax}</dt>
-          <dd>{format.money(sale.tax)}</dd>
-        </div>
-        <div className="flex justify-between border-t border-current/20 pt-1 text-lg font-semibold">
-          <dt>{t.cart.total}</dt>
-          <dd>{format.money(sale.total)}</dd>
-        </div>
-        <p className="mt-1 text-xs opacity-70">
-          {interpolate(t.cart.weight, { weight: format.number(weight) })}
-        </p>
-      </dl>
+      <OrderItems
+        items={sale.items}
+        subTotal={sale.subTotal}
+        tax={sale.tax}
+        total={sale.total}
+        locale={locale}
+        format={format}
+        t={t.cart}
+      />
     </>
-  );
-}
-
-function Detail({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div>
-      <dt className="opacity-70">{label}</dt>
-      <dd>{children}</dd>
-    </div>
   );
 }
