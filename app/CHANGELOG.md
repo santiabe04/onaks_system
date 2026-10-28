@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.31.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.30.0-alpha...v1.31.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **delivery:** record each stop from the phone with signature, photo and payment ([#79](https://github.com/santiabe04/onaks_system/issues/79)) ([a444d47](https://github.com/santiabe04/onaks_system/commit/a444d473a1099e3eb27fbf07f215608fac2b1508))
+
 ## [1.30.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.29.0-alpha...v1.30.0-alpha) (2026-10-28)
 
 
