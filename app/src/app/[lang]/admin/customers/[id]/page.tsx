@@ -3,7 +3,10 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { buttonClass } from "@/components/ui/button";
 import { DeleteButton } from "@/components/ui/delete-button";
+import { BalanceLine } from "@/components/account/balance-line";
 import { interpolate } from "@/i18n/config";
+import { loadAccount } from "@/lib/account-ledger";
+import { db } from "@/lib/db";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
@@ -38,11 +41,12 @@ export default async function CustomerPage({
 
 async function CustomerDetail({ params }: { params: Promise<{ id: string }> }) {
   const customer = await loadCustomer((await params).id);
-  const [t, locale, admin, lockedMails] = await Promise.all([
+  const [t, locale, admin, lockedMails, account] = await Promise.all([
     getT(),
     getLocale(),
     getCurrentUser("ADMIN"),
     getLockedMails(customer.persons.map((person) => person.mail)),
+    loadAccount(db, customer.id),
   ]);
   const format = formatters(locale);
   const c = t.customers;
@@ -58,6 +62,16 @@ async function CustomerDetail({ params }: { params: Promise<{ id: string }> }) {
             {customer.legalName} · CUIT {formatCuit(customer.cuit)} ·{" "}
             {t.taxConditions[customer.taxCondition]}
           </p>
+          <div className="mt-2 flex flex-wrap items-baseline gap-x-4 text-sm">
+            <BalanceLine
+              balance={account.summary.balance}
+              t={t.account}
+              format={format}
+            />
+            <Link href={`${base}/account`} className="hover:underline">
+              {t.account.viewAccount}
+            </Link>
+          </div>
         </div>
         <div className="flex items-start gap-4 text-sm">
           <Link href={`${base}/edit`} className={buttonClass("secondary")}>

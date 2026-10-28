@@ -119,6 +119,11 @@ comentarios y textos de UI en español.
   cambió mientras se miraba y, al llegar a En preparación, descuenta el stock (`SALE`) del depósito
   del pedido o del elegido por producto; al volver a Pendiente o cancelar devuelve el neto
   (`SALE_RETURN`, `pendingReturns`). Los movimientos llevan `sale_id`. El historial sale de la auditoría.
+- Cuenta corriente por cliente (`customer_payments`: cobros y reintegros, se anulan con motivo, no se
+  borran). Un pedido es deuda al entregarse (`CHARGED_SALE_STATES`); lo cobrado se imputa solo al pedido
+  más viejo (`summarizeAccount` en `lib/account`, en centavos) y `recomputeAccount` guarda el estado de
+  pago en `sales` en la misma transacción. Orden de bloqueo: **cuenta del cliente (`lockAccount`) y
+  después el pedido**, en cobros, cambios de estado y confirmación. Reintegro: hasta el saldo a favor.
 - `new Date()` / `Date.now()` en un Server Component: antes, `await connection()` (si no, Next avisa
   que lee la hora del prerender).
 - `customers` es la empresa (CUIT, razón social, condición IVA). `persons.customer_id` es null para admins.

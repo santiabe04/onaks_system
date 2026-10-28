@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { SaleState } from "@/generated/prisma/enums";
 import { getActionDictionary } from "@/i18n/dictionary";
+import { lockAccount, recomputeAccount } from "@/lib/account-ledger";
 import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -39,6 +40,16 @@ export async function changeSaleState(
 
   try {
     await db.$transaction(async (tx) => {
+      // Primero la cuenta del cliente y después el pedido, en el mismo orden
+      // que los cobros: así dos transacciones no se bloquean entre sí.
+      const owner = await tx.sale.findUnique({
+        where: { id: saleId },
+        select: { address: { select: { customerId: true } } },
+      });
+      if (!owner) throw new StateChangeError(t.notFound);
+      const customerId = owner.address.customerId;
+      await lockAccount(tx, customerId);
+
       // Bloqueado hasta el final: dos cambios a la vez no descuentan dos veces.
       const [locked] = await tx.$queryRaw<
         { state: SaleState; number: number }[]
@@ -93,6 +104,8 @@ export async function changeSaleState(
         after: { state: input.to },
         metadata: { comment: input.comment, ...stock },
       });
+      // Entregar (o volver atrás) cambia la deuda y el estado de pago.
+      await recomputeAccount(tx, customerId);
     });
   } catch (error) {
     if (error instanceof StateChangeError) return { error: error.message };
