@@ -41,7 +41,10 @@ export default async function AdminLayout({
     },
     {
       title: t.adminNav.system,
-      items: [{ href: "/admin/audit", label: t.adminNav.audit }],
+      items: [
+        { href: "/admin/users", label: t.adminNav.users },
+        { href: "/admin/audit", label: t.adminNav.audit },
+      ],
     },
   ];
 

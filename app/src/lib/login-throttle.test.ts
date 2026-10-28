@@ -2,12 +2,42 @@ import { describe, expect, it } from "vitest";
 import {
   LOCK_WINDOW_MS,
   lockedUntil,
+  mailLockedUntil,
   minutesUntil,
   pickLock,
 } from "./login-throttle";
 
 const now = new Date("2026-10-27T15:00:00Z");
 const minutesAgo = (m: number) => new Date(now.getTime() - m * 60_000);
+
+describe("mailLockedUntil", () => {
+  const fail = (ip: string, minutes: number) => ({
+    ip,
+    createdAt: minutesAgo(minutes),
+  });
+
+  it("bloquea si una IP llegó a 5 fallos", () => {
+    const failures = [1, 2, 3, 4, 5].map((m) => fail("10.0.0.1", m));
+    expect(mailLockedUntil([...failures, fail("10.0.0.2", 1)], now)).toEqual(
+      new Date(minutesAgo(5).getTime() + LOCK_WINDOW_MS),
+    );
+  });
+
+  it("bloquea con 20 fallos repartidos entre IPs", () => {
+    const failures = Array.from({ length: 20 }, (_, i) =>
+      fail(`10.0.0.${i % 5}`, i % 4),
+    );
+    expect(mailLockedUntil(failures, now)).not.toBeNull();
+  });
+
+  it("4 fallos por IP no alcanzan", () => {
+    const failures = [1, 2, 3, 4].flatMap((m) => [
+      fail("10.0.0.1", m),
+      fail("10.0.0.2", m),
+    ]);
+    expect(mailLockedUntil(failures, now)).toBeNull();
+  });
+});
 
 describe("lockedUntil", () => {
   it("no bloquea con menos fallos que el máximo", () => {

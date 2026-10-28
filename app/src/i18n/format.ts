@@ -22,6 +22,7 @@ export function formatters(locale: Locale) {
     maximumFractionDigits: 2,
   });
   const date = new Intl.DateTimeFormat(tag, { dateStyle: "short" });
+  const time = new Intl.DateTimeFormat(tag, { timeStyle: "short" });
   const dateTime = new Intl.DateTimeFormat(tag, {
     dateStyle: "short",
     timeStyle: "short",
@@ -35,6 +36,7 @@ export function formatters(locale: Locale) {
     /** Recibe una fracción (0.105 → "10,5 %"), como se guardan las tasas. */
     percent: (value: Numeric) => percent.format(Number(value.toString())),
     date: (value: Date) => date.format(value),
+    time: (value: Date) => time.format(value),
     dateTime: (value: Date) => dateTime.format(value),
   };
 }

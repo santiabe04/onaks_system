@@ -32,6 +32,36 @@ export function pickLock(mailIp: Date | null, mail: Date | null): Lock | null {
   return null;
 }
 
+/**
+ * Hasta cuándo está bloqueado un mail mirando todas las IPs (para el admin,
+ * que no sabe desde dónde intentan). `failures` son los fallos posteriores al
+ * último login correcto, de cualquier orden.
+ */
+export function mailLockedUntil(
+  failures: { ip: string | null; createdAt: Date }[],
+  now: Date,
+): Date | null {
+  const newestFirst = (dates: Date[]) =>
+    [...dates].sort((a, b) => b.getTime() - a.getTime());
+  const byIp = new Map<string | null, Date[]>();
+  for (const failure of failures) {
+    byIp.set(failure.ip, [...(byIp.get(failure.ip) ?? []), failure.createdAt]);
+  }
+  const candidates = [
+    lockedUntil(
+      newestFirst(failures.map((f) => f.createdAt)),
+      MAX_FAILURES_PER_MAIL,
+      now,
+    ),
+    ...[...byIp.values()].map((dates) =>
+      lockedUntil(newestFirst(dates), MAX_FAILURES_PER_MAIL_IP, now),
+    ),
+  ].filter((date): date is Date => date !== null);
+  return candidates.length === 0
+    ? null
+    : new Date(Math.max(...candidates.map((date) => date.getTime())));
+}
+
 /** Minutos que faltan, redondeando para arriba (nunca "0 min"). */
 export function minutesUntil(until: Date, now: Date): number {
   return Math.max(1, Math.ceil((until.getTime() - now.getTime()) / 60_000));

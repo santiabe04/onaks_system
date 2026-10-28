@@ -4,8 +4,13 @@ import { Suspense } from "react";
 import { buttonClass } from "@/components/ui/button";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { interpolate } from "@/i18n/config";
-import { getT } from "@/i18n/server";
+import { formatters } from "@/i18n/format";
+import { getLocale, getT } from "@/i18n/server";
+import { getCurrentUser } from "@/lib/auth";
 import { formatCuit } from "@/lib/cuit";
+import { getLockedMails } from "@/lib/login-attempts";
+import { userControlProps } from "../../users/control-props";
+import { UserControls } from "../../users/user-controls";
 import { deleteAddress, deleteCustomer, deletePerson } from "../actions";
 import { loadCustomer } from "../data";
 
@@ -33,7 +38,13 @@ export default async function CustomerPage({
 
 async function CustomerDetail({ params }: { params: Promise<{ id: string }> }) {
   const customer = await loadCustomer((await params).id);
-  const t = await getT();
+  const [t, locale, admin, lockedMails] = await Promise.all([
+    getT(),
+    getLocale(),
+    getCurrentUser("ADMIN"),
+    getLockedMails(customer.persons.map((person) => person.mail)),
+  ]);
+  const format = formatters(locale);
   const c = t.customers;
   const base = `/admin/customers/${customer.id}`;
   const labels = { delete: t.common.delete, deleting: t.common.deleting };
@@ -98,13 +109,15 @@ async function CustomerDetail({ params }: { params: Promise<{ id: string }> }) {
                   </td>
                   <td className="py-2 pr-3">{person.mail}</td>
                   <td className="py-2 pr-3">{person.phone ?? "—"}</td>
-                  {/* El alta de usuarios llega en el próximo PR. */}
                   <td className="py-2 pr-3">
-                    {person.user ? (
-                      "✓"
-                    ) : (
-                      <span className="opacity-60">{c.noUser}</span>
-                    )}
+                    <UserControls
+                      {...userControlProps(person, {
+                        lockedMails,
+                        currentUserId: admin.id,
+                        formatTime: format.time,
+                        t: t.users,
+                      })}
+                    />
                   </td>
                   <td className="py-2">
                     <div className="flex items-start justify-end gap-4">

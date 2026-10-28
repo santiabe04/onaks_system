@@ -4,6 +4,7 @@ import { db } from "./db";
 import {
   LOCK_WINDOW_MS,
   lockedUntil,
+  mailLockedUntil,
   MAX_FAILURES_PER_MAIL,
   MAX_FAILURES_PER_MAIL_IP,
   pickLock,
@@ -46,4 +47,67 @@ export async function getLoginLock(
     lockedUntil(byMailIp, MAX_FAILURES_PER_MAIL_IP, now),
     lockedUntil(byMail, MAX_FAILURES_PER_MAIL, now),
   );
+}
+
+/** Fallos que cuentan para el bloqueo: dentro de la ventana y después del último login correcto. */
+async function recentFailuresWhere(
+  mails: string[],
+  now: Date,
+): Promise<Prisma.LoginAttemptWhereInput> {
+  const windowStart = new Date(now.getTime() - LOCK_WINDOW_MS);
+  const successes = await db.loginAttempt.groupBy({
+    by: ["mail"],
+    where: {
+      mail: { in: mails },
+      success: true,
+      createdAt: { gt: windowStart },
+    },
+    _max: { createdAt: true },
+  });
+  const since = new Map(successes.map((s) => [s.mail, s._max.createdAt!]));
+  return {
+    success: false,
+    OR: mails.map((mail) => ({
+      mail,
+      createdAt: { gt: since.get(mail) ?? windowStart },
+    })),
+  };
+}
+
+/**
+ * Para el admin: qué mails están bloqueados ahora y hasta cuándo, desde
+ * cualquier IP. Los que no figuran, no están bloqueados.
+ */
+export async function getLockedMails(
+  mails: string[],
+  now = new Date(),
+): Promise<Map<string, Date>> {
+  const result = new Map<string, Date>();
+  if (mails.length === 0) return result;
+  const failures = await db.loginAttempt.findMany({
+    where: await recentFailuresWhere(mails, now),
+    select: { mail: true, ip: true, createdAt: true },
+  });
+  for (const mail of mails) {
+    const until = mailLockedUntil(
+      failures.filter((f) => f.mail === mail),
+      now,
+    );
+    if (until) result.set(mail, until);
+  }
+  return result;
+}
+
+/**
+ * Libera el bloqueo de un mail: borra sus fallos recientes. `login_attempts`
+ * es solo un contador de trabajo; el historial queda en la auditoría.
+ */
+export async function clearLoginFailures(
+  tx: Prisma.TransactionClient,
+  mail: string,
+): Promise<number> {
+  const { count } = await tx.loginAttempt.deleteMany({
+    where: { mail, success: false },
+  });
+  return count;
 }

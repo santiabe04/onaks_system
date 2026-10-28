@@ -37,7 +37,12 @@ comentarios y textos de UI en español.
 - Las tablas de negocio llevan `created_by`/`updated_by` (por ahora `measurement_units`; se agregan al tocar cada tabla).
 - `ACCESS_DENIED` se registra solo en Server Actions (`requirePermission`/`requireUser`), no al renderizar.
 - Login: bloqueo de 15 min con 5 fallos por mail+IP o 20 por mail (`login_attempts`, `lib/login-throttle`).
-- `users.session_version` va en el token; incrementarlo revoca las sesiones (se hace al cambiar la contraseña).
+- `users.session_version` va en el token; incrementarlo revoca las sesiones (al cambiar o blanquear la
+  contraseña y al desactivar un usuario).
+- Usuarios: no hay registro público. El admin crea el usuario de una persona (CLIENT si tiene cliente,
+  ADMIN si no) con una contraseña generada (`lib/temp-password`) que se muestra **una sola vez** y hay que
+  cambiar al entrar. También blanquea, desactiva/reactiva y desbloquea el login (`/admin/users` y la
+  pantalla de cada cliente). Un admin no se blanquea ni se desactiva a sí mismo.
 
 ## UI del admin
 
