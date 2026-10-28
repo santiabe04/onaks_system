@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import {
   addStops,
+  closeRouteSheet,
   createRouteSheetFromSales,
   type RouteActionState,
 } from "@/app/[lang]/admin/routes/actions";
@@ -15,6 +16,7 @@ import {
   type RouteSheetFormState,
   type RouteSheetValues,
 } from "@/lib/route-sheet";
+import { CLOSING_NOTES_MAX_LENGTH } from "@/lib/route-closing";
 import { BULK_FORM_ID } from "../orders/bulk-state-bar";
 
 const CONTROL = "rounded border border-current/20 bg-transparent px-3 py-2";
@@ -295,5 +297,43 @@ export function RouteFromSelection({
         </div>
       </form>
     </details>
+  );
+}
+
+/** Rendición y cierre de la hoja: cuánto efectivo entregó el repartidor. */
+export function ClosingForm({
+  sheetId,
+  cashExpected,
+  t,
+}: {
+  sheetId: string;
+  /** Con el separador decimal del idioma, para precargar ("44860,5"). */
+  cashExpected: string;
+  t: Dictionary["routes"]["closing"];
+}) {
+  const [state, formAction, pending] = useActionState<
+    RouteActionState,
+    FormData
+  >(closeRouteSheet.bind(null, sheetId), {});
+  return (
+    <form action={formAction} className="flex flex-col gap-3 text-sm">
+      <Field label={t.cashReceived}>
+        <Input
+          name="cashReceived"
+          inputMode="decimal"
+          required
+          defaultValue={cashExpected}
+        />
+      </Field>
+      <Field label={t.notes}>
+        <Input name="notes" maxLength={CLOSING_NOTES_MAX_LENGTH} />
+      </Field>
+      <FormError messages={state.error} />
+      <div>
+        <SubmitButton pending={pending} pendingLabel={t.closing}>
+          {t.close}
+        </SubmitButton>
+      </div>
+    </form>
   );
 }

@@ -4,15 +4,20 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import {
   AddStopsForm,
+  ClosingForm,
   RouteSheetForm,
   SheetActionButton,
 } from "@/components/routes/route-forms";
 import { buttonClass } from "@/components/ui/button";
+import type { PaymentMethod } from "@/generated/prisma/enums";
 import { interpolate } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/dictionary";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { parseSaleNumber } from "@/lib/checkout";
+import { fromCents, toCents } from "@/lib/account";
+import { summarizeCollections } from "@/lib/route-closing";
 import { checkCapacity } from "@/lib/route-sheet";
 import {
   getFleetOptions,
@@ -160,6 +165,10 @@ async function RouteSheet({ params }: { params: Promise<{ number: string }> }) {
         )}
       </section>
 
+      {sheet.state !== "DRAFT" && (
+        <ClosingSection sheet={sheet} t={t} format={format} />
+      )}
+
       <section className="mt-6">
         <h2 className="text-lg font-medium">{r.stops}</h2>
         {sheet.stops.length === 0 ? (
@@ -292,5 +301,104 @@ async function RouteSheet({ params }: { params: Promise<{ number: string }> }) {
         </div>
       )}
     </>
+  );
+}
+
+/**
+ * En reparto: lo cobrado en las paradas y el formulario de rendición (si ya
+ * están todas cargadas). Cerrada: el resumen de la rendición.
+ */
+function ClosingSection({
+  sheet,
+  t,
+  format,
+}: {
+  sheet: NonNullable<Awaited<ReturnType<typeof getRouteSheet>>>;
+  t: Dictionary;
+  format: ReturnType<typeof formatters>;
+}) {
+  const c = t.routes.closing;
+  const summary = summarizeCollections(sheet.stops);
+  const methods = Object.entries(summary.byMethod) as [PaymentMethod, string][];
+  const closedBy = sheet.closedBy?.person;
+  const difference =
+    sheet.cashReceived && sheet.cashExpected
+      ? toCents(sheet.cashReceived) - toCents(sheet.cashExpected)
+      : BigInt(0);
+
+  return (
+    <section className="mt-6 rounded border border-current/20 p-4 text-sm">
+      <h2 className="text-lg font-medium">{c.title}</h2>
+      <h3 className="mt-2 font-medium">{c.collected}</h3>
+      {methods.length === 0 ? (
+        <p className="opacity-70">{c.noCollections}</p>
+      ) : (
+        <ul>
+          {methods.map(([method, amount]) => (
+            <li key={method}>
+              {t.orders.paymentMethods[method]}: {format.money(amount)}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {sheet.state === "OUT" ? (
+        <div className="mt-3">
+          <p className="font-semibold">
+            {interpolate(c.cashExpected, {
+              amount: format.money(summary.cashExpected),
+            })}
+          </p>
+          {summary.pendingStops > 0 ? (
+            <p className="mt-2 opacity-70">
+              {interpolate(c.pending, { count: summary.pendingStops })}
+            </p>
+          ) : (
+            <div className="mt-3 max-w-sm">
+              <p className="mb-2 text-xs opacity-70">{c.hint}</p>
+              <ClosingForm
+                sheetId={sheet.id}
+                cashExpected={format.input(summary.cashExpected)}
+                t={c}
+              />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="mt-3 flex flex-col gap-1">
+          {sheet.closedAt && (
+            <p className="text-xs opacity-70">
+              {interpolate(c.closedBy, {
+                date: format.dateTime(sheet.closedAt),
+                name: closedBy ? `${closedBy.name} ${closedBy.surname}` : "—",
+              })}
+            </p>
+          )}
+          <p>
+            {interpolate(c.cashExpected, {
+              amount: format.money(sheet.cashExpected ?? 0),
+            })}{" "}
+            ·{" "}
+            {interpolate(c.received, {
+              amount: format.money(sheet.cashReceived ?? 0),
+            })}
+          </p>
+          <p
+            className={`font-semibold ${difference < BigInt(0) ? "text-red-600" : ""}`}
+          >
+            {difference === BigInt(0)
+              ? c.balanced
+              : interpolate(difference < BigInt(0) ? c.shortage : c.surplus, {
+                  amount: format.money(
+                    fromCents(
+                      difference < BigInt(0) ? -difference : difference,
+                    ),
+                  ),
+                })}
+          </p>
+          {sheet.closingNotes && <p>{sheet.closingNotes}</p>}
+        </div>
+      )}
+    </section>
   );
 }

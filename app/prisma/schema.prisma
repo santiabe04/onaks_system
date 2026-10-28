@@ -491,6 +491,7 @@ model User {
   routeSheetsCreated       RouteSheet[]      @relation("RouteSheetCreatedBy")
   routeSheetsUpdated       RouteSheet[]      @relation("RouteSheetUpdatedBy")
   routeStopsRecorded       RouteStop[]       @relation("RouteStopRecordedBy")
+  routeSheetsClosed        RouteSheet[]      @relation("RouteSheetClosedBy")
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")
@@ -706,26 +707,33 @@ enum RouteSheetState {
 
 /// Hoja de ruta: un reparto con repartidor, vehículo y paradas en orden.
 model RouteSheet {
-  id          String          @id @default(cuid(2))
+  id           String          @id @default(cuid(2))
   /// Número correlativo ("Hoja #12").
-  number      Int             @unique @default(autoincrement())
+  number       Int             @unique @default(autoincrement())
   /// Día del reparto.
-  date        DateTime        @db.Date
-  driverId    String          @map("driver_id")
-  vehicleId   String?         @map("vehicle_id")
-  state       RouteSheetState @default(DRAFT)
-  notes       String?         @db.VarChar(300)
-  departedAt  DateTime?       @map("departed_at") @db.Timestamptz(3)
-  closedAt    DateTime?       @map("closed_at") @db.Timestamptz(3)
-  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
-  createdById String?         @map("created_by")
-  updatedById String?         @map("updated_by")
-  driver      Driver          @relation(fields: [driverId], references: [id], onDelete: Restrict)
-  vehicle     Vehicle?        @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
-  createdBy   User?           @relation("RouteSheetCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy   User?           @relation("RouteSheetUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
-  stops       RouteStop[]
+  date         DateTime        @db.Date
+  driverId     String          @map("driver_id")
+  vehicleId    String?         @map("vehicle_id")
+  state        RouteSheetState @default(DRAFT)
+  notes        String?         @db.VarChar(300)
+  departedAt   DateTime?       @map("departed_at") @db.Timestamptz(3)
+  closedAt     DateTime?       @map("closed_at") @db.Timestamptz(3)
+  /// Rendición al cerrar: efectivo cobrado en las paradas y lo que entregó el repartidor.
+  cashExpected Decimal?        @map("cash_expected") @db.Decimal(12, 2)
+  cashReceived Decimal?        @map("cash_received") @db.Decimal(12, 2)
+  /// Explica la diferencia (faltante o sobrante); obligatorio si no coincide.
+  closingNotes String?         @map("closing_notes") @db.VarChar(300)
+  closedById   String?         @map("closed_by")
+  closedBy     User?           @relation("RouteSheetClosedBy", fields: [closedById], references: [id], onDelete: Restrict)
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById  String?         @map("created_by")
+  updatedById  String?         @map("updated_by")
+  driver       Driver          @relation(fields: [driverId], references: [id], onDelete: Restrict)
+  vehicle      Vehicle?        @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  createdBy    User?           @relation("RouteSheetCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy    User?           @relation("RouteSheetUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  stops        RouteStop[]
 
   @@index([state, date], map: "idx_route_sheets_state_date")
   @@index([driverId, date], map: "idx_route_sheets_driver_id_date")

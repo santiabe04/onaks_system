@@ -17,6 +17,7 @@ import {
   type RouteSheetFormState,
   type RouteSheetInput,
 } from "@/lib/route-sheet";
+import { summarizeCollections, validateClosingForm } from "@/lib/route-closing";
 import {
   applySaleStateChange,
   StateChangeError,
@@ -540,4 +541,62 @@ export async function deleteRouteSheet(
   if (state.error) return state;
   revalidateRoutes();
   redirect("/admin/routes");
+}
+
+/**
+ * Cierra la hoja cuando volvió el repartidor: todas las paradas cargadas y
+ * la rendición del efectivo cobrado (lo esperado se calcula acá, con la hoja
+ * bloqueada, para que no cambie entre que se ve y se cierra).
+ */
+export async function closeRouteSheet(
+  sheetId: string,
+  _prev: RouteActionState,
+  formData: FormData,
+): Promise<RouteActionState> {
+  const user = await requirePermission(PERMISSION);
+  const t = getActionDictionary().routes.closing.errors;
+  const state = await run(() =>
+    db.$transaction(async (tx) => {
+      const sheet = await lockSheet(tx, sheetId);
+      if (sheet.state !== "OUT") throw new RouteError(t.notOut);
+      const stops = await tx.routeStop.findMany({
+        where: { routeSheetId: sheet.id },
+        select: {
+          status: true,
+          payment: { select: { amount: true, method: true, voidedAt: true } },
+        },
+      });
+      const summary = summarizeCollections(stops);
+      if (summary.pendingStops > 0) throw new RouteError(t.pendingStops);
+      const closing = validateClosingForm(formData, summary.cashExpected, t);
+      if (!closing.ok) throw new RouteError(closing.error);
+
+      const after = await tx.routeSheet.update({
+        where: { id: sheet.id },
+        data: {
+          state: "CLOSED",
+          closedAt: new Date(),
+          closedById: user.id,
+          cashExpected: summary.cashExpected,
+          cashReceived: closing.data.cashReceived,
+          closingNotes: closing.data.notes,
+          updatedById: user.id,
+        },
+      });
+      await audit(tx, {
+        action: "UPDATE",
+        actorUserId: user.id,
+        entityType: ENTITY,
+        entityId: sheet.id,
+        before: { state: sheet.state },
+        after,
+        metadata: {
+          collected: summary.byMethod,
+          difference: closing.data.difference,
+        },
+      });
+    }),
+  );
+  revalidateRoutes();
+  return state;
 }
