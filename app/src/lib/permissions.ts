@@ -19,6 +19,8 @@ export const PERMISSIONS = [
   "catalog:read",
   "audit:read",
   "dashboard:read",
+  "routes:manage",
+  "routes:deliver",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -41,8 +43,13 @@ export const ROLE_PERMISSIONS: Record<UserType, readonly Permission[]> = {
     "catalog:read",
     "audit:read",
     "dashboard:read",
+    "routes:manage",
+    // Un admin también puede repartir (empresas chicas).
+    "routes:deliver",
   ],
   CLIENT: ["catalog:read", "sales:create"],
+  // Solo carga las entregas de sus hojas de ruta.
+  DRIVER: ["routes:deliver"],
 };
 
 export function can(role: UserType, permission: Permission): boolean {

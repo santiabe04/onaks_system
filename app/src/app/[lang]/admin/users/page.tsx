@@ -43,14 +43,19 @@ async function AdminsTable() {
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
 
-  // Administradores: personas sin cliente.
+  // Usuarios internos (admins y repartidores): personas sin cliente.
   const persons = await db.person.findMany({
     where: { customerId: null, deletedAt: null },
     orderBy: [{ surname: "asc" }, { name: "asc" }],
     include: {
       user: {
         where: { deletedAt: null },
-        select: { id: true, isActive: true, passwordMustChange: true },
+        select: {
+          id: true,
+          isActive: true,
+          passwordMustChange: true,
+          userType: true,
+        },
       },
     },
   });
@@ -66,6 +71,7 @@ async function AdminsTable() {
         <tr>
           <th className="py-2 pr-3 font-medium">{t.users.name}</th>
           <th className="py-2 pr-3 font-medium">{t.users.mail}</th>
+          <th className="py-2 pr-3 font-medium">{t.users.role}</th>
           <th className="py-2 pr-3 font-medium">{t.users.status}</th>
         </tr>
       </thead>
@@ -76,6 +82,9 @@ async function AdminsTable() {
               {person.name} {person.surname}
             </td>
             <td className="py-2 pr-3">{person.mail}</td>
+            <td className="py-2 pr-3">
+              {person.user ? t.users.roles[person.user.userType] : "—"}
+            </td>
             <td className="py-2 pr-3">
               <UserControls
                 {...userControlProps(person, {

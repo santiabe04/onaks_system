@@ -9,10 +9,14 @@ export const LOGIN_PATH = "/login";
 export const LOGOUT_PATH = "/logout";
 export const CHANGE_PASSWORD_PATH = "/change-password";
 const ADMIN_PATH = "/admin";
+/** Inicio del repartidor: sus hojas de ruta. */
+export const DELIVERY_PATH = "/delivery";
 
 /** Adónde va cada rol al entrar o cuando intenta abrir algo que no le corresponde. */
 export function homePathFor(role: UserType): string {
-  return role === "ADMIN" ? ADMIN_PATH : "/";
+  if (role === "ADMIN") return ADMIN_PATH;
+  if (role === "DRIVER") return DELIVERY_PATH;
+  return "/";
 }
 
 function isUnder(pathname: string, base: string): boolean {
