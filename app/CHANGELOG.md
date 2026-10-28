@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.18.0-alpha...v1.19.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **orders:** add checkout, customer order history and reserved stock ([#53](https://github.com/santiabe04/onaks_system/issues/53)) ([f5c935d](https://github.com/santiabe04/onaks_system/commit/f5c935db692bc1c0fbcca17d3152c7f40e371ccb))
+
 ## [1.18.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.17.0-alpha...v1.18.0-alpha) (2026-10-28)
 
 
