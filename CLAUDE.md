@@ -92,6 +92,10 @@ comentarios y textos de UI en español.
   los saldos (`FOR UPDATE`, en orden), calcula las patas (`lib/stock`, en milésimas con BigInt) y escribe
   saldo + movimiento + auditoría en la misma transacción. Cantidades con 3 decimales. Un depósito se
   desactiva solo sin stock.
+- Carrito en la DB (`cart_items`, uno por persona, PK persona+producto), sin auditoría: no es dato del
+  negocio hasta confirmar el pedido. Solo compra quien tiene `sales:create` (CLIENT). Los totales salen
+  de `lib/cart` (en centavos/milésimas con BigInt); productos pausados o borrados quedan fuera del total.
+- `measurement_units.allows_decimals`: si la unidad admite cantidades con decimales (kg, l) o solo enteras (u).
 - Estados separados: `SaleState` (logística) y `SalePaymentState` (pago).
 - `customers` es la empresa (CUIT, razón social, condición IVA). `persons.customer_id` es null para admins.
   Un cliente tiene varias personas (cada una puede tener usuario; el mail es el login, único y en minúsculas).

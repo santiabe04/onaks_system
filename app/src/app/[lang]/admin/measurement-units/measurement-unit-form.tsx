@@ -32,7 +32,12 @@ export function MeasurementUnitForm({
 }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
   // Si hubo error, se muestra lo último que tipeó el usuario.
-  const values = state.values ?? defaultValues ?? { name: "", description: "" };
+  const values = state.values ??
+    defaultValues ?? {
+      name: "",
+      description: "",
+      allowsDecimals: false,
+    };
 
   return (
     <form action={formAction} className="mt-6 flex flex-col gap-4">
@@ -54,6 +59,22 @@ export function MeasurementUnitForm({
           placeholder={t.descriptionPlaceholder}
         />
       </Field>
+
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          key={String(values.allowsDecimals)}
+          type="checkbox"
+          name="allowsDecimals"
+          defaultChecked={values.allowsDecimals}
+          className="mt-0.5"
+        />
+        <span>
+          <span className="font-medium">{t.allowsDecimals}</span>
+          <span className="block text-xs opacity-60">
+            {t.allowsDecimalsHint}
+          </span>
+        </span>
+      </label>
 
       <FormError messages={state.errors?.form} />
 

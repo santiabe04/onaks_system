@@ -21,6 +21,9 @@ export type CatalogItem = {
   netLine: string;
   /** "u · 15 kg". */
   unitLine: string;
+  unitName: string;
+  /** La unidad admite cantidades con decimales (kg, litros). */
+  allowsDecimals: boolean;
 };
 
 /** Árbol de categorías del menú: solo las que tienen productos visibles. */
@@ -42,7 +45,7 @@ export const CATALOG_PRODUCT_SELECT = {
   price: true,
   weight: true,
   taxRate: { select: { rate: true } },
-  measurementUnit: { select: { name: true } },
+  measurementUnit: { select: { name: true, allowsDecimals: true } },
 } as const;
 
 type CatalogProduct = {
@@ -54,7 +57,7 @@ type CatalogProduct = {
   price: { toString(): string };
   weight: { toString(): string };
   taxRate: { rate: { toString(): string } };
-  measurementUnit: { name: string };
+  measurementUnit: { name: string; allowsDecimals: boolean };
 };
 
 export function toCatalogItem(
@@ -74,6 +77,8 @@ export function toCatalogItem(
       net: format.money(product.price),
       rate: format.percent(product.taxRate.rate),
     }),
+    unitName: product.measurementUnit.name,
+    allowsDecimals: product.measurementUnit.allowsDecimals,
     unitLine: `${product.measurementUnit.name} · ${interpolate(t.weight, {
       weight: format.number(product.weight),
     })}`,

@@ -23,6 +23,8 @@ export function measurementUnitSchema(t: Messages) {
         interpolate(t.tooLong, { max: DESCRIPTION_MAX_LENGTH }),
       )
       .transform((value) => value || null),
+    // Si se puede vender "1,5" de esta unidad (kg, l) o solo enteros (u).
+    allowsDecimals: z.boolean(),
   });
 }
 
@@ -31,7 +33,11 @@ export type MeasurementUnitInput = z.infer<
 >;
 
 /** Lo que el usuario tipeó, para volver a mostrarlo si hay errores. */
-export type MeasurementUnitValues = { name: string; description: string };
+export type MeasurementUnitValues = {
+  name: string;
+  description: string;
+  allowsDecimals: boolean;
+};
 
 export type MeasurementUnitFormState = {
   errors?: Partial<Record<keyof MeasurementUnitValues | "form", string[]>>;
@@ -43,7 +49,11 @@ function readMeasurementUnitForm(formData: FormData): MeasurementUnitValues {
     const value = formData.get(key);
     return typeof value === "string" ? value : "";
   };
-  return { name: get("name"), description: get("description") };
+  return {
+    name: get("name"),
+    description: get("description"),
+    allowsDecimals: formData.get("allowsDecimals") === "on",
+  };
 }
 
 export function validateMeasurementUnitForm(

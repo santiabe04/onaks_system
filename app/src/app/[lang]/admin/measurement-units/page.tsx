@@ -59,6 +59,7 @@ async function MeasurementUnitsTable() {
         <tr>
           <th className="py-2 font-medium">{t.measurementUnits.name}</th>
           <th className="py-2 font-medium">{t.measurementUnits.description}</th>
+          <th className="py-2 font-medium">{t.measurementUnits.decimals}</th>
           <th className="py-2 text-right font-medium">
             {t.measurementUnits.products}
           </th>
@@ -72,6 +73,9 @@ async function MeasurementUnitsTable() {
           <tr key={unit.id} className="border-b border-current/10 align-top">
             <td className="py-2 font-mono">{unit.name}</td>
             <td className="py-2">{unit.description ?? "—"}</td>
+            <td className="py-2">
+              {unit.allowsDecimals ? t.common.yes : t.common.no}
+            </td>
             <td className="py-2 text-right">
               {format.number(unit._count.products)}
             </td>

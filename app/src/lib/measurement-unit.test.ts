@@ -11,6 +11,18 @@ function form(fields: Record<string, string>) {
 }
 
 describe("validateMeasurementUnitForm", () => {
+  it("lee la marca de decimales del checkbox", () => {
+    const withDecimals = form({ name: "kg", description: "" });
+    withDecimals.set("allowsDecimals", "on");
+    expect(validateMeasurementUnitForm(withDecimals, t)).toMatchObject({
+      ok: true,
+      data: { allowsDecimals: true },
+    });
+    expect(
+      validateMeasurementUnitForm(form({ name: "u", description: "" }), t),
+    ).toMatchObject({ ok: true, data: { allowsDecimals: false } });
+  });
+
   it("recorta espacios y guarda la descripción vacía como null", () => {
     const result = validateMeasurementUnitForm(
       form({ name: "  kg ", description: "   " }),
@@ -41,7 +53,11 @@ describe("validateMeasurementUnitForm", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.state.errors?.name).toEqual(["El nombre es obligatorio"]);
-    expect(result.state.values).toEqual({ name: " ", description: "x" });
+    expect(result.state.values).toEqual({
+      name: " ",
+      description: "x",
+      allowsDecimals: false,
+    });
   });
 
   it("rechaza textos demasiado largos", () => {

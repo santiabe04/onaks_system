@@ -92,17 +92,19 @@ enum AuditEntity {
 // --- TABLES ---
 
 model MeasurementUnit {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  description String?
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id             Int       @id @default(autoincrement())
+  name           String    @unique
+  description    String?
+  // Se puede pedir una fracción (kg, litros); con "u" solo enteros.
+  allowsDecimals Boolean   @default(false) @map("allows_decimals")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
   // Null en lo que carga el seed.
-  createdById String?   @map("created_by")
-  updatedById String?   @map("updated_by")
-  createdBy   User?     @relation("MeasurementUnitCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy   User?     @relation("MeasurementUnitUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
-  products    Product[]
+  createdById    String?   @map("created_by")
+  updatedById    String?   @map("updated_by")
+  createdBy      User?     @relation("MeasurementUnitCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy      User?     @relation("MeasurementUnitUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  products       Product[]
 
   @@map("measurement_units")
 }
@@ -204,6 +206,7 @@ model Product {
   saleItems         SaleItem[]
   stocks            ProductStock[]
   suppliers         SupplierProduct[]
+  cartItems         CartItem[]
   stockMovements    StockMovement[]
 
   @@index([categoryId], map: "idx_products_category_id")
@@ -302,6 +305,22 @@ model SupplierProduct {
   @@map("supplier_products")
 }
 
+// Carrito: uno por persona, en la DB (se arma en un dispositivo y se termina en
+// otro). Guarda solo producto y cantidad: los precios se toman al confirmar.
+model CartItem {
+  personId  String   @map("person_id")
+  productId String   @map("product_id")
+  quantity  Decimal  @db.Decimal(12, 3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([personId, productId])
+  @@index([productId], map: "idx_cart_items_product_id")
+  @@map("cart_items")
+}
+
 model Customer {
   id           String            @id @default(cuid(2))
   tradeName    String            @map("trade_name")
@@ -324,21 +343,22 @@ model Customer {
 }
 
 model Person {
-  id          String    @id @default(cuid(2))
-  customerId  String?   @map("customer_id")
+  id          String     @id @default(cuid(2))
+  customerId  String?    @map("customer_id")
   name        String
   surname     String
-  mail        String    @unique
+  mail        String     @unique
   phone       String?
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
-  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(3)
-  createdById String?   @map("created_by")
-  updatedById String?   @map("updated_by")
-  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  createdBy   User?     @relation("PersonCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy   User?     @relation("PersonUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt   DateTime?  @map("deleted_at") @db.Timestamptz(3)
+  createdById String?    @map("created_by")
+  updatedById String?    @map("updated_by")
+  customer    Customer?  @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  createdBy   User?      @relation("PersonCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?      @relation("PersonUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   user        User?
+  cartItems   CartItem[]
 
   @@index([customerId], map: "idx_persons_customer_id")
   @@index([deletedAt], map: "idx_persons_deleted_at")

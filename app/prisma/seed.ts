@@ -31,9 +31,9 @@ const TAX_RATES = [
 ];
 
 const MEASUREMENT_UNITS = [
-  { name: "u", description: "Unidad" },
-  { name: "kg", description: "Kilogramo" },
-  { name: "l", description: "Litro" },
+  { name: "u", description: "Unidad", allowsDecimals: false },
+  { name: "kg", description: "Kilogramo", allowsDecimals: true },
+  { name: "l", description: "Litro", allowsDecimals: true },
 ];
 
 async function main() {
