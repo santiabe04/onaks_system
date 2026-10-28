@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.15.0-alpha...v1.16.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **users:** manage user accounts with generated passwords ([#47](https://github.com/santiabe04/onaks_system/issues/47)) ([5ccfcfc](https://github.com/santiabe04/onaks_system/commit/5ccfcfc97f0e0f8ab07d4bb17ad9c4abfcbf0c8c))
+
 ## [1.15.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.14.0-alpha...v1.15.0-alpha) (2026-10-28)
 
 
