@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.24.0-alpha...v1.25.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **account:** add customer account with payments, refunds and voids ([#67](https://github.com/santiabe04/onaks_system/issues/67)) ([8526fdf](https://github.com/santiabe04/onaks_system/commit/8526fdfba8b51747211dac7ec64a3f1369fca2f4))
+
 ## [1.24.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.23.0-alpha...v1.24.0-alpha) (2026-10-28)
 
 
