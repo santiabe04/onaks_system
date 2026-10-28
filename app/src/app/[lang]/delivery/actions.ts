@@ -22,6 +22,8 @@ import {
   applySaleStateChange,
   StateChangeError,
 } from "@/lib/sale-state-change";
+import { parsePartialDelivery, type Shortage } from "@/lib/partial-delivery";
+import { applyShortages } from "@/lib/partial-delivery-ledger";
 import { validateStopRecord } from "@/lib/stop-record";
 
 // Carga de cada parada desde el celular: la hace el repartidor de la hoja (su
@@ -99,6 +101,45 @@ export async function recordStop(
   if (!parsed.ok) return { error: parsed.error };
   const input = parsed.data;
 
+  // Entrega parcial: se valida contra lo que tiene el pedido.
+  let shortages: Shortage[] = [];
+  // Para la parada: con nombre y unidad (el producto puede salir del pedido).
+  let shortageRecord: (Shortage & { name: string; unit: string })[] = [];
+  if (input.outcome === "DELIVERED" && isCuid(stopId)) {
+    const items = await db.saleItem.findMany({
+      where: { sale: { routeStops: { some: { id: stopId } } } },
+      select: {
+        productId: true,
+        quantity: true,
+        product: {
+          select: {
+            name: true,
+            measurementUnit: { select: { name: true, allowsDecimals: true } },
+          },
+        },
+      },
+    });
+    const partial = parsePartialDelivery(
+      formData,
+      items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        allowsDecimals: item.product.measurementUnit.allowsDecimals,
+      })),
+      t,
+    );
+    if (!partial.ok) return { error: partial.error };
+    shortages = partial.shortages;
+    shortageRecord = shortages.map((shortage) => {
+      const item = items.find((i) => i.productId === shortage.productId)!;
+      return {
+        ...shortage,
+        name: item.product.name,
+        unit: item.product.measurementUnit.name,
+      };
+    });
+  }
+
   // Las imágenes se procesan y guardan antes de la transacción (sharp tarda).
   // Si después la carga falla, quedan huérfanas en disco: no es un problema.
   let signatureFile: string | null = null;
@@ -127,6 +168,14 @@ export async function recordStop(
       if (stop.status !== "PENDING") throw new StopError(t.alreadyRecorded);
 
       const delivered = input.outcome === "DELIVERED";
+      // Primero se ajusta el pedido a lo entregado: así la deuda es por eso.
+      if (delivered) {
+        const sale = await tx.sale.findUniqueOrThrow({
+          where: { id: stop.saleId },
+          select: { id: true, number: true },
+        });
+        await applyShortages(tx, sale, stop.sheetNumber, shortages, user.id);
+      }
       await applySaleStateChange(
         tx,
         stop.saleId,
@@ -176,6 +225,7 @@ export async function recordStop(
           longitude: input.location?.longitude ?? null,
           accuracyMeters: input.location?.accuracyMeters ?? null,
           paymentId: payment?.id ?? null,
+          shortages: shortageRecord.length > 0 ? shortageRecord : undefined,
         },
       });
       await audit(tx, {
@@ -212,6 +262,12 @@ export async function undoStop(stopId: string): Promise<StopActionState> {
     await db.$transaction(async (tx) => {
       const stop = await lockStop(tx, stopId, user);
       if (stop.status === "PENDING") throw new StopError(t.notRecorded);
+      // Revertir una entrega parcial implica pedido, stock y montos: a mano.
+      const recorded = await tx.routeStop.findUniqueOrThrow({
+        where: { id: stop.id },
+        select: { shortages: true },
+      });
+      if (recorded.shortages) throw new StopError(t.partialNoUndo);
       const before = await tx.routeStop.findUniqueOrThrow({
         where: { id: stop.id },
       });

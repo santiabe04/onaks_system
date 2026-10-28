@@ -756,6 +756,8 @@ model RouteStop {
   accuracyMeters     Int?             @map("accuracy_meters")
   /// Cobro cargado en la parada (va a la cuenta corriente del cliente).
   paymentId          String?          @unique @map("payment_id")
+  /// Entrega parcial: por producto, lo pedido, lo entregado y el motivo de lo que faltó.
+  shortages          Json?
   createdAt          DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
   routeSheet         RouteSheet       @relation(fields: [routeSheetId], references: [id], onDelete: Cascade)
   sale               Sale             @relation(fields: [saleId], references: [id], onDelete: Restrict)

@@ -95,6 +95,11 @@ comentarios y textos de UI en español.
   celular lo da. Entregado → pedido Entregado (deuda); no entregado → Listo para despachar. Un admin
   puede deshacer una carga mientras la hoja está en reparto. Firmas y fotos: `lib/delivery-files`
   (WebP en `UPLOADS_DIR/deliveries`), servidas **con sesión** por `app/media/deliveries/[file]`.
+- Entrega parcial (en la misma parada): `lib/partial-delivery` valida cuánto se entregó y el motivo;
+  `applyShortages` (en la transacción, antes de pasar a Entregado) devuelve lo faltante al depósito de
+  donde salió (`SALE_RETURN`) y, si se rompió o venció, además lo da de baja (`WRITE_OFF`), ajusta las
+  cantidades y totales del pedido y lo audita. Lo faltante queda en `route_stops.shortages`. Una entrega
+  parcial no se deshace desde la parada.
 
 ## UI del admin
 

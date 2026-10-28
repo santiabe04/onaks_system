@@ -258,7 +258,23 @@ export const es = {
     undo: "Deshacer la carga",
     undoConfirm:
       "¿Deshacer la carga de esta parada? El pedido vuelve a En reparto. Si hubo un cobro, queda en la cuenta corriente (se anula desde ahí).",
+    partial: "Entrega parcial",
+    partialHint:
+      "Marcá cuánto se entregó de cada producto y por qué faltó el resto.",
+    deliveredOf: "Entregado (de {ordered} {unit})",
+    shortageReasons: {
+      RETURNED: "Vuelve al depósito (rechazado, sobrante)",
+      WRITTEN_OFF: "Se da de baja (roto, vencido)",
+    },
+    shortageLine:
+      "{product}: entregado {delivered} de {ordered} {unit} · {reason}",
     errors: {
+      deliveredQuantity: "Revisá las cantidades entregadas",
+      deliveredTooMuch: "No se puede entregar más de lo pedido",
+      shortageReason: "Elegí el motivo de lo que no se entregó",
+      nothingDelivered: "No se entregó nada: marcá la parada como No entregado",
+      partialNoUndo:
+        "Una entrega parcial no se deshace: ajustá el pedido y el stock a mano",
       outcomeRequired: "Elegí si se entregó o no",
       reasonRequired: "Indicá el motivo",
       proofRequired: "Falta la firma o la foto del remito",

@@ -1,8 +1,12 @@
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import type { formatters } from "@/i18n/format";
+import type { Shortage } from "@/lib/partial-delivery";
 
 type Numeric = { toString(): string };
+
+/** Lo que se guarda en `route_stops.shortages`. */
+type ShortageRecord = Shortage & { name: string; unit: string };
 
 /** Lo que se cargó en una parada: para el repartidor y para el admin. */
 export function StopRecordSummary({
@@ -22,6 +26,8 @@ export function StopRecordSummary({
     notDeliveredReason: string | null;
     latitude: Numeric | null;
     longitude: Numeric | null;
+    /** Entrega parcial (ver `applyShortages`). */
+    shortages: unknown;
     payment: {
       amount: Numeric;
       method: keyof Dictionary["orders"]["paymentMethods"];
@@ -55,6 +61,24 @@ export function StopRecordSummary({
           {stop.receiverDni &&
             ` · ${interpolate(t.dni, { dni: stop.receiverDni })}`}
         </p>
+      )}
+      {Array.isArray(stop.shortages) && stop.shortages.length > 0 && (
+        <div>
+          <p className="font-medium">{t.partial}</p>
+          <ul className="text-xs">
+            {(stop.shortages as ShortageRecord[]).map((shortage) => (
+              <li key={shortage.productId}>
+                {interpolate(t.shortageLine, {
+                  product: shortage.name,
+                  delivered: format.number(shortage.delivered),
+                  ordered: format.number(shortage.ordered),
+                  unit: shortage.unit,
+                  reason: t.shortageReasons[shortage.reason],
+                })}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       {stop.payment && !stop.payment.voidedAt && (
         <p>
