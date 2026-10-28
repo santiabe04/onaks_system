@@ -7,7 +7,7 @@ import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { cartTotals, lineTotals } from "@/lib/cart";
-import { db } from "@/lib/db";
+import { getCart, toCartLine } from "@/lib/cart-queries";
 import { finalPrice } from "@/lib/price";
 import { CartLineControls, RemoveCartLine } from "./cart-line";
 
@@ -37,29 +37,7 @@ async function Cart() {
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
 
-  const items = await db.cartItem.findMany({
-    where: { personId: user.personId },
-    orderBy: { createdAt: "asc" },
-    include: {
-      product: {
-        select: {
-          name: true,
-          sku: true,
-          price: true,
-          weight: true,
-          isActive: true,
-          deletedAt: true,
-          taxRate: { select: { rate: true } },
-          measurementUnit: { select: { name: true, allowsDecimals: true } },
-        },
-      },
-    },
-  });
-  // Un producto pausado o borrado después de agregarlo no entra en el pedido.
-  const available = items.filter(
-    (item) => item.product.isActive && !item.product.deletedAt,
-  );
-  const unavailable = items.filter((item) => !available.includes(item));
+  const { items, available, unavailable } = await getCart(user.personId);
 
   if (items.length === 0) {
     return (
@@ -72,13 +50,7 @@ async function Cart() {
     );
   }
 
-  const line = (item: (typeof items)[number]) => ({
-    price: item.product.price,
-    rate: item.product.taxRate.rate,
-    quantity: item.quantity,
-    weight: item.product.weight,
-  });
-  const totals = cartTotals(available.map(line));
+  const totals = cartTotals(available.map(toCartLine));
 
   return (
     <>
@@ -114,7 +86,7 @@ async function Cart() {
                 </div>
               </div>
               <p className="font-semibold whitespace-nowrap">
-                {format.money(lineTotals(line(item)).total)}
+                {format.money(lineTotals(toCartLine(item)).total)}
               </p>
             </li>
           ))}
@@ -159,6 +131,12 @@ async function Cart() {
             })}
           </p>
           <p className="text-xs opacity-70">{t.cart.pricesHint}</p>
+          <Link
+            href="/checkout"
+            className={`${buttonClass()} mt-3 text-center`}
+          >
+            {t.cart.checkout}
+          </Link>
         </dl>
       )}
     </>

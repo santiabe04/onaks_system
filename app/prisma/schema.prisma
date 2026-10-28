@@ -509,6 +509,8 @@ model SaleItem {
 
 model Sale {
   id            String           @id @default(cuid(2))
+  /// Número correlativo para el cliente y el admin ("Pedido #12").
+  number        Int              @unique @default(autoincrement())
   userId        String           @map("user_id")
   addressId     String           @map("address_id")
   subTotal      Decimal          @map("sub_total") @db.Decimal(12, 2)
@@ -519,6 +521,8 @@ model Sale {
   state         SaleState        @default(PENDING)
   paymentState  SalePaymentState @default(PENDING) @map("payment_state")
   paidAt        DateTime?        @map("paid_at") @db.Timestamptz(3)
+  /// Comentario del cliente al confirmar (horario de entrega, etc.).
+  notes         String?          @db.VarChar(500)
   createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
   user          User             @relation(fields: [userId], references: [id], onDelete: Restrict)

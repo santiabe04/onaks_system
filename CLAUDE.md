@@ -52,6 +52,14 @@ comentarios y textos de UI en español.
 - El cliente ve los productos vigentes y **activos** (`VISIBLE_PRODUCT` en `lib/catalog`); el stock no
   se muestra ni oculta nada: si no se quiere vender, el admin pausa el producto.
 - Precio: final grande + "neto + IVA x%" (`lib/catalog-queries` formatea todo en el server).
+- Pedido (4.2): `/checkout` (dirección de la empresa, comentario, solo efectivo) → `placeOrder`, que en
+  una transacción recalcula todo, compara la huella del carrito (`lib/cart-fingerprint`: productos,
+  cantidades, precios, IVA) con la que vio el cliente y la rechaza si cambió; vacía el carrito **antes**
+  de crear el pedido (así un doble envío no lo duplica) y guarda la foto en `sale_items` + auditoría.
+- `sales.number` es el número correlativo que ve la gente (`/orders/[number]`). "Mis pedidos" muestra
+  los de **toda la empresa** (filtro por `address.customerId`); uno ajeno da 404.
+- Stock reservado = cantidades de pedidos en `RESERVED_SALE_STATES` (`lib/checkout`, hoy solo PENDING);
+  se muestra en `/admin/stock` como Reservado y Disponible = total − reservado.
 
 ## UI del admin
 
