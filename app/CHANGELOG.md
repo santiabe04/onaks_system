@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.23.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.22.0-alpha...v1.23.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **orders:** apply order filters to the by-zone view and CSV export ([#63](https://github.com/santiabe04/onaks_system/issues/63)) ([d3c50b1](https://github.com/santiabe04/onaks_system/commit/d3c50b1a41ed2050824ce7a10029924b77aebaaa))
+
 ## [1.22.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.21.0-alpha...v1.22.0-alpha) (2026-10-28)
 
 
