@@ -82,6 +82,12 @@ comentarios y textos de UI en español.
 - Repartidores (`/admin/drivers`: nombre, teléfono, usuario vinculado opcional) y vehículos
   (`/admin/vehicles`: patente normalizada en mayúsculas, capacidad opcional en kg y litros). Sin
   borrado: se desactivan. Validación en `lib/fleet`; permiso `routes:manage`.
+- Hojas de ruta (`/admin/routes`, `route_sheets` + `route_stops`): Armando → En reparto → Cerrada.
+  Paradas: pedidos Listos para despachar sin otra hoja abierta (chequeo con los pedidos bloqueados).
+  Se arman desde la hoja o desde "Por zona" (usa las casillas de la barra masiva). Salir pasa todos
+  los pedidos a En reparto con `applySaleStateChange` en una transacción (todo o nada, ordenados por
+  cliente para no cruzar bloqueos); "Volver a armando" los devuelve. Impresión en `[number]/print`
+  con el monto a cobrar por parada (`amountsToCollect`: pedido + deuda anterior una vez por cliente).
 
 ## UI del admin
 

@@ -8,6 +8,7 @@ import {
   SelectOrder,
 } from "@/components/orders/bulk-state-bar";
 import { OrderFilterFields } from "@/components/orders/order-filter-fields";
+import { RouteFromSelection } from "@/components/routes/route-forms";
 import { buttonClass } from "@/components/ui/button";
 import { PrintButton } from "@/components/ui/print-button";
 import { interpolate } from "@/i18n/config";
@@ -17,6 +18,7 @@ import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
+  isoDay,
   MAX_RANGE_DAYS,
   parseOrderPeriod,
   periodQuery,
@@ -37,6 +39,7 @@ import {
   type Totals,
 } from "@/lib/orders-by-zone";
 import { getPeriodOrders } from "@/lib/orders-by-zone-queries";
+import { getFleetOptions } from "@/lib/route-sheet-queries";
 import { can } from "@/lib/permissions";
 
 const PATH = "/admin/orders";
@@ -82,7 +85,7 @@ async function OrdersByZone({
   const filters = parseOrderFilters(params);
   const filterParams = zoneFilterParams(filters);
 
-  const [orders, options, warehouses] = await Promise.all([
+  const [orders, options, warehouses, fleet] = await Promise.all([
     getPeriodOrders(period, filters),
     getOrderFilterOptions(),
     // Para el cambio masivo: depósitos activos.
@@ -91,6 +94,7 @@ async function OrdersByZone({
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
+    getFleetOptions(),
   ]);
   const { zones, totals } = groupOrdersByZone(orders, locale);
   const product = options.products.find((p) => p.id === filters.product);
@@ -179,11 +183,20 @@ async function OrdersByZone({
         </a>
       </div>
       {canManage && zones.length > 0 && (
-        <BulkStateBar
-          warehouses={warehouses}
-          t={t.adminOrders.bulk}
-          states={t.orders.states}
-        />
+        <>
+          <BulkStateBar
+            warehouses={warehouses}
+            t={t.adminOrders.bulk}
+            states={t.orders.states}
+          />
+          {can(user.role, "routes:manage") && (
+            <RouteFromSelection
+              options={fleet}
+              today={isoDay(now)}
+              t={t.routes}
+            />
+          )}
+        </>
       )}
       <p className="hidden text-xs opacity-70 print:block">
         {interpolate(t.adminOrders.printedAt, {
