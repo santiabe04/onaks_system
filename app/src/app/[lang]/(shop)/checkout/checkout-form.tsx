@@ -11,11 +11,14 @@ export type AddressOption = { id: string; name: string; detail: string };
 export function CheckoutForm({
   addresses,
   fingerprint,
+  defaultAddressId,
   t,
 }: {
   addresses: AddressOption[];
   /** Huella del carrito que se está mostrando (ver `cartFingerprint`). */
   fingerprint: string;
+  /** Al modificar un pedido, su dirección. */
+  defaultAddressId?: string;
   t: Dictionary["checkout"];
 }) {
   const [state, action, pending] = useActionState<CheckoutFormState, FormData>(
@@ -24,7 +27,9 @@ export function CheckoutForm({
   );
   // Con una sola dirección va preseleccionada; con varias, que elija.
   const values = state.values ?? {
-    addressId: addresses.length === 1 ? addresses[0].id : "",
+    addressId:
+      addresses.find((address) => address.id === defaultAddressId)?.id ??
+      (addresses.length === 1 ? addresses[0].id : ""),
     notes: "",
   };
 
