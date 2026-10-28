@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.23.0-alpha...v1.24.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **orders:** manage order states with stock deduction and history ([#65](https://github.com/santiabe04/onaks_system/issues/65)) ([16f0692](https://github.com/santiabe04/onaks_system/commit/16f06926b9d1d6ca50d6835381279d0f57b1ae65))
+
 ## [1.23.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.22.0-alpha...v1.23.0-alpha) (2026-10-28)
 
 
