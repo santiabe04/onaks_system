@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { buttonClass } from "@/components/ui/button";
+import { PrintButton } from "@/components/ui/print-button";
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionary";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
-import { db } from "@/lib/db";
 import {
   MAX_RANGE_DAYS,
   parseOrderPeriod,
@@ -15,6 +15,7 @@ import {
   type OrderPeriod,
 } from "@/lib/order-period";
 import { groupOrdersByZone, type Totals } from "@/lib/orders-by-zone";
+import { getPeriodOrders } from "@/lib/orders-by-zone-queries";
 
 const PATH = "/admin/orders";
 
@@ -52,42 +53,15 @@ async function OrdersByZone({
   const now = new Date();
   const period = parseOrderPeriod(await searchParams, now);
 
-  // Los cancelados no se reparten: quedan fuera de la agrupación.
-  const sales = await db.sale.findMany({
-    where: {
-      createdAt: { gte: period.start, lt: period.end },
-      state: { not: "CANCELED" },
-    },
-    orderBy: { number: "asc" },
-    select: {
-      number: true,
-      createdAt: true,
-      state: true,
-      paymentMethod: true,
-      paymentState: true,
-      total: true,
-      address: {
-        select: {
-          name: true,
-          address: true,
-          customer: { select: { tradeName: true } },
-          city: {
-            select: { id: true, name: true, state: { select: { name: true } } },
-          },
-        },
-      },
-      items: { select: { quantity: true, unitWeight: true, unitVolume: true } },
-    },
-  });
   const { zones, totals } = groupOrdersByZone(
-    sales.map((sale) => ({
-      ...sale,
-      cityId: sale.address.city.id,
-      cityName: sale.address.city.name,
-      stateName: sale.address.city.state.name,
-    })),
+    await getPeriodOrders(period),
     locale,
   );
+  // El CSV siempre lleva el período explícito (también la semana actual).
+  const exportQuery =
+    period.mode === "range"
+      ? `?${new URLSearchParams({ from: period.from, to: period.to })}`
+      : `?week=${period.from}`;
 
   return (
     <>
@@ -97,6 +71,21 @@ async function OrdersByZone({
         t={t.adminOrders}
         formatDay={(day) => format.date(new Date(`${day}T12:00:00-03:00`))}
       />
+
+      <div className="mt-4 flex flex-wrap gap-3 print:hidden">
+        <PrintButton label={t.adminOrders.print} />
+        <a
+          href={`${PATH}/export${exportQuery}`}
+          className={buttonClass("secondary")}
+        >
+          {t.adminOrders.exportCsv}
+        </a>
+      </div>
+      <p className="hidden text-xs opacity-70 print:block">
+        {interpolate(t.adminOrders.printedAt, {
+          date: format.dateTime(now),
+        })}
+      </p>
 
       {zones.length === 0 ? (
         <p className="mt-8 text-sm opacity-70">{t.adminOrders.empty}</p>
@@ -111,7 +100,10 @@ async function OrdersByZone({
           </section>
 
           {zones.map((zone) => (
-            <section key={zone.cityId} className="mt-8">
+            <section
+              key={zone.cityId}
+              className="mt-8 print:break-inside-avoid-page"
+            >
               <h2 className="text-lg font-semibold">
                 {zone.cityName}{" "}
                 <span className="text-sm font-normal opacity-70">
@@ -292,7 +284,7 @@ function PeriodControls({
         {period.mode === "week" && (
           <Link
             href={`${PATH}?week=${period.previousWeek}`}
-            className={buttonClass("secondary")}
+            className={`${buttonClass("secondary")} print:hidden`}
           >
             {t.previousWeek}
           </Link>
@@ -301,24 +293,24 @@ function PeriodControls({
         {period.mode === "week" && (
           <Link
             href={`${PATH}?week=${period.nextWeek}`}
-            className={buttonClass("secondary")}
+            className={`${buttonClass("secondary")} print:hidden`}
           >
             {t.nextWeek}
           </Link>
         )}
         {!isCurrent && (
-          <Link href={PATH} className="hover:underline">
+          <Link href={PATH} className="hover:underline print:hidden">
             {t.thisWeek}
           </Link>
         )}
       </div>
       {period.mode === "week" && (
-        <p className="-mt-2 text-xs opacity-70">{t.weekHint}</p>
+        <p className="-mt-2 text-xs opacity-70 print:hidden">{t.weekHint}</p>
       )}
 
       <form
         action={PATH}
-        className="flex flex-wrap items-end gap-3 text-sm"
+        className="flex flex-wrap items-end gap-3 text-sm print:hidden"
         // key: al cambiar de período, los inputs vuelven a sus valores.
         key={`${period.from}-${period.to}`}
       >

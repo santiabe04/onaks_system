@@ -2,10 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import type { AuditAction } from "@/generated/prisma/enums";
+import { interpolate } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { parseOrderPeriod } from "@/lib/order-period";
+import { groupOrdersByZone } from "@/lib/orders-by-zone";
+import { getPeriodOrders } from "@/lib/orders-by-zone-queries";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -21,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.dashboard.title };
 }
 
-// Dashboard v1: crece con cada fase (pedidos de la semana, stock bajo, etc.).
+// Dashboard: crece con cada fase (stock bajo, etc.).
 export default async function DashboardPage() {
   const t = await getT();
   const loading = <p className="mt-3 text-sm opacity-70">{t.common.loading}</p>;
@@ -31,15 +35,29 @@ export default async function DashboardPage() {
       <h1 className="text-2xl font-semibold">{t.dashboard.title}</h1>
 
       <Section title={t.dashboard.shortcuts}>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Shortcut href="/admin/measurement-units/new">
             {t.dashboard.newMeasurementUnit}
           </Shortcut>
           <Shortcut href="/admin/measurement-units">
             {t.dashboard.measurementUnits}
           </Shortcut>
+          <Shortcut href="/admin/orders">{t.dashboard.ordersByZone}</Shortcut>
           <Shortcut href="/admin/audit">{t.adminNav.audit}</Shortcut>
         </div>
+      </Section>
+
+      <Section
+        title={t.dashboard.thisWeek}
+        action={
+          <Link href="/admin/orders" className="text-sm hover:underline">
+            {t.dashboard.viewAll}
+          </Link>
+        }
+      >
+        <Suspense fallback={loading}>
+          <ThisWeek />
+        </Suspense>
       </Section>
 
       {/* Datos de la DB en cada request: cada bloque en su Suspense. */}
@@ -150,6 +168,76 @@ async function Summary() {
       <Stat label={t.dashboard.customers} value={format.number(customers)} />
       <Stat label={t.dashboard.users} value={format.number(users)} />
     </div>
+  );
+}
+
+/** La semana de reparto en curso (sábado a viernes), igual que "Pedidos por zona". */
+async function ThisWeek() {
+  await getUserWithPermission("sales:read-all");
+  const [t, locale] = await Promise.all([getT(), getLocale()]);
+  const format = formatters(locale);
+
+  const period = parseOrderPeriod({});
+  const orders = await getPeriodOrders(period);
+  const { zones, totals } = groupOrdersByZone(orders, locale);
+  const pending = orders.filter((order) => order.state === "PENDING").length;
+  const day = (value: string) =>
+    format.date(new Date(`${value}T12:00:00-03:00`));
+
+  return (
+    <>
+      <p className="mt-1 text-xs opacity-70">
+        {interpolate(t.dashboard.thisWeekHint, {
+          from: day(period.from),
+          to: day(period.to),
+        })}
+      </p>
+      {totals.count === 0 ? (
+        <p className="mt-3 text-sm opacity-70">{t.dashboard.weekEmpty}</p>
+      ) : (
+        <>
+          <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Stat
+              label={t.dashboard.weekOrders}
+              value={format.number(totals.count)}
+              href="/admin/orders"
+            />
+            <Stat
+              label={t.dashboard.weekPending}
+              value={format.number(pending)}
+            />
+            <Stat
+              label={t.dashboard.weekAmount}
+              value={format.money(totals.total)}
+            />
+            <Stat
+              label={t.dashboard.weekWeight}
+              value={interpolate(t.adminOrders.kg, {
+                value: format.number(totals.weight),
+              })}
+            />
+          </div>
+          {/* Las zonas con más pedidos primero: dónde se va a concentrar el reparto. */}
+          <ul className="mt-3 flex flex-wrap gap-2 text-sm">
+            {[...zones]
+              .sort((a, b) => b.totals.count - a.totals.count)
+              .map((zone) => (
+                <li
+                  key={zone.cityId}
+                  className="rounded border border-current/20 px-3 py-1"
+                >
+                  <span className="font-medium">{zone.cityName}</span>{" "}
+                  <span className="opacity-70">
+                    {interpolate(t.dashboard.weekZoneCount, {
+                      count: format.number(zone.totals.count),
+                    })}
+                  </span>
+                </li>
+              ))}
+          </ul>
+        </>
+      )}
+    </>
   );
 }
 

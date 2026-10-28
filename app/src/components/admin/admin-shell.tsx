@@ -46,8 +46,8 @@ export function AdminShell({
 
   return (
     <div className="flex flex-1 flex-col md:flex-row">
-      {/* Barra superior, solo en pantallas chicas. */}
-      <header className="flex items-center gap-3 border-b border-current/20 px-4 py-3 md:hidden">
+      {/* Barra superior, solo en pantallas chicas. Ni esto ni el menú se imprimen. */}
+      <header className="flex items-center gap-3 border-b border-current/20 px-4 py-3 md:hidden print:hidden">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -67,13 +67,13 @@ export function AdminShell({
         <div
           aria-hidden
           onClick={() => setOpen(false)}
-          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          className="fixed inset-0 z-30 bg-black/40 md:hidden print:hidden"
         />
       )}
 
       <aside
         id="admin-sidebar"
-        className={`bg-background fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-current/20 transition-transform md:sticky md:top-0 md:h-dvh md:translate-x-0 ${
+        className={`bg-background fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-current/20 transition-transform md:sticky md:top-0 md:h-dvh md:translate-x-0 print:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
