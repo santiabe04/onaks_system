@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.20.0-alpha...v1.21.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **orders:** add print view, CSV export and weekly orders widget ([#58](https://github.com/santiabe04/onaks_system/issues/58)) ([76a859e](https://github.com/santiabe04/onaks_system/commit/76a859eab86e19cf03e0770cc5515437d4499535))
+
 ## [1.20.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.19.0-alpha...v1.20.0-alpha) (2026-10-28)
 
 
