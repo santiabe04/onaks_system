@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.14.0-alpha...v1.15.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **customers:** add customers, people and delivery addresses ([#45](https://github.com/santiabe04/onaks_system/issues/45)) ([384e0d9](https://github.com/santiabe04/onaks_system/commit/384e0d9b81511e671b87b455f594b67129f6f5de))
+
 ## [1.14.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.13.0-alpha...v1.14.0-alpha) (2026-10-27)
 
 
