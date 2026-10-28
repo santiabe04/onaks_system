@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
+import { BalanceLine } from "@/components/account/balance-line";
+import { PaymentForm } from "@/components/account/payment-forms";
 import type { SaleState } from "@/generated/prisma/enums";
 import { Suspense } from "react";
 import { OrderDetail, OrderItems } from "@/components/orders/order-items";
@@ -10,7 +13,11 @@ import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { parseSaleNumber } from "@/lib/checkout";
 import { formatCuit } from "@/lib/cuit";
+import { fromCents, isCharged, maxRefund, toCents } from "@/lib/account";
+import { loadAccount } from "@/lib/account-ledger";
 import { db } from "@/lib/db";
+import { isoDay } from "@/lib/order-period";
+import { can } from "@/lib/permissions";
 import { groupOrdersByZone } from "@/lib/orders-by-zone";
 import { allowedTransitions, isStepBack, stockEffect } from "@/lib/sale-state";
 import { StateChangeForm } from "./state-change-form";
@@ -46,7 +53,7 @@ export default async function AdminOrderPage({
 
 // Detalle + cambio de estado (con descuento/devolución de stock) e historial.
 async function Order({ params }: { params: Promise<{ number: string }> }) {
-  await getUserWithPermission("sales:read-all");
+  const user = await getUserWithPermission("sales:read-all");
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
 
@@ -93,6 +100,19 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
     select: { id: true, name: true },
   });
   const { customer, city } = sale.address;
+  // Cuenta corriente: lo que debe el cliente y cuánto falta de este pedido.
+  await connection();
+  const today = isoDay(new Date());
+  const account = await loadAccount(db, customer.id);
+  const allocation = account.summary.sales[sale.id];
+  const debt = toCents(account.summary.balance);
+  // Al cobrar se sugiere la deuda y, si el pedido todavía no es deuda, lo que falta de él.
+  const suggested =
+    (debt > BigInt(0) ? debt : BigInt(0)) +
+    (allocation && !isCharged(sale.state)
+      ? toCents(allocation.pending)
+      : BigInt(0));
+  const canManage = can(user.role, "sales:manage");
   const person = sale.user.person;
   // Mismo cálculo que en la pantalla por zona.
   const { totals } = groupOrdersByZone([
@@ -182,6 +202,53 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
         })}
         {totals.missingVolume && ` · ${t.adminOrders.missingVolume}`}
       </p>
+
+      <section className="mt-8 rounded border border-current/20 p-4 print:hidden">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-lg font-medium">{t.account.title}</h2>
+          <Link
+            href={`/admin/customers/${customer.id}/account`}
+            className="text-sm hover:underline"
+          >
+            {t.account.viewAccount}
+          </Link>
+        </div>
+        <BalanceLine
+          balance={account.summary.balance}
+          t={t.account}
+          format={format}
+        />
+        <p className="text-sm opacity-70">
+          {allocation && toCents(allocation.pending) > BigInt(0)
+            ? interpolate(t.account.orderPending, {
+                amount: format.money(allocation.pending),
+              })
+            : allocation
+              ? t.account.orderPaid
+              : null}
+        </p>
+        {canManage && (
+          <div className="mt-4">
+            <PaymentForm
+              customerId={customer.id}
+              saleId={sale.id}
+              suggestedAmount={
+                suggested > BigInt(0)
+                  ? format.input(fromCents(suggested))
+                  : undefined
+              }
+              maxRefund={
+                toCents(account.summary.balance) < BigInt(0)
+                  ? format.money(maxRefund(account.summary.balance))
+                  : undefined
+              }
+              today={today}
+              t={t.account}
+              methods={t.orders.paymentMethods}
+            />
+          </div>
+        )}
+      </section>
 
       <section className="mt-8 grid gap-8 md:grid-cols-2 print:hidden">
         <div>

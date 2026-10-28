@@ -176,12 +176,13 @@ Estado al 28/10/2026: fases 0 a 6 terminadas (v1.23.0-alpha); fase 7 en curso.
 
 ## Fase 7 — Gestión de pedidos 🔄
 
-| PR  | Contenido                                                          | Estado      |
-| --- | ------------------------------------------------------------------ | ----------- |
-| 7.1 | Cambios de estado, descuento de stock al preparar e historial      | 🟡 PR listo |
-| 7.2 | Pagos con monto (estado de pago automático)                        | ⏳          |
-| 7.3 | Cliente: cancelar pedido pendiente y modificar (volver al carrito) | ⏳          |
-| 7.4 | Cambio de estado masivo                                            | ⏳          |
+| PR  | Contenido                                                                                   | Estado           |
+| --- | ------------------------------------------------------------------------------------------- | ---------------- |
+| 7.1 | Cambios de estado, descuento de stock al preparar e historial                               | ✅ v1.24.0-alpha |
+| 7.2 | Cuenta corriente: cobros, reintegros y anulaciones (detalle del pedido y ficha del cliente) | 🟡 PR listo      |
+| 7.3 | Listado de deudores y saldo a la vista del cliente                                          | ⏳               |
+| 7.4 | Cliente: cancelar pedido pendiente y modificar (volver al carrito)                          | ⏳               |
+| 7.5 | Cambio de estado masivo                                                                     | ⏳               |
 
 **Decisiones**
 
@@ -192,7 +193,13 @@ Estado al 28/10/2026: fases 0 a 6 terminadas (v1.23.0-alpha); fase 7 en curso.
   stock a los depósitos de donde salió.
 - Habilitar al cliente a modificar: el pedido Pendiente vuelve a su carrito, lo cambia y confirma de
   nuevo (mismo número, precios actualizados). El cliente también puede cancelar un pedido Pendiente.
-- Pagos con monto, fecha y forma; el estado de pago (parcial / pagado) se calcula solo.
+- **Cuenta corriente por cliente**: un pedido es deuda al **entregarse** (si vuelve atrás, deja de
+  serlo). Los cobros (monto, fecha, forma) se cargan al cliente y se imputan **solos al pedido más
+  viejo**; el estado de pago de cada pedido se calcula. Se puede cobrar de más: queda **saldo a favor**
+  para los próximos pedidos; devolver plata es un **reintegro** (hasta el saldo a favor). Un cobro mal
+  cargado se **anula con motivo** (queda en el historial).
+- Cobros desde el detalle del pedido y desde la cuenta corriente del cliente; listado de deudores; el
+  cliente ve su saldo en "Mis pedidos".
 - Cambio de estado masivo (p. ej. toda una zona a En reparto) e historial de cambios en el detalle.
 
 ## Fase 8 — Hojas de ruta de entrega ⏳

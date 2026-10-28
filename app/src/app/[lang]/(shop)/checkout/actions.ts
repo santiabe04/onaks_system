@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getActionDictionary } from "@/i18n/dictionary";
+import { lockAccount, recomputeAccount } from "@/lib/account-ledger";
 import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth";
 import { cartTotals } from "@/lib/cart";
@@ -46,6 +47,8 @@ export async function placeOrder(
         select: { id: true },
       });
       if (!address) throw new CheckoutError(t.addressInvalid);
+      // Mismo orden de bloqueo que cobros y cambios de estado.
+      await lockAccount(tx, customerId);
 
       const { available } = await getCart(user.personId, tx);
       if (available.length === 0) throw new CheckoutError(t.empty);
@@ -98,6 +101,8 @@ export async function placeOrder(
         entityId: sale.id,
         after: sale,
       });
+      // Un saldo a favor puede dejar el pedido nuevo ya pagado.
+      await recomputeAccount(tx, customerId);
       return sale.number;
     });
   } catch (error) {

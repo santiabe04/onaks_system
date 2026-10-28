@@ -89,6 +89,7 @@ enum AuditEntity {
   USER
   DISCOUNT
   SALE
+  CUSTOMER_PAYMENT
 }
 
 // --- TABLES ---
@@ -343,6 +344,7 @@ model Customer {
   persons      Person[]
   // Las direcciones de entrega son del cliente: cualquier persona del cliente las usa.
   addresses    CustomerAddress[]
+  payments     CustomerPayment[]
 
   @@index([deletedAt], map: "idx_customers_deleted_at")
   @@map("customers")
@@ -473,6 +475,8 @@ model User {
   personsUpdated           Person[]          @relation("PersonUpdatedBy")
   customerAddressesCreated CustomerAddress[] @relation("CustomerAddressCreatedBy")
   customerAddressesUpdated CustomerAddress[] @relation("CustomerAddressUpdatedBy")
+  paymentsCreated          CustomerPayment[] @relation("CustomerPaymentCreatedBy")
+  paymentsVoided           CustomerPayment[] @relation("CustomerPaymentVoidedBy")
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")
@@ -514,28 +518,29 @@ model SaleItem {
 }
 
 model Sale {
-  id             String           @id @default(cuid(2))
+  id             String            @id @default(cuid(2))
   /// Número correlativo para el cliente y el admin ("Pedido #12").
-  number         Int              @unique @default(autoincrement())
-  userId         String           @map("user_id")
-  addressId      String           @map("address_id")
-  subTotal       Decimal          @map("sub_total") @db.Decimal(12, 2)
-  tax            Decimal          @db.Decimal(12, 2)
-  discount       Decimal          @db.Decimal(12, 2)
-  total          Decimal          @db.Decimal(12, 2)
-  paymentMethod  PaymentMethod    @map("payment_method")
-  state          SaleState        @default(PENDING)
-  paymentState   SalePaymentState @default(PENDING) @map("payment_state")
-  paidAt         DateTime?        @map("paid_at") @db.Timestamptz(3)
+  number         Int               @unique @default(autoincrement())
+  userId         String            @map("user_id")
+  addressId      String            @map("address_id")
+  subTotal       Decimal           @map("sub_total") @db.Decimal(12, 2)
+  tax            Decimal           @db.Decimal(12, 2)
+  discount       Decimal           @db.Decimal(12, 2)
+  total          Decimal           @db.Decimal(12, 2)
+  paymentMethod  PaymentMethod     @map("payment_method")
+  state          SaleState         @default(PENDING)
+  paymentState   SalePaymentState  @default(PENDING) @map("payment_state")
+  paidAt         DateTime?         @map("paid_at") @db.Timestamptz(3)
   /// Comentario del cliente al confirmar (horario de entrega, etc.).
-  notes          String?          @db.VarChar(500)
-  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
-  user           User             @relation(fields: [userId], references: [id], onDelete: Restrict)
-  address        CustomerAddress  @relation(fields: [addressId], references: [id], onDelete: Restrict)
+  notes          String?           @db.VarChar(500)
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user           User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  address        CustomerAddress   @relation(fields: [addressId], references: [id], onDelete: Restrict)
   items          SaleItem[]
   usedDiscounts  UsedDiscount[]
   stockMovements StockMovement[]
+  payments       CustomerPayment[]
 
   @@index([userId], map: "idx_sales_user_id")
   @@index([addressId], map: "idx_sales_address_id")
@@ -592,4 +597,39 @@ model LoginAttempt {
   @@index([mail, createdAt], map: "idx_login_attempts_mail_created_at")
   @@index([mail, ip, createdAt], map: "idx_login_attempts_mail_ip_created_at")
   @@map("login_attempts")
+}
+
+enum CustomerPaymentKind {
+  /// Cobro: baja la deuda (o deja saldo a favor).
+  PAYMENT
+  /// Reintegro: devolución de plata del saldo a favor.
+  REFUND
+}
+
+/// Cuenta corriente: cobros y reintegros del cliente. La deuda son los pedidos
+/// entregados; los cobros se imputan solos al pedido más viejo (lib/account).
+model CustomerPayment {
+  id          String              @id @default(cuid(2))
+  customerId  String              @map("customer_id")
+  /// Pedido desde el que se cargó (referencia; la imputación es automática).
+  saleId      String?             @map("sale_id")
+  kind        CustomerPaymentKind
+  amount      Decimal             @db.Decimal(12, 2)
+  method      PaymentMethod
+  paidOn      DateTime            @map("paid_on") @db.Date
+  notes       String?             @db.VarChar(200)
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdById String              @map("created_by")
+  /// Un cobro mal cargado no se borra: se anula con motivo.
+  voidedAt    DateTime?           @map("voided_at") @db.Timestamptz(3)
+  voidedById  String?             @map("voided_by")
+  voidReason  String?             @map("void_reason") @db.VarChar(200)
+  customer    Customer            @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  sale        Sale?               @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  createdBy   User                @relation("CustomerPaymentCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  voidedBy    User?               @relation("CustomerPaymentVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict)
+
+  @@index([customerId, paidOn], map: "idx_customer_payments_customer_id_paid_on")
+  @@index([saleId], map: "idx_customer_payments_sale_id")
+  @@map("customer_payments")
 }
