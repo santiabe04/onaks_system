@@ -63,6 +63,10 @@ enum AuditAction {
   LOGIN_LOCKED
   LOGOUT
   PASSWORD_CHANGE
+  // El admin blanquea la contraseña de otro usuario.
+  PASSWORD_RESET
+  // El admin libera un bloqueo de login por intentos fallidos.
+  LOGIN_UNLOCK
   ACCESS_DENIED
 }
 

@@ -18,7 +18,12 @@ export async function loadCustomer(id: string) {
       persons: {
         where: { deletedAt: null },
         orderBy: [{ surname: "asc" }, { name: "asc" }],
-        include: { user: { select: { isActive: true } } },
+        include: {
+          user: {
+            where: { deletedAt: null },
+            select: { id: true, isActive: true, passwordMustChange: true },
+          },
+        },
       },
       addresses: {
         where: { deletedAt: null },
