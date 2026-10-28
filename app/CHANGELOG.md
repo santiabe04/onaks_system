@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.33.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.32.0-alpha...v1.33.0-alpha) (2026-10-28)
+
+
+### Features
+
+* **delivery:** close route sheets with cash reconciliation ([#83](https://github.com/santiabe04/onaks_system/issues/83)) ([4ccac48](https://github.com/santiabe04/onaks_system/commit/4ccac48dab32ab8845b3876d318b274431f5448f))
+
 ## [1.32.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.31.0-alpha...v1.32.0-alpha) (2026-10-28)
 
 
