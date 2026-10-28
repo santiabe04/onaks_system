@@ -84,6 +84,9 @@ export const en: Dictionary = {
     },
   },
   adminOrders: {
+    filters: "Filters",
+    activeFilters: "Filtered by: {filters}",
+    productLine: "{product}: {quantity} {unit}",
     title: "Orders by zone",
     week: "Week of {from} to {to}",
     weekHint:
@@ -108,6 +111,7 @@ export const en: Dictionary = {
     exportCsv: "Export CSV",
     printedAt: "Printed on {date}",
     csv: {
+      productQuantity: "{product} ({unit})",
       fileName: "orders",
       number: "Order",
       date: "Date",

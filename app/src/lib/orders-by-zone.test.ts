@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { groupOrdersByZone, type ZoneOrderInput } from "./orders-by-zone";
+import {
+  groupOrdersByZone,
+  productQuantity,
+  type ZoneOrderInput,
+} from "./orders-by-zone";
 
 // Pedidos de pet shops del sur del GBA.
 const dogFood = { quantity: "2", unitWeight: "15", unitVolume: "40" };
@@ -71,5 +75,21 @@ describe("groupOrdersByZone", () => {
       zones: [],
       totals: { count: 0, total: "0.00", weight: "0", volume: "0" },
     });
+  });
+});
+
+describe("productQuantity", () => {
+  it("suma lo pedido de un producto en varios pedidos", () => {
+    const orders = [
+      { items: [{ productId: "prodsuelto", quantity: "1.25" }] },
+      {
+        items: [
+          { productId: "prodbolsa15", quantity: "2" },
+          { productId: "prodsuelto", quantity: "0.5" },
+        ],
+      },
+    ];
+    expect(productQuantity(orders, "prodsuelto")).toBe("1.75");
+    expect(productQuantity(orders, "prodpausado")).toBe("0");
   });
 });

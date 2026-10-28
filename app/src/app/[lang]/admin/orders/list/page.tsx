@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { buttonClass } from "@/components/ui/button";
 import {
-  PaymentMethod,
-  SalePaymentState,
-  SaleState,
-} from "@/generated/prisma/enums";
+  FilterInput,
+  OrderFilterFields,
+} from "@/components/orders/order-filter-fields";
+import { buttonClass } from "@/components/ui/button";
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionary";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
+import {
+  getOrderFilterOptions,
+  type OrderFilterOptions,
+} from "@/lib/order-filter-options";
 import {
   hasOrderFilters,
   ORDERS_PAGE_SIZE,
@@ -58,25 +61,8 @@ async function OrdersList({
   const filters = parseOrderFilters(await searchParams);
   const where = orderWhere(filters);
 
-  const [customers, cities, products, summary, sales] = await Promise.all([
-    db.customer.findMany({
-      orderBy: { tradeName: "asc" },
-      select: { id: true, tradeName: true },
-    }),
-    db.city.findMany({
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
-    // También los pausados y borrados: pueden estar en pedidos viejos.
-    db.product.findMany({
-      orderBy: { name: "asc" },
-      select: {
-        id: true,
-        name: true,
-        sku: true,
-        measurementUnit: { select: { name: true } },
-      },
-    }),
+  const [options, summary, sales] = await Promise.all([
+    getOrderFilterOptions(),
     db.sale.aggregate({ where, _count: true, _sum: { total: true } }),
     db.sale.findMany({
       where,
@@ -106,7 +92,7 @@ async function OrdersList({
       },
     }),
   ]);
-  const product = products.find((p) => p.id === filters.product);
+  const product = options.products.find((p) => p.id === filters.product);
   const productTotal = product
     ? await db.saleItem.aggregate({
         where: { productId: product.id, sale: where },
@@ -118,13 +104,7 @@ async function OrdersList({
 
   return (
     <>
-      <FiltersForm
-        filters={filters}
-        t={t}
-        customers={customers}
-        cities={cities}
-        products={products}
-      />
+      <FiltersForm filters={filters} t={t} options={options} />
 
       {total === 0 ? (
         <p className="mt-6 text-sm opacity-70">{t.adminOrdersList.empty}</p>
@@ -260,19 +240,13 @@ async function OrdersList({
 function FiltersForm({
   filters,
   t,
-  customers,
-  cities,
-  products,
+  options,
 }: {
   filters: OrderFilters;
   t: Dictionary;
-  customers: { id: string; tradeName: string }[];
-  cities: { id: number; name: string }[];
-  products: { id: string; name: string; sku: string }[];
+  options: OrderFilterOptions;
 }) {
   const l = t.adminOrdersList;
-  const control = "rounded border border-current/20 bg-transparent px-3 py-2";
-
   return (
     <form
       action={PATH}
@@ -280,93 +254,27 @@ function FiltersForm({
       key={orderQuery({ ...filters, page: 1 })}
       className="mt-6 flex flex-col gap-4 text-sm"
     >
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="flex flex-col gap-1">
-          <span className="font-medium">{l.number}</span>
-          <input
-            type="number"
-            name="number"
-            min={1}
-            defaultValue={filters.number ?? ""}
-            className={control}
-          />
-        </label>
-        <Select
-          label={l.customer}
-          name="customer"
-          value={filters.customer}
-          all={l.all}
-          className={control}
-          options={customers.map((c) => ({ value: c.id, label: c.tradeName }))}
+      <OrderFilterFields filters={filters} options={options} t={t}>
+        <FilterInput
+          label={l.number}
+          type="number"
+          name="number"
+          min={1}
+          defaultValue={filters.number ?? ""}
         />
-        <Select
-          label={l.city}
-          name="city"
-          value={filters.city ? String(filters.city) : undefined}
-          all={l.all}
-          className={control}
-          options={cities.map((c) => ({ value: String(c.id), label: c.name }))}
+        <FilterInput
+          label={l.from}
+          type="date"
+          name="from"
+          defaultValue={filters.from ?? ""}
         />
-        <Select
-          label={l.product}
-          name="product"
-          value={filters.product}
-          all={l.all}
-          className={control}
-          options={products.map((p) => ({
-            value: p.id,
-            label: `${p.name} (${p.sku})`,
-          }))}
+        <FilterInput
+          label={l.to}
+          type="date"
+          name="to"
+          defaultValue={filters.to ?? ""}
         />
-        <Select
-          label={l.paymentMethod}
-          name="paymentMethod"
-          value={filters.paymentMethod}
-          all={l.all}
-          className={control}
-          options={Object.values(PaymentMethod).map((method) => ({
-            value: method,
-            label: t.orders.paymentMethods[method],
-          }))}
-        />
-        <label className="flex flex-col gap-1">
-          <span className="font-medium">{l.from}</span>
-          <input
-            type="date"
-            name="from"
-            defaultValue={filters.from ?? ""}
-            className={control}
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="font-medium">{l.to}</span>
-          <input
-            type="date"
-            name="to"
-            defaultValue={filters.to ?? ""}
-            className={control}
-          />
-        </label>
-      </div>
-
-      <Checkboxes
-        legend={l.states}
-        name="state"
-        checked={filters.states}
-        options={Object.values(SaleState).map((state) => ({
-          value: state,
-          label: t.orders.states[state],
-        }))}
-      />
-      <Checkboxes
-        legend={l.paymentStates}
-        name="paymentState"
-        checked={filters.paymentStates}
-        options={Object.values(SalePaymentState).map((state) => ({
-          value: state,
-          label: t.orders.paymentStates[state],
-        }))}
-      />
+      </OrderFilterFields>
 
       <div className="flex gap-3">
         <button type="submit" className={buttonClass()}>
@@ -379,65 +287,5 @@ function FiltersForm({
         )}
       </div>
     </form>
-  );
-}
-
-function Select({
-  label,
-  name,
-  value,
-  all,
-  options,
-  className,
-}: {
-  label: string;
-  name: string;
-  value?: string;
-  all: string;
-  options: { value: string; label: string }[];
-  className: string;
-}) {
-  return (
-    <label className="flex flex-col gap-1">
-      <span className="font-medium">{label}</span>
-      <select name={name} defaultValue={value ?? ""} className={className}>
-        <option value="">{all}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-/** Varios valores a la vez; ninguno marcado = todos. */
-function Checkboxes({
-  legend,
-  name,
-  checked,
-  options,
-}: {
-  legend: string;
-  name: string;
-  checked: string[];
-  options: { value: string; label: string }[];
-}) {
-  return (
-    <fieldset className="flex flex-wrap items-center gap-x-4 gap-y-2">
-      <legend className="mb-1 w-full font-medium">{legend}</legend>
-      {options.map((option) => (
-        <label key={option.value} className="flex items-center gap-1.5">
-          <input
-            type="checkbox"
-            name={name}
-            value={option.value}
-            defaultChecked={checked.includes(option.value)}
-          />
-          {option.label}
-        </label>
-      ))}
-    </fieldset>
   );
 }

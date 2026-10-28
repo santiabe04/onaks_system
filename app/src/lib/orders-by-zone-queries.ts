@@ -1,18 +1,25 @@
 import "server-only";
 import { db } from "./db";
+import {
+  NO_ZONE_FILTERS,
+  zoneOrderWhere,
+  type ZoneFilters,
+} from "./order-filters";
 import type { OrderPeriod } from "./order-period";
 
 /**
- * Pedidos de un período listos para `groupOrdersByZone`. Los cancelados no se
- * reparten: quedan fuera. Lo usan la pantalla por zona, el CSV y el dashboard.
+ * Pedidos de un período listos para `groupOrdersByZone`, con los filtros de
+ * la lista (sin estados elegidos, los cancelados quedan fuera: no se reparten).
+ * Lo usan la pantalla por zona, el CSV y el dashboard.
  */
 export async function getPeriodOrders(
   period: Pick<OrderPeriod, "start" | "end">,
+  filters: ZoneFilters = NO_ZONE_FILTERS,
 ) {
   const sales = await db.sale.findMany({
     where: {
+      ...zoneOrderWhere(filters),
       createdAt: { gte: period.start, lt: period.end },
-      state: { not: "CANCELED" },
     },
     orderBy: { number: "asc" },
     select: {
@@ -36,7 +43,14 @@ export async function getPeriodOrders(
           },
         },
       },
-      items: { select: { quantity: true, unitWeight: true, unitVolume: true } },
+      items: {
+        select: {
+          productId: true,
+          quantity: true,
+          unitWeight: true,
+          unitVolume: true,
+        },
+      },
     },
   });
   return sales.map((sale) => ({

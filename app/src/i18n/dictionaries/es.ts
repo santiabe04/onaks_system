@@ -86,6 +86,9 @@ export const es = {
     },
   },
   adminOrders: {
+    filters: "Filtros",
+    activeFilters: "Filtrado por: {filters}",
+    productLine: "{product}: {quantity} {unit}",
     title: "Pedidos por zona",
     week: "Semana del {from} al {to}",
     weekHint:
@@ -110,6 +113,7 @@ export const es = {
     exportCsv: "Exportar CSV",
     printedAt: "Impreso el {date}",
     csv: {
+      productQuantity: "{product} ({unit})",
       fileName: "pedidos",
       number: "Pedido",
       date: "Fecha",

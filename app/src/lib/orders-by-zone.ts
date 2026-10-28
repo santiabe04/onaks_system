@@ -166,3 +166,19 @@ export function groupOrdersByZone<T extends ZoneOrderInput>(
   );
   return { zones: result, totals: toTotals(all) };
 }
+
+/** Cuánto se pidió de un producto en estos pedidos ("0" si en ninguno). */
+export function productQuantity(
+  orders: {
+    items: { productId: string; quantity: { toString(): string } }[];
+  }[],
+  productId: string,
+): string {
+  let total = BigInt(0);
+  for (const order of orders) {
+    for (const item of order.items) {
+      if (item.productId === productId) total += toMilli(item.quantity);
+    }
+  }
+  return fromMilli(total);
+}
