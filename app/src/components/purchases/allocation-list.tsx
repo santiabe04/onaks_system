@@ -28,37 +28,39 @@ export function AllocationList({
 }) {
   if (allocations.length === 0) return null;
   return (
-    <table className="w-full max-w-md text-left text-sm">
-      <thead className="border-b border-current/30">
-        <tr>
-          <th className="py-2 pr-3 font-medium">{t.columns.invoice}</th>
-          <th className="py-2 text-right font-medium">{t.allocated}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {allocations.map((allocation) => {
-          const label = formatInvoiceNumber(allocation.invoice);
-          return (
-            <tr key={allocation.id} className="border-b border-current/10">
-              <td className="py-2 pr-3 font-mono">
-                {links ? (
-                  <Link
-                    href={`/admin/invoices/${allocation.invoice.id}`}
-                    className="hover:underline"
-                  >
-                    {label}
-                  </Link>
-                ) : (
-                  label
-                )}
-              </td>
-              <td className="py-2 text-right whitespace-nowrap">
-                {format.money(allocation.amount)}
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+    <div className="overflow-x-auto print:overflow-visible">
+      <table className="w-full max-w-md text-left text-sm">
+        <thead className="border-b border-current/30">
+          <tr>
+            <th className="py-2 pr-3 font-medium">{t.columns.invoice}</th>
+            <th className="py-2 text-right font-medium">{t.allocated}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {allocations.map((allocation) => {
+            const label = formatInvoiceNumber(allocation.invoice);
+            return (
+              <tr key={allocation.id} className="border-b border-current/10">
+                <td className="py-2 pr-3 font-mono whitespace-nowrap">
+                  {links ? (
+                    <Link
+                      href={`/admin/invoices/${allocation.invoice.id}`}
+                      className="hover:underline"
+                    >
+                      {label}
+                    </Link>
+                  ) : (
+                    label
+                  )}
+                </td>
+                <td className="py-2 text-right whitespace-nowrap">
+                  {format.money(allocation.amount)}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }

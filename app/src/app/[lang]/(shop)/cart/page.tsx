@@ -21,7 +21,7 @@ export default async function CartPage() {
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-4xl p-4 sm:p-8">
+    <main className="mx-auto w-full max-w-4xl p-4 sm:p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.cart.title}</h1>
       {/* El carrito sale de la DB en cada request: va en Suspense. */}
       <Suspense

@@ -34,7 +34,7 @@ export default async function ProductPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-4 sm:p-8">
       <Link href="/" className="text-sm hover:underline">
         ← {t.catalog.back}
       </Link>

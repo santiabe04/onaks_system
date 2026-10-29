@@ -31,7 +31,7 @@ export default async function AuditPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.audit.title}</h1>
       {/* Los filtros vienen de la URL y la lista de la DB: van en Suspense. */}
       <Suspense
@@ -89,47 +89,54 @@ async function AuditContent({
       {logs.length === 0 ? (
         <p className="mt-6 text-sm opacity-70">{t.audit.empty}</p>
       ) : (
-        <table className="mt-6 w-full text-left text-sm">
-          <thead className="border-b border-current/20">
-            <tr>
-              <th className="py-2 font-medium">{t.audit.columns.date}</th>
-              <th className="py-2 font-medium">{t.audit.columns.actor}</th>
-              <th className="py-2 font-medium">{t.audit.columns.action}</th>
-              <th className="py-2 font-medium">{t.audit.columns.entity}</th>
-              <th className="py-2 font-medium">{t.audit.columns.ip}</th>
-              <th className="py-2 font-medium">{t.audit.columns.detail}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {logs.map((log) => (
-              <tr key={log.id} className="border-b border-current/10 align-top">
-                <td className="py-2 pr-3 whitespace-nowrap">
-                  {format.dateTime(log.createdAt)}
-                </td>
-                <td className="py-2 pr-3">
-                  {log.actor ? (
-                    personLabel(log.actor.person)
-                  ) : (
-                    <span className="opacity-60">{t.audit.anonymous}</span>
-                  )}
-                </td>
-                <td className="py-2 pr-3">{t.audit.actions[log.action]}</td>
-                <td className="py-2 pr-3">
-                  {log.entityType ? t.audit.entities[log.entityType] : "—"}
-                  {log.entityId && (
-                    <span className="block font-mono text-xs opacity-60">
-                      {log.entityId}
-                    </span>
-                  )}
-                </td>
-                <td className="py-2 pr-3 font-mono text-xs">{log.ip ?? "—"}</td>
-                <td className="py-2">
-                  <Detail t={t.audit} log={log} />
-                </td>
+        <div className="overflow-x-auto print:overflow-visible">
+          <table className="mt-6 w-full text-left text-sm">
+            <thead className="border-b border-current/20">
+              <tr>
+                <th className="py-2 font-medium">{t.audit.columns.date}</th>
+                <th className="py-2 font-medium">{t.audit.columns.actor}</th>
+                <th className="py-2 font-medium">{t.audit.columns.action}</th>
+                <th className="py-2 font-medium">{t.audit.columns.entity}</th>
+                <th className="py-2 font-medium">{t.audit.columns.ip}</th>
+                <th className="py-2 font-medium">{t.audit.columns.detail}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {logs.map((log) => (
+                <tr
+                  key={log.id}
+                  className="border-b border-current/10 align-top"
+                >
+                  <td className="py-2 pr-3 whitespace-nowrap">
+                    {format.dateTime(log.createdAt)}
+                  </td>
+                  <td className="py-2 pr-3">
+                    {log.actor ? (
+                      personLabel(log.actor.person)
+                    ) : (
+                      <span className="opacity-60">{t.audit.anonymous}</span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-3">{t.audit.actions[log.action]}</td>
+                  <td className="py-2 pr-3">
+                    {log.entityType ? t.audit.entities[log.entityType] : "—"}
+                    {log.entityId && (
+                      <span className="block font-mono text-xs opacity-60">
+                        {log.entityId}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-3 font-mono text-xs">
+                    {log.ip ?? "—"}
+                  </td>
+                  <td className="py-2">
+                    <Detail t={t.audit} log={log} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <nav className="mt-6 flex items-center justify-between gap-4 text-sm">
@@ -278,36 +285,38 @@ function Detail({ t, log }: { t: Dictionary["audit"]; log: LogDetail }) {
   return (
     <details>
       <summary className="cursor-pointer select-none">{t.show}</summary>
-      <table className="mt-2 text-xs">
-        {log.action === "UPDATE" && (
-          <thead>
-            <tr className="opacity-70">
-              <th className="pr-3 font-medium">{t.field}</th>
-              <th className="pr-3 font-medium">{t.before}</th>
-              <th className="font-medium">{t.after}</th>
-            </tr>
-          </thead>
-        )}
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.field}>
-              <td className="pr-3 font-mono opacity-70">{row.field}</td>
-              {"before" in row && (
-                <td className="pr-3 break-all">{show(row.before)}</td>
-              )}
-              <td className="break-all">{show(row.after)}</td>
-            </tr>
-          ))}
-          {log.userAgent && (
-            <tr>
-              <td className="pr-3 font-mono opacity-70">{t.userAgent}</td>
-              <td colSpan={2} className="break-all opacity-70">
-                {log.userAgent}
-              </td>
-            </tr>
+      <div className="overflow-x-auto print:overflow-visible">
+        <table className="mt-2 text-xs">
+          {log.action === "UPDATE" && (
+            <thead>
+              <tr className="opacity-70">
+                <th className="pr-3 font-medium">{t.field}</th>
+                <th className="pr-3 font-medium">{t.before}</th>
+                <th className="font-medium">{t.after}</th>
+              </tr>
+            </thead>
           )}
-        </tbody>
-      </table>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.field}>
+                <td className="pr-3 font-mono opacity-70">{row.field}</td>
+                {"before" in row && (
+                  <td className="pr-3 break-all">{show(row.before)}</td>
+                )}
+                <td className="break-all">{show(row.after)}</td>
+              </tr>
+            ))}
+            {log.userAgent && (
+              <tr>
+                <td className="pr-3 font-mono opacity-70">{t.userAgent}</td>
+                <td colSpan={2} className="break-all opacity-70">
+                  {log.userAgent}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </details>
   );
 }

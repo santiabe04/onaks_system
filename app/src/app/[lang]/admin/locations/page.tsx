@@ -18,7 +18,7 @@ export default async function LocationsPage() {
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-3xl p-8">
+    <main className="mx-auto w-full max-w-3xl p-4 sm:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{t.locations.title}</h1>
         <div className="flex gap-3">

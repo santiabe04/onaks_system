@@ -19,7 +19,7 @@ export default async function CategoriesPage() {
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-3xl p-8">
+    <main className="mx-auto w-full max-w-3xl p-4 sm:p-8">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{t.categories.title}</h1>
         <Link href="/admin/categories/new" className={buttonClass()}>

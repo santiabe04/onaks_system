@@ -114,7 +114,7 @@ function AllocationTable({
         </button>
       </div>
       <p className="opacity-70">{t.allocationsHint}</p>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto print:overflow-visible">
         <table className="w-full text-left">
           <thead className="border-b border-current/20">
             <tr>
@@ -129,7 +129,9 @@ function AllocationTable({
           <tbody>
             {invoices.map((invoice) => (
               <tr key={invoice.id} className="border-b border-current/10">
-                <td className="py-2 pr-3 font-mono">{invoice.label}</td>
+                <td className="py-2 pr-3 font-mono whitespace-nowrap">
+                  {invoice.label}
+                </td>
                 <td
                   className={`py-2 pr-3 whitespace-nowrap ${invoice.overdue ? "text-red-600" : ""}`}
                 >

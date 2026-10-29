@@ -31,7 +31,7 @@ export default async function DashboardPage() {
   const loading = <p className="mt-3 text-sm opacity-70">{t.common.loading}</p>;
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.dashboard.title}</h1>
 
       <Section title={t.dashboard.shortcuts}>
@@ -131,7 +131,9 @@ function Stat({
 }) {
   const body = (
     <>
-      <span className="block text-2xl font-semibold">{value}</span>
+      <span className="block text-xl font-semibold tabular-nums sm:text-2xl">
+        {value}
+      </span>
       <span className="text-sm opacity-70">{label}</span>
     </>
   );

@@ -15,7 +15,7 @@ export default async function NewSupplierPage() {
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-8">
+    <main className="mx-auto w-full max-w-2xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.suppliers.newTitle}</h1>
       {/* Las localidades salen de la DB: va en Suspense. */}
       <Suspense

@@ -18,7 +18,7 @@ export default async function WarehousesPage() {
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-4xl p-8">
+    <main className="mx-auto w-full max-w-4xl p-4 sm:p-8">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{t.warehouses.title}</h1>
         <Link href="/admin/warehouses/new" className={buttonClass()}>
@@ -51,67 +51,71 @@ async function WarehousesTable() {
   }
 
   return (
-    <table className="mt-6 w-full text-left text-sm">
-      <thead className="border-b border-current/20">
-        <tr>
-          <th className="py-2 pr-3 font-medium">{t.warehouses.name}</th>
-          <th className="py-2 pr-3 font-medium">{t.warehouses.address}</th>
-          <th className="py-2 pr-3 font-medium">{t.warehouses.contact}</th>
-          <th className="py-2 pr-3 font-medium">{t.warehouses.status}</th>
-          <th className="py-2">
-            <span className="sr-only">{t.common.actions}</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {warehouses.map((warehouse) => (
-          <tr
-            key={warehouse.id}
-            className={`border-b border-current/10 align-top ${
-              warehouse.isActive ? "" : "opacity-60"
-            }`}
-          >
-            <td className="py-2 pr-3 font-medium">{warehouse.name}</td>
-            <td className="py-2 pr-3">
-              {warehouse.address}
-              <span className="block text-xs opacity-70">
-                {warehouse.city.name}
-              </span>
-            </td>
-            <td className="py-2 pr-3">
-              {warehouse.contactName ?? "—"}
-              {warehouse.phone && (
-                <span className="block text-xs opacity-70">
-                  {warehouse.phone}
-                </span>
-              )}
-            </td>
-            <td className="py-2 pr-3">
-              {warehouse.isActive ? t.warehouses.active : t.warehouses.inactive}
-            </td>
-            <td className="py-2">
-              <div className="flex items-start justify-end gap-4">
-                <Link
-                  href={`/admin/warehouses/${warehouse.id}/edit`}
-                  className="hover:underline"
-                >
-                  {t.common.edit}
-                </Link>
-                <DeleteButton
-                  action={deleteWarehouse.bind(null, warehouse.id)}
-                  confirmMessage={interpolate(t.warehouses.confirmDelete, {
-                    name: warehouse.name,
-                  })}
-                  labels={{
-                    delete: t.common.delete,
-                    deleting: t.common.deleting,
-                  }}
-                />
-              </div>
-            </td>
+    <div className="overflow-x-auto print:overflow-visible">
+      <table className="mt-6 w-full text-left text-sm">
+        <thead className="border-b border-current/20">
+          <tr>
+            <th className="py-2 pr-3 font-medium">{t.warehouses.name}</th>
+            <th className="py-2 pr-3 font-medium">{t.warehouses.address}</th>
+            <th className="py-2 pr-3 font-medium">{t.warehouses.contact}</th>
+            <th className="py-2 pr-3 font-medium">{t.warehouses.status}</th>
+            <th className="py-2">
+              <span className="sr-only">{t.common.actions}</span>
+            </th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {warehouses.map((warehouse) => (
+            <tr
+              key={warehouse.id}
+              className={`border-b border-current/10 align-top ${
+                warehouse.isActive ? "" : "opacity-60"
+              }`}
+            >
+              <td className="py-2 pr-3 font-medium">{warehouse.name}</td>
+              <td className="py-2 pr-3">
+                {warehouse.address}
+                <span className="block text-xs opacity-70">
+                  {warehouse.city.name}
+                </span>
+              </td>
+              <td className="py-2 pr-3">
+                {warehouse.contactName ?? "—"}
+                {warehouse.phone && (
+                  <span className="block text-xs opacity-70">
+                    {warehouse.phone}
+                  </span>
+                )}
+              </td>
+              <td className="py-2 pr-3">
+                {warehouse.isActive
+                  ? t.warehouses.active
+                  : t.warehouses.inactive}
+              </td>
+              <td className="py-2">
+                <div className="flex items-start justify-end gap-4">
+                  <Link
+                    href={`/admin/warehouses/${warehouse.id}/edit`}
+                    className="hover:underline"
+                  >
+                    {t.common.edit}
+                  </Link>
+                  <DeleteButton
+                    action={deleteWarehouse.bind(null, warehouse.id)}
+                    confirmMessage={interpolate(t.warehouses.confirmDelete, {
+                      name: warehouse.name,
+                    })}
+                    labels={{
+                      delete: t.common.delete,
+                      deleting: t.common.deleting,
+                    }}
+                  />
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

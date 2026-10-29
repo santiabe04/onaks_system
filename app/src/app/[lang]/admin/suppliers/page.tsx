@@ -21,7 +21,7 @@ export default async function SuppliersPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{t.suppliers.title}</h1>
         <Link href={`${PATH}/new`} className={buttonClass()}>
@@ -94,64 +94,68 @@ async function SuppliersTable({
       {suppliers.length === 0 ? (
         <p className="mt-6 text-sm opacity-70">{t.suppliers.empty}</p>
       ) : (
-        <table className="mt-6 w-full text-left text-sm">
-          <thead className="border-b border-current/20">
-            <tr>
-              <th className="py-2 pr-3 font-medium">{t.suppliers.legalName}</th>
-              <th className="py-2 pr-3 font-medium">{t.suppliers.cuit}</th>
-              <th className="py-2 pr-3 font-medium">{t.suppliers.contact}</th>
-              <th className="py-2 pr-3 text-right font-medium">
-                {t.suppliers.products}
-              </th>
-              <th className="py-2 pr-3 font-medium">{t.suppliers.status}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {suppliers.map((supplier) => (
-              <tr
-                key={supplier.id}
-                className={`border-b border-current/10 align-top ${
-                  supplier.isActive ? "" : "opacity-60"
-                }`}
-              >
-                <td className="py-2 pr-3">
-                  <Link
-                    href={`${PATH}/${supplier.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {supplier.legalName}
-                  </Link>
-                  {supplier.tradeName && (
-                    <span className="block text-xs opacity-70">
-                      {supplier.tradeName}
-                    </span>
-                  )}
-                </td>
-                <td className="py-2 pr-3 font-mono whitespace-nowrap">
-                  {formatCuit(supplier.cuit)}
-                </td>
-                <td className="py-2 pr-3">
-                  {supplier.contactName ?? "—"}
-                  {(supplier.contactMail || supplier.contactPhone) && (
-                    <span className="block text-xs opacity-70">
-                      {[supplier.contactMail, supplier.contactPhone]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </span>
-                  )}
-                </td>
-                <td className="py-2 pr-3 text-right">
-                  {supplier._count.products}
-                </td>
-                <td className="py-2 pr-3">
-                  {supplier.isActive
-                    ? t.suppliers.active
-                    : t.suppliers.inactive}
-                </td>
+        <div className="overflow-x-auto print:overflow-visible">
+          <table className="mt-6 w-full text-left text-sm">
+            <thead className="border-b border-current/20">
+              <tr>
+                <th className="py-2 pr-3 font-medium">
+                  {t.suppliers.legalName}
+                </th>
+                <th className="py-2 pr-3 font-medium">{t.suppliers.cuit}</th>
+                <th className="py-2 pr-3 font-medium">{t.suppliers.contact}</th>
+                <th className="py-2 pr-3 text-right font-medium">
+                  {t.suppliers.products}
+                </th>
+                <th className="py-2 pr-3 font-medium">{t.suppliers.status}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {suppliers.map((supplier) => (
+                <tr
+                  key={supplier.id}
+                  className={`border-b border-current/10 align-top ${
+                    supplier.isActive ? "" : "opacity-60"
+                  }`}
+                >
+                  <td className="py-2 pr-3">
+                    <Link
+                      href={`${PATH}/${supplier.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {supplier.legalName}
+                    </Link>
+                    {supplier.tradeName && (
+                      <span className="block text-xs opacity-70">
+                        {supplier.tradeName}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-3 font-mono whitespace-nowrap">
+                    {formatCuit(supplier.cuit)}
+                  </td>
+                  <td className="py-2 pr-3">
+                    {supplier.contactName ?? "—"}
+                    {(supplier.contactMail || supplier.contactPhone) && (
+                      <span className="block text-xs opacity-70">
+                        {[supplier.contactMail, supplier.contactPhone]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-3 text-right">
+                    {supplier._count.products}
+                  </td>
+                  <td className="py-2 pr-3">
+                    {supplier.isActive
+                      ? t.suppliers.active
+                      : t.suppliers.inactive}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </>
   );

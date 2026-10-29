@@ -30,7 +30,7 @@ export default async function PurchaseOrderPrintPage({
 }: PageProps<"/[lang]/admin/purchases/[number]/print">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-4xl p-8 print:p-0">
+    <main className="mx-auto w-full max-w-4xl p-4 sm:p-8 print:p-0">
       {/* params y la orden son de request: van en Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
@@ -106,52 +106,54 @@ async function PrintableOrder({
         </div>
       </header>
 
-      <table className="mt-4 w-full text-left text-sm">
-        <thead className="border-b border-current/30">
-          <tr>
-            <th className="py-2 pr-3 font-medium">{p.columns.code}</th>
-            <th className="py-2 pr-3 font-medium">{p.columns.product}</th>
-            <th className="py-2 pr-3 text-right font-medium">
-              {p.columns.quantity}
-            </th>
-            <th className="py-2 pr-3 text-right font-medium">
-              {p.columns.unitCost}
-            </th>
-            <th className="py-2 text-right font-medium">
-              {p.columns.lineTotal}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {order.items.map((item) => (
-            <tr key={item.productId} className="border-b border-current/10">
-              <td className="py-1 pr-3 font-mono text-xs">
-                {item.product.suppliers.find(
-                  (link) => link.supplierId === supplier.id,
-                )?.supplierCode ?? "—"}
-              </td>
-              <td className="py-1 pr-3">{item.product.name}</td>
-              <td className="py-1 pr-3 text-right whitespace-nowrap">
-                {format.number(item.quantity)}{" "}
-                {item.product.measurementUnit.name}
-              </td>
-              <td className="py-1 pr-3 text-right whitespace-nowrap">
-                {format.money(item.unitCost)}
-              </td>
-              <td className="py-1 text-right whitespace-nowrap">
-                {format.money(
-                  lineTotals({
-                    price: item.unitCost,
-                    rate: item.taxRate,
-                    quantity: item.quantity,
-                    weight: "0",
-                  }).net,
-                )}
-              </td>
+      <div className="overflow-x-auto print:overflow-visible">
+        <table className="mt-4 w-full text-left text-sm">
+          <thead className="border-b border-current/30">
+            <tr>
+              <th className="py-2 pr-3 font-medium">{p.columns.code}</th>
+              <th className="py-2 pr-3 font-medium">{p.columns.product}</th>
+              <th className="py-2 pr-3 text-right font-medium">
+                {p.columns.quantity}
+              </th>
+              <th className="py-2 pr-3 text-right font-medium">
+                {p.columns.unitCost}
+              </th>
+              <th className="py-2 text-right font-medium">
+                {p.columns.lineTotal}
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {order.items.map((item) => (
+              <tr key={item.productId} className="border-b border-current/10">
+                <td className="py-1 pr-3 font-mono text-xs">
+                  {item.product.suppliers.find(
+                    (link) => link.supplierId === supplier.id,
+                  )?.supplierCode ?? "—"}
+                </td>
+                <td className="py-1 pr-3">{item.product.name}</td>
+                <td className="py-1 pr-3 text-right whitespace-nowrap">
+                  {format.number(item.quantity)}{" "}
+                  {item.product.measurementUnit.name}
+                </td>
+                <td className="py-1 pr-3 text-right whitespace-nowrap">
+                  {format.money(item.unitCost)}
+                </td>
+                <td className="py-1 text-right whitespace-nowrap">
+                  {format.money(
+                    lineTotals({
+                      price: item.unitCost,
+                      rate: item.taxRate,
+                      quantity: item.quantity,
+                      weight: "0",
+                    }).net,
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <dl className="mt-4 ml-auto flex w-full max-w-xs flex-col gap-1 text-sm">
         <div className="flex justify-between">

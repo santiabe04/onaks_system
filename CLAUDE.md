@@ -177,6 +177,9 @@ action>` después de cada action: los no controlados pierden lo tipeado con un e
   cuando tiene alguna pantalla). En mobile es un panel con ☰. Inicio del admin: dashboard en `/admin`.
 - Tema claro/oscuro/sistema (default sistema) guardado por navegador en localStorage; `data-theme` en
   `<html>` lo aplica un script inline antes del paint. Para estilos por tema usar la variante `dark:`.
+- Celular: las pantallas usan `p-4 sm:p-8` y toda tabla va dentro de
+  `<div className="overflow-x-auto print:overflow-visible">` (scroll propio en pantalla, sin cortar columnas
+  al imprimir). Los números de comprobante en tablas, con `whitespace-nowrap`.
 - `usePathname()` devuelve la ruta interna (`/es/...`) al prerenderizar: normalizar con `stripLocalePrefix`.
 
 ## Idiomas (i18n)

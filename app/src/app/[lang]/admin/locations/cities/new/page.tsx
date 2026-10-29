@@ -18,7 +18,7 @@ export default async function NewCityPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-md p-8">
+    <main className="mx-auto w-full max-w-md p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.locations.newCityTitle}</h1>
       {/* Las provincias salen de la DB y `?state=` de la URL. */}
       <Suspense

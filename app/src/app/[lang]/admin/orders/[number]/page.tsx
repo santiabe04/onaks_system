@@ -38,7 +38,7 @@ export default async function AdminOrderPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-4xl p-8">
+    <main className="mx-auto w-full max-w-4xl p-4 sm:p-8">
       <Link href="/admin/orders" className="text-sm hover:underline">
         {t.adminOrders.detail.back}
       </Link>

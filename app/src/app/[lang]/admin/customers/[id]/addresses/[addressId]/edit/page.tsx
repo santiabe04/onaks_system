@@ -18,7 +18,7 @@ export default async function EditAddressPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-xl p-8">
+    <main className="mx-auto w-full max-w-xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.customers.editAddressTitle}</h1>
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}

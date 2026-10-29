@@ -57,7 +57,7 @@ export default async function PurchaseOrderPage({
 }: PageProps<"/[lang]/admin/purchases/[number]">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-6xl p-8">
+    <main className="mx-auto w-full max-w-6xl p-4 sm:p-8">
       <Link href={PATH} className="text-sm hover:underline">
         ← {t.purchases.title}
       </Link>
@@ -359,70 +359,74 @@ function PurchaseItems({
   const invoiced = invoicedQuantities(order.invoices);
   return (
     <section className="mt-6">
-      <table className="w-full text-left text-sm">
-        <thead className="border-b border-current/20">
-          <tr>
-            <th className="py-2 pr-3 font-medium">{c.product}</th>
-            <th className="py-2 pr-3 font-medium">{c.code}</th>
-            <th className="py-2 pr-3 text-right font-medium">{c.quantity}</th>
-            <th className="py-2 pr-3 text-right font-medium">{c.received}</th>
-            <th className="py-2 pr-3 text-right font-medium">{c.difference}</th>
-            <th className="py-2 pr-3 text-right font-medium">{c.invoiced}</th>
-            <th className="py-2 pr-3 text-right font-medium">{c.unitCost}</th>
-            <th className="py-2 text-right font-medium">{c.lineTotal}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {order.items.map((item) => (
-            <tr key={item.productId} className="border-b border-current/10">
-              <td className="py-2 pr-3">{item.product.name}</td>
-              <td className="py-2 pr-3 font-mono text-xs">
-                {item.product.suppliers.find(
-                  (link) => link.supplierId === order.supplier.id,
-                )?.supplierCode ?? "—"}
-              </td>
-              <td className="py-2 pr-3 text-right whitespace-nowrap">
-                {format.number(item.quantity)}{" "}
-                {item.product.measurementUnit.name}
-              </td>
-              <td className="py-2 pr-3 text-right whitespace-nowrap">
-                {format.number(item.receivedQuantity)}
-              </td>
-              <td className="py-2 pr-3 text-right whitespace-nowrap">
-                {/* Mientras no llegó nada no hay diferencia. */}
-                {order.state === "SENT" ? (
-                  <span className="opacity-50">—</span>
-                ) : (
-                  <DifferenceLabel
-                    diff={receiptDifference(
-                      item.quantity,
-                      item.receivedQuantity,
-                    )}
-                    t={t.receipts}
-                    format={format}
-                  />
-                )}
-              </td>
-              <td className="py-2 pr-3 text-right whitespace-nowrap">
-                {format.number(invoiced.get(item.productId) ?? "0")}
-              </td>
-              <td className="py-2 pr-3 text-right whitespace-nowrap">
-                {format.money(item.unitCost)}
-              </td>
-              <td className="py-2 text-right whitespace-nowrap">
-                {format.money(
-                  lineTotals({
-                    price: item.unitCost,
-                    rate: item.taxRate,
-                    quantity: item.quantity,
-                    weight: "0",
-                  }).net,
-                )}
-              </td>
+      <div className="overflow-x-auto print:overflow-visible">
+        <table className="w-full text-left text-sm">
+          <thead className="border-b border-current/20">
+            <tr>
+              <th className="py-2 pr-3 font-medium">{c.product}</th>
+              <th className="py-2 pr-3 font-medium">{c.code}</th>
+              <th className="py-2 pr-3 text-right font-medium">{c.quantity}</th>
+              <th className="py-2 pr-3 text-right font-medium">{c.received}</th>
+              <th className="py-2 pr-3 text-right font-medium">
+                {c.difference}
+              </th>
+              <th className="py-2 pr-3 text-right font-medium">{c.invoiced}</th>
+              <th className="py-2 pr-3 text-right font-medium">{c.unitCost}</th>
+              <th className="py-2 text-right font-medium">{c.lineTotal}</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {order.items.map((item) => (
+              <tr key={item.productId} className="border-b border-current/10">
+                <td className="py-2 pr-3">{item.product.name}</td>
+                <td className="py-2 pr-3 font-mono text-xs">
+                  {item.product.suppliers.find(
+                    (link) => link.supplierId === order.supplier.id,
+                  )?.supplierCode ?? "—"}
+                </td>
+                <td className="py-2 pr-3 text-right whitespace-nowrap">
+                  {format.number(item.quantity)}{" "}
+                  {item.product.measurementUnit.name}
+                </td>
+                <td className="py-2 pr-3 text-right whitespace-nowrap">
+                  {format.number(item.receivedQuantity)}
+                </td>
+                <td className="py-2 pr-3 text-right whitespace-nowrap">
+                  {/* Mientras no llegó nada no hay diferencia. */}
+                  {order.state === "SENT" ? (
+                    <span className="opacity-50">—</span>
+                  ) : (
+                    <DifferenceLabel
+                      diff={receiptDifference(
+                        item.quantity,
+                        item.receivedQuantity,
+                      )}
+                      t={t.receipts}
+                      format={format}
+                    />
+                  )}
+                </td>
+                <td className="py-2 pr-3 text-right whitespace-nowrap">
+                  {format.number(invoiced.get(item.productId) ?? "0")}
+                </td>
+                <td className="py-2 pr-3 text-right whitespace-nowrap">
+                  {format.money(item.unitCost)}
+                </td>
+                <td className="py-2 text-right whitespace-nowrap">
+                  {format.money(
+                    lineTotals({
+                      price: item.unitCost,
+                      rate: item.taxRate,
+                      quantity: item.quantity,
+                      weight: "0",
+                    }).net,
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <dl className="mt-4 ml-auto flex w-full max-w-xs flex-col gap-1 text-sm">
         <div className="flex justify-between">
           <dt className="opacity-70">{t.purchases.net}</dt>

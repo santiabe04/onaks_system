@@ -19,7 +19,7 @@ export default async function AdminUsersPage() {
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-4xl p-8">
+    <main className="mx-auto w-full max-w-4xl p-4 sm:p-8">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{t.users.title}</h1>
         <Link href="/admin/users/new" className={buttonClass()}>
@@ -66,38 +66,43 @@ async function AdminsTable() {
   }
 
   return (
-    <table className="mt-6 w-full text-left text-sm">
-      <thead className="border-b border-current/20">
-        <tr>
-          <th className="py-2 pr-3 font-medium">{t.users.name}</th>
-          <th className="py-2 pr-3 font-medium">{t.users.mail}</th>
-          <th className="py-2 pr-3 font-medium">{t.users.role}</th>
-          <th className="py-2 pr-3 font-medium">{t.users.status}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {persons.map((person) => (
-          <tr key={person.id} className="border-b border-current/10 align-top">
-            <td className="py-2 pr-3">
-              {person.name} {person.surname}
-            </td>
-            <td className="py-2 pr-3">{person.mail}</td>
-            <td className="py-2 pr-3">
-              {person.user ? t.users.roles[person.user.userType] : "—"}
-            </td>
-            <td className="py-2 pr-3">
-              <UserControls
-                {...userControlProps(person, {
-                  lockedMails,
-                  currentUserId: admin.id,
-                  formatTime: format.time,
-                  t: t.users,
-                })}
-              />
-            </td>
+    <div className="overflow-x-auto print:overflow-visible">
+      <table className="mt-6 w-full text-left text-sm">
+        <thead className="border-b border-current/20">
+          <tr>
+            <th className="py-2 pr-3 font-medium">{t.users.name}</th>
+            <th className="py-2 pr-3 font-medium">{t.users.mail}</th>
+            <th className="py-2 pr-3 font-medium">{t.users.role}</th>
+            <th className="py-2 pr-3 font-medium">{t.users.status}</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {persons.map((person) => (
+            <tr
+              key={person.id}
+              className="border-b border-current/10 align-top"
+            >
+              <td className="py-2 pr-3">
+                {person.name} {person.surname}
+              </td>
+              <td className="py-2 pr-3">{person.mail}</td>
+              <td className="py-2 pr-3">
+                {person.user ? t.users.roles[person.user.userType] : "—"}
+              </td>
+              <td className="py-2 pr-3">
+                <UserControls
+                  {...userControlProps(person, {
+                    lockedMails,
+                    currentUserId: admin.id,
+                    formatTime: format.time,
+                    t: t.users,
+                  })}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

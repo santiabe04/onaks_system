@@ -35,7 +35,7 @@ export default async function CatalogPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-6xl p-4 sm:p-8">
+    <main className="mx-auto w-full max-w-6xl p-4 sm:p-4 sm:p-8">
       {/* Los filtros vienen de la URL y los productos de la DB: van en Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}

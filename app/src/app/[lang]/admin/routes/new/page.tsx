@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function NewRouteSheetPage() {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-3xl p-8">
+    <main className="mx-auto w-full max-w-3xl p-4 sm:p-8">
       <h1 className="mb-6 text-2xl font-semibold">{t.routes.newTitle}</h1>
       {/* Repartidores y vehículos salen de la DB: van en Suspense. */}
       <Suspense

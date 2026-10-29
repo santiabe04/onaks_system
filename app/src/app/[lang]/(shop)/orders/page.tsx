@@ -23,7 +23,7 @@ export default async function OrdersPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.orders.title}</h1>
       {/* La página viene de la URL y los pedidos de la DB: van en Suspense. */}
       <Suspense
@@ -93,7 +93,7 @@ async function Orders({
           format={format}
         />
       )}
-      <div className="mt-6 overflow-x-auto">
+      <div className="mt-6 overflow-x-auto print:overflow-visible">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-current/20">
             <tr>

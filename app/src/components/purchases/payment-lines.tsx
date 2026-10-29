@@ -38,33 +38,35 @@ export function PaymentLines({
       .filter(Boolean)
       .join(" · ");
   return (
-    <table className="w-full text-left text-sm">
-      <thead className="border-b border-current/30">
-        <tr>
-          <th className="py-2 pr-3 font-medium">{t.method}</th>
-          <th className="py-2 pr-3 font-medium">{t.columns.detail}</th>
-          <th className="py-2 text-right font-medium">{t.amount}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {lines.map((line) => (
-          <tr key={line.id} className="border-b border-current/10">
-            <td className="py-2 pr-3">{t.methods[line.method]}</td>
-            <td className="py-2 pr-3">{detail(line) || "—"}</td>
+    <div className="overflow-x-auto print:overflow-visible">
+      <table className="w-full text-left text-sm">
+        <thead className="border-b border-current/30">
+          <tr>
+            <th className="py-2 pr-3 font-medium">{t.method}</th>
+            <th className="py-2 pr-3 font-medium">{t.columns.detail}</th>
+            <th className="py-2 text-right font-medium">{t.amount}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lines.map((line) => (
+            <tr key={line.id} className="border-b border-current/10">
+              <td className="py-2 pr-3">{t.methods[line.method]}</td>
+              <td className="py-2 pr-3">{detail(line) || "—"}</td>
+              <td className="py-2 text-right whitespace-nowrap">
+                {format.money(line.amount)}
+              </td>
+            </tr>
+          ))}
+          <tr className="font-semibold">
+            <td className="py-2 pr-3" colSpan={2}>
+              {t.total}
+            </td>
             <td className="py-2 text-right whitespace-nowrap">
-              {format.money(line.amount)}
+              {format.money(total)}
             </td>
           </tr>
-        ))}
-        <tr className="font-semibold">
-          <td className="py-2 pr-3" colSpan={2}>
-            {t.total}
-          </td>
-          <td className="py-2 text-right whitespace-nowrap">
-            {format.money(total)}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   );
 }

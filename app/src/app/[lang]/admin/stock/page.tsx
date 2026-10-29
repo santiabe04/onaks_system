@@ -32,7 +32,7 @@ export default async function StockPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-6xl p-8">
+    <main className="mx-auto w-full max-w-6xl p-4 sm:p-8">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{t.stock.title}</h1>
         <Link href="/admin/stock/new" className={buttonClass()}>
@@ -168,7 +168,7 @@ async function StockContent({
       {products.length === 0 ? (
         <p className="mt-6 text-sm opacity-70">{t.stock.empty}</p>
       ) : (
-        <div className="mt-6 overflow-x-auto">
+        <div className="mt-6 overflow-x-auto print:overflow-visible">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-current/20">
               <tr>

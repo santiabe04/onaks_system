@@ -132,7 +132,7 @@ export function ReceiptForm({
       </div>
 
       <p className="opacity-70">{t.linesHint}</p>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto print:overflow-visible">
         <table className="w-full text-left">
           <thead className="border-b border-current/20">
             <tr>

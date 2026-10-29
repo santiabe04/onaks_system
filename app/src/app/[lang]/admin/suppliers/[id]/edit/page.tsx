@@ -21,7 +21,7 @@ export default async function EditSupplierPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-8">
+    <main className="mx-auto w-full max-w-2xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.suppliers.editTitle}</h1>
       {/* params y la query a la DB son de request: van en Suspense. */}
       <Suspense

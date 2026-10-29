@@ -43,7 +43,7 @@ export default async function SupplierPaymentPage({
 }: PageProps<"/[lang]/admin/supplier-payments/[number]">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <Link href="/admin/supplier-payments" className="text-sm hover:underline">
         ← {t.supplierPayments.title}
       </Link>

@@ -32,7 +32,7 @@ export default async function ReceiptPage({
 }: PageProps<"/[lang]/admin/receipts/[number]">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <Link href="/admin/receipts" className="text-sm hover:underline">
         ← {t.receipts.title}
       </Link>
@@ -112,43 +112,45 @@ async function Receipt({ params }: { params: Promise<{ number: string }> }) {
         </p>
       )}
 
-      <table className="mt-6 w-full text-left text-sm">
-        <thead className="border-b border-current/20">
-          <tr>
-            <th className="py-2 pr-3 font-medium">{c.product}</th>
-            <th className="py-2 pr-3 text-right font-medium">{c.pending}</th>
-            <th className="py-2 pr-3 text-right font-medium">{c.quantity}</th>
-            <th className="py-2 text-right font-medium">{c.difference}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {receipt.items.map((item) => (
-            <tr key={item.productId} className="border-b border-current/10">
-              <td className="py-2 pr-3">
-                {item.product.name}
-                <span className="block font-mono text-xs opacity-70">
-                  {item.product.sku}
-                </span>
-              </td>
-              <td className="py-2 pr-3 text-right whitespace-nowrap">
-                {format.number(item.pending)}{" "}
-                {item.product.measurementUnit.name}
-              </td>
-              <td className="py-2 pr-3 text-right whitespace-nowrap">
-                {format.number(item.quantity)}{" "}
-                {item.product.measurementUnit.name}
-              </td>
-              <td className="py-2 text-right whitespace-nowrap">
-                <DifferenceLabel
-                  diff={receiptDifference(item.pending, item.quantity)}
-                  t={r}
-                  format={format}
-                />
-              </td>
+      <div className="overflow-x-auto print:overflow-visible">
+        <table className="mt-6 w-full text-left text-sm">
+          <thead className="border-b border-current/20">
+            <tr>
+              <th className="py-2 pr-3 font-medium">{c.product}</th>
+              <th className="py-2 pr-3 text-right font-medium">{c.pending}</th>
+              <th className="py-2 pr-3 text-right font-medium">{c.quantity}</th>
+              <th className="py-2 text-right font-medium">{c.difference}</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {receipt.items.map((item) => (
+              <tr key={item.productId} className="border-b border-current/10">
+                <td className="py-2 pr-3">
+                  {item.product.name}
+                  <span className="block font-mono text-xs opacity-70">
+                    {item.product.sku}
+                  </span>
+                </td>
+                <td className="py-2 pr-3 text-right whitespace-nowrap">
+                  {format.number(item.pending)}{" "}
+                  {item.product.measurementUnit.name}
+                </td>
+                <td className="py-2 pr-3 text-right whitespace-nowrap">
+                  {format.number(item.quantity)}{" "}
+                  {item.product.measurementUnit.name}
+                </td>
+                <td className="py-2 text-right whitespace-nowrap">
+                  <DifferenceLabel
+                    diff={receiptDifference(item.pending, item.quantity)}
+                    t={r}
+                    format={format}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {!annulled && (
         <div className="mt-8">

@@ -33,7 +33,7 @@ export default async function PickingListPage({
 }: PageProps<"/[lang]/admin/picking/[number]">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <Link href={PATH} className="text-sm hover:underline">
         ← {t.picking.title}
       </Link>

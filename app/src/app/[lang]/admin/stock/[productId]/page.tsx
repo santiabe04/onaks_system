@@ -25,7 +25,7 @@ export default async function ProductStockPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       {/* params y la DB son de request: va en Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
@@ -124,55 +124,67 @@ async function ProductStock({
 
       <h2 className="mt-8 text-lg font-medium">{t.stock.balances}</h2>
       <p className="mt-1 text-xs opacity-70">{t.stock.locationHint}</p>
-      <table className="mt-3 w-full max-w-xl text-left text-sm">
-        <thead className="border-b border-current/20">
-          <tr>
-            <th className="py-2 pr-3 font-medium">{t.stock.warehouse}</th>
-            <th className="py-2 pr-3 font-medium">{t.stock.location}</th>
-            <th className="py-2 text-right font-medium">{t.stock.quantity}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((stock) => (
-            <tr key={stock.warehouseId} className="border-b border-current/10">
-              <td className="py-2 pr-3">
-                {stock.warehouse.name}
-                {!stock.warehouse.isActive && (
-                  <span className="opacity-60"> ({t.warehouses.inactive})</span>
-                )}
-              </td>
-              <td className="py-2 pr-3">
-                <LocationForm
-                  productId={product.id}
-                  warehouseId={stock.warehouseId}
-                  location={stock.location ?? ""}
-                  label={`${t.stock.location} ${stock.warehouse.name}`}
-                  t={t.stock}
-                />
+      <div className="overflow-x-auto print:overflow-visible">
+        <table className="mt-3 w-full max-w-xl text-left text-sm">
+          <thead className="border-b border-current/20">
+            <tr>
+              <th className="py-2 pr-3 font-medium">{t.stock.warehouse}</th>
+              <th className="py-2 pr-3 font-medium">{t.stock.location}</th>
+              <th className="py-2 text-right font-medium">
+                {t.stock.quantity}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((stock) => (
+              <tr
+                key={stock.warehouseId}
+                className="border-b border-current/10"
+              >
+                <td className="py-2 pr-3">
+                  {stock.warehouse.name}
+                  {!stock.warehouse.isActive && (
+                    <span className="opacity-60">
+                      {" "}
+                      ({t.warehouses.inactive})
+                    </span>
+                  )}
+                </td>
+                <td className="py-2 pr-3">
+                  <LocationForm
+                    productId={product.id}
+                    warehouseId={stock.warehouseId}
+                    location={stock.location ?? ""}
+                    label={`${t.stock.location} ${stock.warehouse.name}`}
+                    t={t.stock}
+                  />
+                </td>
+                <td
+                  className={`py-2 text-right font-mono ${negative(stock.quantity)}`}
+                >
+                  {format.number(stock.quantity)}
+                </td>
+              </tr>
+            ))}
+            <tr className="font-semibold">
+              <td className="py-2 pr-3" colSpan={2}>
+                {t.stock.total}
               </td>
               <td
-                className={`py-2 text-right font-mono ${negative(stock.quantity)}`}
+                className={`py-2 text-right font-mono ${negative(totalStock)}`}
               >
-                {format.number(stock.quantity)}
+                {format.number(totalStock)}
               </td>
             </tr>
-          ))}
-          <tr className="font-semibold">
-            <td className="py-2 pr-3" colSpan={2}>
-              {t.stock.total}
-            </td>
-            <td className={`py-2 text-right font-mono ${negative(totalStock)}`}>
-              {format.number(totalStock)}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
 
       <h2 className="mt-8 text-lg font-medium">{t.stock.movements}</h2>
       {movements.length === 0 ? (
         <p className="mt-3 text-sm opacity-70">{t.stock.noMovements}</p>
       ) : (
-        <div className="mt-3 overflow-x-auto">
+        <div className="mt-3 overflow-x-auto print:overflow-visible">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-current/20">
               <tr>

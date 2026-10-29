@@ -21,7 +21,7 @@ export default async function CheckoutPage() {
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-4xl p-4 sm:p-8">
+    <main className="mx-auto w-full max-w-4xl p-4 sm:p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.checkout.title}</h1>
       {/* El carrito y las direcciones salen de la DB en cada request. */}
       <Suspense

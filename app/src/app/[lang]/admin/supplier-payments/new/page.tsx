@@ -24,7 +24,7 @@ export default async function NewSupplierPaymentPage({
 }: PageProps<"/[lang]/admin/supplier-payments/new">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       {/* El proveedor viene de la URL: va en Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}

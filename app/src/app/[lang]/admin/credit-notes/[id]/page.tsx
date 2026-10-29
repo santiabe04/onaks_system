@@ -37,7 +37,7 @@ export default async function CreditNotePage({
 }: PageProps<"/[lang]/admin/credit-notes/[id]">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       {/* params y la nota son de request: van en Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}

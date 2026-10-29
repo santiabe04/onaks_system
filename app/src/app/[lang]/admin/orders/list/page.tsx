@@ -45,7 +45,7 @@ export default async function OrdersListPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-6xl p-8">
+    <main className="mx-auto w-full max-w-6xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.adminOrdersList.title}</h1>
       {/* Los filtros vienen de la URL y los pedidos de la DB: van en Suspense. */}
       <Suspense
@@ -157,7 +157,7 @@ async function OrdersList({
             )}
           </p>
 
-          <div className="mt-3 overflow-x-auto">
+          <div className="mt-3 overflow-x-auto print:overflow-visible">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-current/20">
                 <tr>

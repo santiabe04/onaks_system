@@ -25,7 +25,7 @@ export default async function CustomersPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{t.customers.title}</h1>
         <Link href={`${PATH}/new`} className={buttonClass()}>
@@ -122,50 +122,54 @@ async function CustomersTable({
       {customers.length === 0 ? (
         <p className="mt-6 text-sm opacity-70">{t.customers.empty}</p>
       ) : (
-        <table className="mt-6 w-full text-left text-sm">
-          <thead className="border-b border-current/20">
-            <tr>
-              <th className="py-2 pr-3 font-medium">{t.customers.tradeName}</th>
-              <th className="py-2 pr-3 font-medium">{t.customers.cuit}</th>
-              <th className="py-2 pr-3 font-medium">{t.customers.zones}</th>
-              <th className="py-2 pr-3 text-right font-medium">
-                {t.customers.persons}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {customers.map((customer) => (
-              <tr
-                key={customer.id}
-                className="border-b border-current/10 align-top"
-              >
-                <td className="py-2 pr-3">
-                  <Link
-                    href={`${PATH}/${customer.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {customer.tradeName}
-                  </Link>
-                  <span className="block text-xs opacity-70">
-                    {customer.legalName} ·{" "}
-                    {t.taxConditions[customer.taxCondition]}
-                  </span>
-                </td>
-                <td className="py-2 pr-3 font-mono whitespace-nowrap">
-                  {formatCuit(customer.cuit)}
-                </td>
-                <td className="py-2 pr-3">
-                  {[...new Set(customer.addresses.map((a) => a.city.name))]
-                    .sort()
-                    .join(", ") || "—"}
-                </td>
-                <td className="py-2 pr-3 text-right">
-                  {customer._count.persons}
-                </td>
+        <div className="overflow-x-auto print:overflow-visible">
+          <table className="mt-6 w-full text-left text-sm">
+            <thead className="border-b border-current/20">
+              <tr>
+                <th className="py-2 pr-3 font-medium">
+                  {t.customers.tradeName}
+                </th>
+                <th className="py-2 pr-3 font-medium">{t.customers.cuit}</th>
+                <th className="py-2 pr-3 font-medium">{t.customers.zones}</th>
+                <th className="py-2 pr-3 text-right font-medium">
+                  {t.customers.persons}
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {customers.map((customer) => (
+                <tr
+                  key={customer.id}
+                  className="border-b border-current/10 align-top"
+                >
+                  <td className="py-2 pr-3">
+                    <Link
+                      href={`${PATH}/${customer.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {customer.tradeName}
+                    </Link>
+                    <span className="block text-xs opacity-70">
+                      {customer.legalName} ·{" "}
+                      {t.taxConditions[customer.taxCondition]}
+                    </span>
+                  </td>
+                  <td className="py-2 pr-3 font-mono whitespace-nowrap">
+                    {formatCuit(customer.cuit)}
+                  </td>
+                  <td className="py-2 pr-3">
+                    {[...new Set(customer.addresses.map((a) => a.city.name))]
+                      .sort()
+                      .join(", ") || "—"}
+                  </td>
+                  <td className="py-2 pr-3 text-right">
+                    {customer._count.persons}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <nav className="mt-6 flex items-center justify-between gap-4 text-sm">

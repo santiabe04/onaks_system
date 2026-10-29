@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function NewDriverPage() {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-md p-8">
+    <main className="mx-auto w-full max-w-md p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.fleet.newDriver}</h1>
       {/* Los usuarios salen de la DB: van en Suspense. */}
       <Suspense
