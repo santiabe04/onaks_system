@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.41.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.40.0-alpha...v1.41.0-beta) (2026-10-29)
+
+
+### Features
+
+* **admin:** show the installed version and release the beta ([#105](https://github.com/santiabe04/onaks_system/issues/105)) ([e5d21eb](https://github.com/santiabe04/onaks_system/commit/e5d21ebfa44b4d2c77ad8b87b2e60ac0577db706))
+
 ## [1.40.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.39.0-alpha...v1.40.0-alpha) (2026-10-29)
 
 
