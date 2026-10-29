@@ -48,6 +48,15 @@ comentarios y textos de UI en español.
 - `audit_logs` es solo de inserción (trigger en la DB) y se guarda indefinidamente. Visor en `/admin/audit` (permiso `audit:read`).
 - Las tablas de negocio llevan `created_by`/`updated_by` (por ahora `measurement_units`; se agregan al tocar cada tabla).
 - `ACCESS_DENIED` se registra solo en Server Actions (`requirePermission`/`requireUser`), no al renderizar.
+- Cabeceras de seguridad para todo en `next.config.ts` (sin iframe, nosniff, referrer, cámara y GPS solo
+  propios, HSTS en producción; sin `X-Powered-By`). Sin CSP todavía: el script inline del tema necesitaría
+  nonce.
+- CSV (`lib/csv`): un texto que empieza con `=`, `+`, `-`, `@` lleva `'` adelante (inyección de fórmulas
+  en Excel); los números quedan igual.
+- Firmas y fotos de remitos (`app/media/deliveries/[file]`): las ve quien tiene `sales:read-all`; un
+  repartidor, solo las de sus hojas.
+- La IP de auditoría y del bloqueo de login sale del primer `x-forwarded-for`: confiable solo detrás de un
+  proxy que lo reemplaza (Caddy) y sin publicar el puerto de la app.
 - Login: bloqueo de 15 min con 5 fallos por mail+IP o 20 por mail (`login_attempts`, `lib/login-throttle`).
 - `users.session_version` va en el token; incrementarlo revoca las sesiones (al cambiar o blanquear la
   contraseña y al desactivar un usuario).
@@ -195,7 +204,8 @@ action>` después de cada action: los no controlados pierden lo tipeado con un e
   categorías comparten un lock de `categories`), peso en kg y volumen en litros, activo/pausado y soft delete.
 - Imágenes de productos: `lib/product-image` (sharp → WebP de máx. 1200 px, sin EXIF) en
   `UPLOADS_DIR/products`, servidas por `app/media/products/[file]`. En Docker es el volumen `uploads`
-  (incluirlo en los backups). Server Actions aceptan hasta 6 MB (`next.config.ts`).
+  (incluirlo en los backups). Server Actions aceptan hasta 10 MB (`next.config.ts`): las fotos de remito
+  del celular llegan sin achicar (hasta 8 MB).
 - Stock por depósito: saldo en `product_stocks` (puede ser negativo) y libro `stock_movements` (solo
   inserción, trigger). El saldo se cambia **solo** con `recordMovement` (`lib/stock-ledger`), que bloquea
   los saldos (`FOR UPDATE`, en orden), calcula las patas (`lib/stock`, en milésimas con BigInt) y escribe
