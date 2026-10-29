@@ -3,7 +3,8 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
+Estado al 29/10/2026: fases 0 a 10 terminadas (v1.38.0-alpha). Sigue la puesta a punto para BETA y
+las funciones nuevas (fases 11 a 22); facturación electrónica y app del repartidor quedan al fondo.
 
 | Fase | Contenido                                                        | Estado      |
 | ---- | ---------------------------------------------------------------- | ----------- |
@@ -17,7 +18,21 @@ Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
 | 7    | Gestión de pedidos (estados)                                     | ✅          |
 | 8    | Hojas de ruta de entrega                                         | ✅          |
 | 9    | Órdenes de compra a proveedores                                  | ✅          |
-| 10   | Lista de picking                                                 | 🔄 en curso |
+| 10   | Lista de picking                                                 | ✅          |
+| 11   | Puesta a punto para BETA                                         | ⏳          |
+| 12   | Pedido cargado por el admin en nombre del cliente                | ⏳          |
+| 13   | Listas de precios y descuentos                                   | ⏳          |
+| 14   | Reportes de ventas y margen                                      | ⏳          |
+| 15   | Avisos al cliente (mail y WhatsApp)                              | ⏳          |
+| 16   | Límite de crédito y bloqueo por deuda                            | ⏳          |
+| 17   | Días de entrega por zona y pedido mínimo                         | ⏳          |
+| 18   | Devoluciones y notas de crédito a clientes                       | ⏳          |
+| 19   | Repetir pedido y favoritos                                       | ⏳          |
+| 20   | Transferencia en el checkout                                     | ⏳          |
+| 21   | Lotes y vencimientos                                             | ⏳          |
+| 22   | Toma de inventario desde el celular                              | ⏳          |
+| 23   | Facturación electrónica (ARCA)                                   | 💤 al fondo |
+| 24   | App instalable del repartidor (sin señal)                        | 💤 al fondo |
 
 ---
 
@@ -270,11 +285,11 @@ Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
 - Estado de cuenta por proveedor y **deuda con proveedores** (vencido, vence en 7 días, sin imputar).
 - **Stock mínimo por producto** para alertar y sugerir compras.
 
-## Fase 10 — Lista de picking 🔄
+## Fase 10 — Lista de picking ✅
 
-| PR   | Contenido                                                                  | Estado      |
-| ---- | -------------------------------------------------------------------------- | ----------- |
-| 10.1 | Listas de picking por depósito con confirmación y ubicaciones de productos | 🟡 PR listo |
+| PR   | Contenido                                                                  | Estado           |
+| ---- | -------------------------------------------------------------------------- | ---------------- |
+| 10.1 | Listas de picking por depósito con confirmación y ubicaciones de productos | ✅ v1.38.0-alpha |
 
 **Decisiones**
 
@@ -288,6 +303,73 @@ Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
 - **Ubicación** opcional por producto y depósito (pasillo-estante-nivel) para ordenar el recorrido;
   impresión con casillas para tildar.
 - Las hojas de ruta llevan pedidos ya listos para despachar, así que no son origen de una lista.
+
+---
+
+## Fase 11 — Puesta a punto para BETA ⏳
+
+- Revisión de seguridad y permisos (actions, rutas, archivos servidos) y pasada de UI en celular.
+- Datos de demo en el seed (distribuidora de alimentos para mascotas) y docs de instalación y backups
+  (base y volumen `uploads`).
+- Tests end-to-end (Playwright) de los circuitos principales en el CI: compra del cliente, preparación,
+  reparto y compras.
+- Salto de versión a BETA con `release-as` (siguiente minor `-beta`).
+
+## Fase 12 — Pedido cargado por el admin ⏳
+
+- El admin (o un vendedor) arma un pedido en nombre de un cliente: elige cliente y dirección, carga los
+  productos y confirma con la misma lógica del checkout (pedidos que llegan por teléfono o WhatsApp).
+
+## Fase 13 — Listas de precios y descuentos ⏳
+
+- Listas de precios (por ejemplo pet shop, veterinaria, mayorista), descuento por cliente y
+  bonificaciones por cantidad. Base existente sin usar: tablas `discounts` y `used_discounts`.
+
+## Fase 14 — Reportes de ventas y margen ⏳
+
+- Ventas por período, cliente, producto y zona; margen contra el último costo del proveedor; productos
+  que más rotan y sin movimiento; exportación a CSV.
+
+## Fase 15 — Avisos al cliente ⏳
+
+- Mail al confirmar, preparar, salir a reparto y entregar el pedido; botón que abre WhatsApp con el
+  mensaje armado (sin API).
+
+## Fase 16 — Límite de crédito y bloqueo por deuda ⏳
+
+- Tope de deuda por cliente y aviso o bloqueo en el checkout si tiene deuda vencida.
+
+## Fase 17 — Días de entrega por zona y pedido mínimo ⏳
+
+- Días de reparto por localidad, fecha estimada de entrega en el checkout y monto mínimo opcional por zona.
+
+## Fase 18 — Devoluciones y notas de crédito a clientes ⏳
+
+- Devoluciones después de entregado (vencido, error): el stock vuelve y el crédito queda en la cuenta
+  corriente del cliente.
+
+## Fase 19 — Repetir pedido y favoritos ⏳
+
+- "Repetir pedido" que carga el carrito con un pedido anterior y productos favoritos del cliente.
+
+## Fase 20 — Transferencia en el checkout ⏳
+
+- Pago por transferencia con comprobante adjunto; el admin lo valida y queda como cobro en la cuenta
+  corriente.
+
+## Fase 21 — Lotes y vencimientos ⏳
+
+- Vencimiento por lote al recibir mercadería; el picking saca primero lo que vence antes.
+
+## Fase 22 — Toma de inventario desde el celular ⏳
+
+- Conteo por depósito con el escáner de código de barras y ajuste automático de las diferencias.
+
+## Al fondo 💤
+
+- **Fase 23 — Facturación electrónica (ARCA)**: factura A/B con CAE. Solo si se decide facturar desde
+  este sistema (certificados y homologación).
+- **Fase 24 — App instalable del repartidor**: carga de paradas sin señal y sincronización al volver.
 
 ---
 
