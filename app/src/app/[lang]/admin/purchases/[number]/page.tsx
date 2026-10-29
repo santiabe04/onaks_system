@@ -7,6 +7,8 @@ import {
   CopyTextButton,
   PurchaseEditor,
 } from "@/components/purchases/purchase-forms";
+import { DifferenceLabel } from "@/components/purchases/difference-label";
+import { ReasonForm } from "@/components/purchases/receipt-forms";
 import { SheetActionButton } from "@/components/routes/route-forms";
 import { buttonClass } from "@/components/ui/button";
 import { interpolate } from "@/i18n/config";
@@ -16,10 +18,16 @@ import { getUserWithPermission } from "@/lib/auth";
 import { lineTotals } from "@/lib/cart";
 import { parseSaleNumber } from "@/lib/checkout";
 import { formatCuit } from "@/lib/cuit";
+import {
+  RECEIPT_NOTES_MAX_LENGTH,
+  RECEIVABLE_PO_STATES,
+  receiptDifference,
+} from "@/lib/goods-receipt";
 import { isoDay } from "@/lib/order-period";
 import { PO_CANCELABLE, purchaseOrderText } from "@/lib/purchase-order";
 import { getPurchaseLines, getPurchaseOrder } from "@/lib/purchase-queries";
 import { toMilli } from "@/lib/quantity";
+import { closePurchaseOrderShort } from "../../receipts/actions";
 import {
   backToDraft,
   cancelPurchaseOrder,
@@ -124,8 +132,24 @@ async function PurchaseOrder({
           {interpolate(p.sentAt, { date: format.dateTime(order.sentAt) })}
         </p>
       )}
+      {order.closedAt && (
+        <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
+          {interpolate(p.closedShort, {
+            date: format.dateTime(order.closedAt),
+            note: order.closeNote ?? "",
+          })}
+        </p>
+      )}
 
       <div className="mt-4 flex flex-wrap items-start gap-3">
+        {RECEIVABLE_PO_STATES.includes(order.state) && (
+          <Link
+            href={`${PATH}/${order.number}/receive`}
+            className={buttonClass()}
+          >
+            {p.receive}
+          </Link>
+        )}
         {draft && hasLines && (
           <SheetActionButton
             action={sendPurchaseOrder.bind(null, order.id)}
@@ -210,9 +234,64 @@ async function PurchaseOrder({
           )}
         </section>
       ) : (
-        <PurchaseItems order={order} t={t} format={format} />
+        <>
+          <PurchaseItems order={order} t={t} format={format} />
+          <Receipts order={order} t={t} format={format} />
+          {order.state === "PARTIALLY_RECEIVED" && (
+            <div className="mt-6">
+              <ReasonForm
+                action={closePurchaseOrderShort.bind(null, order.id)}
+                label={p.closeShort}
+                hint={p.closeShortHint}
+                reasonLabel={p.closeReason}
+                pendingLabel={p.working}
+                maxLength={RECEIPT_NOTES_MAX_LENGTH}
+              />
+            </div>
+          )}
+        </>
       )}
     </>
+  );
+}
+
+/** Los informes de recepción de la OC. */
+function Receipts({
+  order,
+  t,
+  format,
+}: {
+  order: NonNullable<Awaited<ReturnType<typeof getPurchaseOrder>>>;
+  t: Awaited<ReturnType<typeof getT>>;
+  format: ReturnType<typeof formatters>;
+}) {
+  if (order.state === "SENT" && order.receipts.length === 0) return null;
+  const r = t.receipts;
+  return (
+    <section className="mt-8">
+      <h2 className="mb-2 text-lg font-medium">{t.purchases.receipts}</h2>
+      {order.receipts.length === 0 ? (
+        <p className="text-sm opacity-70">{t.purchases.noReceipts}</p>
+      ) : (
+        <ul className="flex flex-col gap-1 text-sm">
+          {order.receipts.map((receipt) => (
+            <li key={receipt.number}>
+              <Link
+                href={`/admin/receipts/${receipt.number}`}
+                className="font-medium hover:underline"
+              >
+                {interpolate(r.detailTitle, { number: receipt.number })}
+              </Link>{" "}
+              · {format.date(receipt.createdAt)} · {receipt.warehouse.name}
+              {receipt.deliveryNote && ` · ${receipt.deliveryNote}`}
+              {receipt.state === "ANNULLED" && (
+                <span className="text-red-600"> · {r.states.ANNULLED}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
@@ -235,6 +314,8 @@ function PurchaseItems({
             <th className="py-2 pr-3 font-medium">{c.product}</th>
             <th className="py-2 pr-3 font-medium">{c.code}</th>
             <th className="py-2 pr-3 text-right font-medium">{c.quantity}</th>
+            <th className="py-2 pr-3 text-right font-medium">{c.received}</th>
+            <th className="py-2 pr-3 text-right font-medium">{c.difference}</th>
             <th className="py-2 pr-3 text-right font-medium">{c.unitCost}</th>
             <th className="py-2 text-right font-medium">{c.lineTotal}</th>
           </tr>
@@ -251,6 +332,24 @@ function PurchaseItems({
               <td className="py-2 pr-3 text-right whitespace-nowrap">
                 {format.number(item.quantity)}{" "}
                 {item.product.measurementUnit.name}
+              </td>
+              <td className="py-2 pr-3 text-right whitespace-nowrap">
+                {format.number(item.receivedQuantity)}
+              </td>
+              <td className="py-2 pr-3 text-right whitespace-nowrap">
+                {/* Mientras no llegó nada no hay diferencia. */}
+                {order.state === "SENT" ? (
+                  <span className="opacity-50">—</span>
+                ) : (
+                  <DifferenceLabel
+                    diff={receiptDifference(
+                      item.quantity,
+                      item.receivedQuantity,
+                    )}
+                    t={t.receipts}
+                    format={format}
+                  />
+                )}
               </td>
               <td className="py-2 pr-3 text-right whitespace-nowrap">
                 {format.money(item.unitCost)}
