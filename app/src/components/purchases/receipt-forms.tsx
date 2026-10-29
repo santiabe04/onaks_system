@@ -7,7 +7,10 @@ import {
 } from "@/app/[lang]/admin/receipts/actions";
 import { Field, FormError, Input, SubmitButton } from "@/components/ui/form";
 import { DifferenceLabel } from "@/components/purchases/difference-label";
-import { useFieldValues } from "@/components/purchases/use-field-values";
+import {
+  submitWithoutReset,
+  useFieldValues,
+} from "@/components/ui/use-field-values";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { formatters } from "@/i18n/format";
@@ -96,7 +99,10 @@ export function ReceiptForm({
   });
 
   return (
-    <form action={action} className="flex flex-col gap-4 text-sm">
+    <form
+      onSubmit={submitWithoutReset(action)}
+      className="flex flex-col gap-4 text-sm"
+    >
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label={t.warehouse}>
           <select

@@ -5,7 +5,10 @@ import {
   createSupplierInvoice,
   type InvoiceActionState,
 } from "@/app/[lang]/admin/invoices/actions";
-import { useFieldValues } from "@/components/purchases/use-field-values";
+import {
+  submitWithoutReset,
+  useFieldValues,
+} from "@/components/ui/use-field-values";
 import { Field, FormError, Input, SubmitButton } from "@/components/ui/form";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
@@ -111,7 +114,10 @@ export function InvoiceForm({
     toCents(printed) !== toCents(totals.total);
 
   return (
-    <form action={action} className="flex flex-col gap-4 text-sm">
+    <form
+      onSubmit={submitWithoutReset(action)}
+      className="flex flex-col gap-4 text-sm"
+    >
       <div className="grid gap-4 sm:grid-cols-5">
         <Field label={t.type}>
           <select

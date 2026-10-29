@@ -73,7 +73,11 @@ export function StopRecordSummary({
                   delivered: format.number(shortage.delivered),
                   ordered: format.number(shortage.ordered),
                   unit: shortage.unit,
-                  reason: t.shortageReasons[shortage.reason],
+                  // En una parada solo hay RETURNED o WRITTEN_OFF.
+                  reason:
+                    t.shortageReasons[
+                      shortage.reason as keyof typeof t.shortageReasons
+                    ],
                 })}
               </li>
             ))}

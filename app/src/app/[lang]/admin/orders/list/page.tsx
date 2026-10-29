@@ -5,6 +5,7 @@ import {
   FilterInput,
   OrderFilterFields,
 } from "@/components/orders/order-filter-fields";
+import { PickingFromSelection } from "@/components/picking/picking-forms";
 import {
   BulkStateBar,
   SelectGroup,
@@ -125,11 +126,14 @@ async function OrdersList({
       ) : (
         <>
           {canManage && (
-            <BulkStateBar
-              warehouses={warehouses}
-              t={t.adminOrders.bulk}
-              states={t.orders.states}
-            />
+            <>
+              <BulkStateBar
+                warehouses={warehouses}
+                t={t.adminOrders.bulk}
+                states={t.orders.states}
+              />
+              <PickingFromSelection warehouses={warehouses} t={t.picking} />
+            </>
           )}
           <p className="mt-6 flex flex-wrap gap-x-4 gap-y-1 text-sm">
             <span>

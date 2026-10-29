@@ -8,6 +8,7 @@ import {
   SelectOrder,
 } from "@/components/orders/bulk-state-bar";
 import { OrderFilterFields } from "@/components/orders/order-filter-fields";
+import { PickingFromSelection } from "@/components/picking/picking-forms";
 import { RouteFromSelection } from "@/components/routes/route-forms";
 import { buttonClass } from "@/components/ui/button";
 import { PrintButton } from "@/components/ui/print-button";
@@ -189,6 +190,7 @@ async function OrdersByZone({
             t={t.adminOrders.bulk}
             states={t.orders.states}
           />
+          <PickingFromSelection warehouses={warehouses} t={t.picking} />
           {can(user.role, "routes:manage") && (
             <RouteFromSelection
               options={fleet}

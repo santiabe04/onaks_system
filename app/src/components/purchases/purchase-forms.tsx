@@ -6,7 +6,10 @@ import {
   savePurchaseOrder,
   type PurchaseActionState,
 } from "@/app/[lang]/admin/purchases/actions";
-import { useFieldValues } from "@/components/purchases/use-field-values";
+import {
+  submitWithoutReset,
+  useFieldValues,
+} from "@/components/ui/use-field-values";
 import { buttonClass } from "@/components/ui/button";
 import { Field, FormError, Input, SubmitButton } from "@/components/ui/form";
 import type { Dictionary } from "@/i18n/dictionaries/es";
@@ -106,7 +109,10 @@ export function PurchaseEditor({
   const c = t.columns;
 
   return (
-    <form action={action} className="flex flex-col gap-4 text-sm">
+    <form
+      onSubmit={submitWithoutReset(action)}
+      className="flex flex-col gap-4 text-sm"
+    >
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t.expectedDate}>
           <Input type="date" {...bind("expectedDate")} min={today} />

@@ -40,6 +40,7 @@ export default async function AdminLayout({
       items: [
         { href: "/admin/orders/list", label: t.adminNav.allOrders },
         { href: "/admin/orders", label: t.adminNav.ordersByZone },
+        { href: "/admin/picking", label: t.adminNav.pickingLists },
       ],
     },
     {
