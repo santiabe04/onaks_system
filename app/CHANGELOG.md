@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.38.2-alpha](https://github.com/santiabe04/onaks_system/compare/v1.38.1-alpha...v1.38.2-alpha) (2026-10-29)
+
+
+### Bug Fixes
+
+* **ui:** improve layout on phones ([#98](https://github.com/santiabe04/onaks_system/issues/98)) ([8f73fce](https://github.com/santiabe04/onaks_system/commit/8f73fce3e0628575b928c464f2c9f257f62133e4))
+
 ## [1.38.1-alpha](https://github.com/santiabe04/onaks_system/compare/v1.38.0-alpha...v1.38.1-alpha) (2026-10-29)
 
 
