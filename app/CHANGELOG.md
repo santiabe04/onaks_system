@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.37.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.36.0-alpha...v1.37.0-alpha) (2026-10-29)
+
+
+### Features
+
+* **purchases:** add supplier account with payment orders and credit notes ([#91](https://github.com/santiabe04/onaks_system/issues/91)) ([3ce3a55](https://github.com/santiabe04/onaks_system/commit/3ce3a550175a08e2a25fbc4d8bf7f85190bbd2b4))
+
 ## [1.36.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.35.0-alpha...v1.36.0-alpha) (2026-10-29)
 
 
