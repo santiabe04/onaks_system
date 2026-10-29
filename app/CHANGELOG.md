@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.40.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.39.0-alpha...v1.40.0-alpha) (2026-10-29)
+
+
+### Features
+
+* **deploy:** add production compose with caddy and automatic backups ([#102](https://github.com/santiabe04/onaks_system/issues/102)) ([4361bb1](https://github.com/santiabe04/onaks_system/commit/4361bb1b057a50f8faed915767d3502f7b108e07))
+
 ## [1.39.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.38.2-alpha...v1.39.0-alpha) (2026-10-29)
 
 
