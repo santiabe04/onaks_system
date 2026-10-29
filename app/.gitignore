@@ -31,3 +31,9 @@ npm-debug.log*
 /certs
 /backups
 /backups-*
+
+# Playwright (tests de punta a punta).
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache

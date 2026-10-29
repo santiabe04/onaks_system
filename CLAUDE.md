@@ -252,6 +252,10 @@ action>` después de cada action: los no controlados pierden lo tipeado con un e
 - `categories`: árbol de hasta 3 niveles (reglas en `lib/category`, validadas con lock de tabla en la
   action). Nombre único entre hermanas, también en la raíz: índice `NULLS NOT DISTINCT` escrito a mano.
 - Ejemplos de tests y datos: dominio de distribuidora de alimentos y productos para mascotas.
+- Tests de punta a punta (`app/e2e/`, Playwright): corren de a uno contra `next start` y una base nueva con
+  la demo (dependen de los pedidos #1 a #4). Selectores por rol/label; para selects
+  `getByRole("combobox", { name })`; `ready(page)` antes de tocar forms controlados (si no, la hidratación
+  pisa lo tipeado). Guía en `app/e2e/README.md`.
 - La migración init se escribió a mano (sin engine de Prisma disponible). El CI corre
   `prisma migrate diff --from-config-datasource --to-schema ... --exit-code` para detectar drift.
 - Seed idempotente (`app/prisma/seed.ts`): provincias, partidos del sur, unidades y admin inicial
@@ -268,6 +272,7 @@ action>` después de cada action: los no controlados pierden lo tipeado con un e
 
 ```bash
 npm run dev | build | lint | typecheck | test | format
+npm run test:e2e                    # Playwright (base nueva con demo + build antes, ver e2e/README.md)
 npm run db:migrate -- --name <x>   # nueva migración
 npm run db:deploy                   # aplicar migraciones
 npm run db:seed
@@ -285,8 +290,8 @@ docker compose up --build           # db + migrate + app
 ## CI/CD
 
 - `.github/workflows/ci.yml` (PR a main): `conventional-commits` siempre; `app-checks` (format, lint,
-  typecheck, test, migraciones + drift, build) y `docker` (valida el compose de producción y los
-  Caddyfile, compose + `/api/health`) solo si cambia `app/`.
+  typecheck, test, migraciones + drift, build), `docker` (valida el compose de producción y los
+  Caddyfile, compose + `/api/health`) y `e2e` (Playwright con la demo) solo si cambia `app/`.
   `ci-ok` resume todo y es el único check required.
 - `.github/workflows/release.yml` (PR mergeado): release-please; si crea release, publica en GHCR
   `<repo>:<versión>` y `<repo>-migrator:<versión>` (`latest` solo en estables).

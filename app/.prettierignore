@@ -5,3 +5,5 @@ prisma/migrations
 package-lock.json
 CHANGELOG.md
 .release-please-manifest.json
+test-results
+playwright-report
