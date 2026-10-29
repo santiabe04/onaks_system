@@ -249,7 +249,14 @@ action>` después de cada action: los no controlados pierden lo tipeado con un e
 - La migración init se escribió a mano (sin engine de Prisma disponible). El CI corre
   `prisma migrate diff --from-config-datasource --to-schema ... --exit-code` para detectar drift.
 - Seed idempotente (`app/prisma/seed.ts`): provincias, partidos del sur, unidades y admin inicial
-  (con `password_must_change = true`).
+  (con `password_must_change = true`). Con `SEED_DEMO=true` suma la demo (`prisma/seed-demo.ts`):
+  categorías, 2 depósitos, 12 productos con stock (ingresos en el libro) y ubicación, 2 proveedores, 3
+  clientes con usuario, un repartidor con vehículo y 4 pedidos pendientes. Usuarios `*@demo.onaks.local`
+  con `DEMO_PASSWORD` (`demo1234`, sin cambio obligatorio): `admin`, `reparto`, `patitas`, `sanroque`,
+  `varela`. Solo carga en una base sin productos y falla con `NODE_ENV=production`. Los tests de punta a
+  punta usan esta demo.
+- El seed corre en la imagen `migrator` (Dockerfile), que solo tiene `prisma/` y `src/lib`: lo que
+  importe el seed tiene que estar ahí (y sin el alias `@/`).
 
 ## Comandos (en `app/`)
 

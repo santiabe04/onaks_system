@@ -2,6 +2,7 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, UserType } from "../src/generated/prisma/client";
+import { DEMO_DOMAIN, DEMO_PASSWORD, seedDemo } from "./seed-demo";
 
 const db = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
@@ -95,6 +96,20 @@ async function main() {
     console.log(`Admin creado: ${mail}`);
   } else {
     console.log(`Admin ya existente: ${mail}`);
+  }
+
+  // Datos de demo: solo pedidos explícitamente y nunca en producción.
+  if (process.env.SEED_DEMO === "true") {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("SEED_DEMO no se puede usar con NODE_ENV=production");
+    }
+    if (await seedDemo(db)) {
+      console.log(
+        `Demo cargada: usuarios *@${DEMO_DOMAIN} con contraseña ${DEMO_PASSWORD}`,
+      );
+    } else {
+      console.log("Demo omitida: la base ya tiene productos");
+    }
   }
 }
 

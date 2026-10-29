@@ -21,6 +21,8 @@ RUN npm run build
 
 # ---------- migrator: aplica migraciones y seed, y termina ----------
 FROM deps AS migrator
+# La demo del seed reusa cálculos puros de la app (totales, CUIT).
+COPY src/lib ./src/lib
 CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
 
 # ---------- runner: imagen final, solo el output standalone ----------
