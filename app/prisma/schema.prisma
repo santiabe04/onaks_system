@@ -56,6 +56,10 @@ enum StockMovementType {
   SALE
   /// Devolución al depósito de lo descontado por un pedido (volver a Pendiente o cancelar).
   SALE_RETURN
+  /// Ingreso por un informe de recepción de compra.
+  PURCHASE_RECEIPT
+  /// Reversión del ingreso al anular el informe de recepción.
+  PURCHASE_RECEIPT_REVERSAL
 }
 
 enum AuditAction {
@@ -96,6 +100,7 @@ enum AuditEntity {
   VEHICLE
   ROUTE_SHEET
   PURCHASE_ORDER
+  GOODS_RECEIPT
 }
 
 // --- TABLES ---
@@ -158,6 +163,7 @@ model Warehouse {
   updatedBy      User?           @relation("WarehouseUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   stocks         ProductStock[]
   stockMovements StockMovement[]
+  goodsReceipts  GoodsReceipt[]
 
   @@index([cityId], map: "idx_warehouses_city_id")
   @@map("warehouses")
@@ -220,6 +226,7 @@ model Product {
   cartItems         CartItem[]
   stockMovements    StockMovement[]
   purchaseItems     PurchaseOrderItem[]
+  receiptItems      GoodsReceiptItem[]
 
   @@index([categoryId], map: "idx_products_category_id")
   @@index([measurementUnitId], map: "idx_products_measurement_unit_id")
@@ -246,26 +253,30 @@ model ProductStock {
 // Libro de movimientos: solo se inserta (trigger en la DB). quantity es la
 // variación con signo y alanceAfter el saldo que quedó en ese depósito.
 model StockMovement {
-  id           String            @id @default(cuid(2))
-  productId    String            @map("product_id")
-  warehouseId  String            @map("warehouse_id")
-  type         StockMovementType
-  quantity     Decimal           @db.Decimal(12, 3)
-  balanceAfter Decimal           @map("balance_after") @db.Decimal(12, 3)
-  comment      String?
+  id             String            @id @default(cuid(2))
+  productId      String            @map("product_id")
+  warehouseId    String            @map("warehouse_id")
+  type           StockMovementType
+  quantity       Decimal           @db.Decimal(12, 3)
+  balanceAfter   Decimal           @map("balance_after") @db.Decimal(12, 3)
+  comment        String?
   // Agrupa las dos patas de una transferencia.
-  transferId   String?           @map("transfer_id")
+  transferId     String?           @map("transfer_id")
   /// Pedido que descontó o devolvió el stock (SALE / SALE_RETURN).
-  saleId       String?           @map("sale_id")
-  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
-  createdById  String?           @map("created_by")
-  product      Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
-  warehouse    Warehouse         @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
-  createdBy    User?             @relation(fields: [createdById], references: [id], onDelete: Restrict)
-  sale         Sale?             @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  saleId         String?           @map("sale_id")
+  /// Informe de recepción que ingresó o revirtió el stock.
+  goodsReceiptId String?           @map("goods_receipt_id")
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdById    String?           @map("created_by")
+  product        Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+  warehouse      Warehouse         @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  createdBy      User?             @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  sale           Sale?             @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  goodsReceipt   GoodsReceipt?     @relation(fields: [goodsReceiptId], references: [id], onDelete: Restrict)
 
   @@index([productId, createdAt], map: "idx_stock_movements_product_id_created_at")
   @@index([saleId], map: "idx_stock_movements_sale_id")
+  @@index([goodsReceiptId], map: "idx_stock_movements_goods_receipt_id")
   @@index([warehouseId, createdAt], map: "idx_stock_movements_warehouse_id_created_at")
   @@index([transferId], map: "idx_stock_movements_transfer_id")
   @@map("stock_movements")
@@ -499,6 +510,8 @@ model User {
   routeSheetsClosed        RouteSheet[]      @relation("RouteSheetClosedBy")
   purchaseOrdersCreated    PurchaseOrder[]   @relation("PurchaseOrderCreatedBy")
   purchaseOrdersUpdated    PurchaseOrder[]   @relation("PurchaseOrderUpdatedBy")
+  goodsReceiptsCreated     GoodsReceipt[]    @relation("GoodsReceiptCreatedBy")
+  goodsReceiptsAnnulled    GoodsReceipt[]    @relation("GoodsReceiptAnnulledBy")
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")
@@ -819,6 +832,9 @@ model PurchaseOrder {
   total        Decimal             @default(0) @db.Decimal(12, 2)
   sentAt       DateTime?           @map("sent_at") @db.Timestamptz(3)
   canceledAt   DateTime?           @map("canceled_at") @db.Timestamptz(3)
+  /// Se dio por terminada con faltante (queda Recibida aunque no llegó todo).
+  closedAt     DateTime?           @map("closed_at") @db.Timestamptz(3)
+  closeNote    String?             @map("close_note") @db.VarChar(300)
   createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
   createdById  String?             @map("created_by")
@@ -827,6 +843,7 @@ model PurchaseOrder {
   createdBy    User?               @relation("PurchaseOrderCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   updatedBy    User?               @relation("PurchaseOrderUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   items        PurchaseOrderItem[]
+  receipts     GoodsReceipt[]
 
   @@index([supplierId, state], map: "idx_purchase_orders_supplier_id_state")
   @@index([state], map: "idx_purchase_orders_state")
@@ -848,4 +865,53 @@ model PurchaseOrderItem {
   @@id([purchaseOrderId, productId])
   @@index([productId], map: "idx_purchase_order_items_product_id")
   @@map("purchase_order_items")
+}
+
+enum GoodsReceiptState {
+  CONFIRMED
+  /// Anulado: se revirtió el stock y lo recibido en la OC.
+  ANNULLED
+}
+
+/// Informe de recepción (IR): lo que llegó de una OC, a un depósito.
+model GoodsReceipt {
+  id              String             @id @default(cuid(2))
+  /// Número correlativo ("IR #8").
+  number          Int                @unique @default(autoincrement())
+  purchaseOrderId String             @map("purchase_order_id")
+  warehouseId     String             @map("warehouse_id")
+  /// Número de remito del proveedor (opcional).
+  deliveryNote    String?            @map("delivery_note") @db.VarChar(50)
+  notes           String?            @db.VarChar(300)
+  state           GoodsReceiptState  @default(CONFIRMED)
+  annulledAt      DateTime?          @map("annulled_at") @db.Timestamptz(3)
+  annulReason     String?            @map("annul_reason") @db.VarChar(300)
+  annulledById    String?            @map("annulled_by")
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdById     String?            @map("created_by")
+  purchaseOrder   PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id], onDelete: Restrict)
+  warehouse       Warehouse          @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  createdBy       User?              @relation("GoodsReceiptCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  annulledBy      User?              @relation("GoodsReceiptAnnulledBy", fields: [annulledById], references: [id], onDelete: Restrict)
+  items           GoodsReceiptItem[]
+  stockMovements  StockMovement[]
+
+  @@index([purchaseOrderId], map: "idx_goods_receipts_purchase_order_id")
+  @@index([warehouseId], map: "idx_goods_receipts_warehouse_id")
+  @@map("goods_receipts")
+}
+
+/// Producto recibido en un IR, con lo que faltaba de la OC en ese momento (para la diferencia).
+model GoodsReceiptItem {
+  goodsReceiptId String       @map("goods_receipt_id")
+  productId      String       @map("product_id")
+  quantity       Decimal      @db.Decimal(12, 3)
+  /// Pendiente de la OC antes de este informe (lo pedido menos lo ya recibido, no negativo).
+  pending        Decimal      @db.Decimal(12, 3)
+  goodsReceipt   GoodsReceipt @relation(fields: [goodsReceiptId], references: [id], onDelete: Cascade)
+  product        Product      @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@id([goodsReceiptId, productId])
+  @@index([productId], map: "idx_goods_receipt_items_product_id")
+  @@map("goods_receipt_items")
 }

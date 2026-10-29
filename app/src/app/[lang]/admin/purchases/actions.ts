@@ -10,6 +10,7 @@ import { requirePermission } from "@/lib/auth";
 import { cartTotals } from "@/lib/cart";
 import { db } from "@/lib/db";
 import { isCuid } from "@/lib/ids";
+import { lockPurchaseOrder } from "@/lib/purchase-lock";
 import {
   parsePurchaseHeader,
   parsePurchaseLines,
@@ -17,7 +18,7 @@ import {
 } from "@/lib/purchase-order";
 
 // Órdenes de compra: se arman en borrador, se marcan enviadas y se cancelan
-// mientras no llegó nada (la recepción llega con los informes de recepción).
+// mientras no llegó nada (lo recibido lo cargan los informes de recepción).
 const PERMISSION = "purchases:manage";
 const ENTITY = "PURCHASE_ORDER";
 
@@ -48,18 +49,8 @@ function revalidatePurchases() {
 
 /** Bloquea la OC hasta el fin de la transacción y la devuelve. */
 async function lockOrder(tx: Prisma.TransactionClient, orderId: string) {
-  const t = messages();
-  if (!isCuid(orderId)) throw new PurchaseError(t.notFound);
-  const [order] = await tx.$queryRaw<
-    {
-      id: string;
-      number: number;
-      supplierId: string;
-      state: PurchaseOrderState;
-    }[]
-  >`SELECT "id", "number", "supplier_id" AS "supplierId", "state"
-    FROM "purchase_orders" WHERE "id" = ${orderId} FOR UPDATE`;
-  if (!order) throw new PurchaseError(t.notFound);
+  const order = await lockPurchaseOrder(tx, orderId);
+  if (!order) throw new PurchaseError(messages().notFound);
   return order;
 }
 

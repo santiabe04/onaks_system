@@ -116,6 +116,14 @@ comentarios y textos de UI en español.
   precarga con el último del proveedor. Las líneas guardan foto de costo e IVA. Consultas en
   `lib/purchase-queries`. Impresión en `[number]/print` y texto para WhatsApp sin precios (si el
   portapapeles no se puede usar, se muestra el texto para copiar a mano).
+- Informes de recepción (`/admin/receipts`, `goods_receipts` + `goods_receipt_items`, cargados desde la
+  OC en `[number]/receive`): un depósito por informe, remito opcional, lo que llegó por producto (se
+  precarga lo pendiente; de más se acepta con aviso) y lo pendiente en ese momento para la diferencia.
+  Ingresan el stock con `recordReceiptMovements` (`PURCHASE_RECEIPT`, con `goods_receipt_id`), suman a
+  `received_quantity` y recalculan el estado de la OC (`orderStateFor` en `lib/goods-receipt`). Se
+  anulan con motivo (`PURCHASE_RECEIPT_REVERSAL`, reabre la OC). Una OC Recibida parcial se cierra con
+  faltante (`closed_at` + motivo, queda Recibida). Orden de bloqueo: **OC (`lockPurchaseOrder`), informe
+  y saldos**.
 
 ## UI del admin
 

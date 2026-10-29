@@ -148,8 +148,53 @@ export async function getPurchaseOrder(number: number) {
             select: {
               name: true,
               sku: true,
-              measurementUnit: { select: { name: true } },
+              measurementUnit: { select: { name: true, allowsDecimals: true } },
               suppliers: { select: { supplierId: true, supplierCode: true } },
+            },
+          },
+        },
+      },
+      receipts: {
+        orderBy: { number: "asc" },
+        select: {
+          number: true,
+          state: true,
+          createdAt: true,
+          deliveryNote: true,
+          warehouse: { select: { name: true } },
+        },
+      },
+    },
+  });
+}
+
+/** Un informe de recepción con su OC, depósito y productos. */
+export async function getGoodsReceipt(number: number) {
+  return db.goodsReceipt.findUnique({
+    where: { number },
+    include: {
+      purchaseOrder: {
+        select: {
+          id: true,
+          number: true,
+          supplier: { select: { legalName: true, tradeName: true } },
+        },
+      },
+      warehouse: { select: { name: true } },
+      createdBy: {
+        select: { person: { select: { name: true, surname: true } } },
+      },
+      annulledBy: {
+        select: { person: { select: { name: true, surname: true } } },
+      },
+      items: {
+        orderBy: { product: { name: "asc" } },
+        include: {
+          product: {
+            select: {
+              name: true,
+              sku: true,
+              measurementUnit: { select: { name: true } },
             },
           },
         },

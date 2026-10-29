@@ -235,12 +235,12 @@ Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
 
 ## Fase 9 — Compras a proveedores 🔄
 
-| PR  | Contenido                                                                          | Estado      |
-| --- | ---------------------------------------------------------------------------------- | ----------- |
-| 9.1 | Stock mínimo + orden de compra (sugerencia, estados, impresión y WhatsApp)         | 🟡 PR listo |
-| 9.2 | Informe de recepción: depósito, remito, cantidades, diferencias e ingreso de stock | ⏳          |
-| 9.3 | Factura de proveedor con control de 3 vías y actualización del último costo        | ⏳          |
-| 9.4 | Cuenta corriente del proveedor: órdenes de pago y notas de crédito                 | ⏳          |
+| PR  | Contenido                                                                          | Estado           |
+| --- | ---------------------------------------------------------------------------------- | ---------------- |
+| 9.1 | Stock mínimo + orden de compra (sugerencia, estados, impresión y WhatsApp)         | ✅ v1.34.0-alpha |
+| 9.2 | Informe de recepción: depósito, remito, cantidades, diferencias e ingreso de stock | 🟡 PR listo      |
+| 9.3 | Factura de proveedor con control de 3 vías y actualización del último costo        | ⏳               |
+| 9.4 | Cuenta corriente del proveedor: órdenes de pago y notas de crédito                 | ⏳               |
 
 **Decisiones**
 
@@ -250,8 +250,10 @@ Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
 - OC: Borrador → Enviada → Recibida parcial / Recibida; se cancela mientras no llegó nada. Se arma con
   **sugerencia**: stock mínimo + reservado − stock − lo pedido en OC sin recibir. Impresión / PDF y
   texto para WhatsApp.
-- IR: depósito, remito del proveedor, cantidades recibidas y **diferencias con lo pedido** (menos, más,
-  otro precio); el stock entra como ingreso con referencia a la OC.
+- IR: un depósito por informe, remito del proveedor, cantidades recibidas y **diferencias con lo
+  pedido**; el stock entra como ingreso con referencia al IR y la OC. Se puede recibir **de más** (con
+  aviso). Lo que falta queda pendiente para otro IR, o el admin **cierra la OC con faltante** (con
+  motivo). Un IR se **anula con motivo**: revierte el stock y lo recibido (y reabre la OC).
 - Factura: tipo A/B/C, punto de venta y número, fecha, vencimiento, neto, IVA, total. **Control de 3
   vías** (OC vs IR vs factura) marca diferencias antes de pagar. Actualiza el **último costo** del
   producto en ese proveedor.
