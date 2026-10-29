@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.35.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.34.0-alpha...v1.35.0-alpha) (2026-10-29)
+
+
+### Features
+
+* **purchases:** add goods receipts with stock entry and differences ([#87](https://github.com/santiabe04/onaks_system/issues/87)) ([397f28d](https://github.com/santiabe04/onaks_system/commit/397f28d14d9a5d86a594040e0dc4876c9182ade7))
+
 ## [1.34.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.33.0-alpha...v1.34.0-alpha) (2026-10-28)
 
 
