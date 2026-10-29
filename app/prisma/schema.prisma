@@ -101,6 +101,7 @@ enum AuditEntity {
   ROUTE_SHEET
   PURCHASE_ORDER
   GOODS_RECEIPT
+  SUPPLIER_INVOICE
 }
 
 // --- TABLES ---
@@ -189,37 +190,37 @@ model TaxRate {
 }
 
 model Product {
-  id                String              @id @default(cuid(2))
-  name              String              @unique
+  id                String                @id @default(cuid(2))
+  name              String                @unique
   // Código interno, obligatorio. El de barras es opcional (no todo tiene EAN).
-  sku               String              @unique
-  barcode           String?             @unique
+  sku               String                @unique
+  barcode           String?               @unique
   description       String?
   // Solo categorías finales (sin hijas): lo controla la app.
-  categoryId        Int                 @map("category_id")
+  categoryId        Int                   @map("category_id")
   // Precio neto, sin IVA. El final se calcula con la alícuota.
-  price             Decimal             @db.Decimal(12, 2)
-  taxRateId         Int                 @map("tax_rate_id")
-  measurementUnitId Int                 @map("measurement_unit_id")
+  price             Decimal               @db.Decimal(12, 2)
+  taxRateId         Int                   @map("tax_rate_id")
+  measurementUnitId Int                   @map("measurement_unit_id")
   // Peso en kg y volumen en litros, por unidad de venta.
-  weight            Decimal             @db.Decimal(10, 3)
-  volume            Decimal?            @db.Decimal(10, 3)
+  weight            Decimal               @db.Decimal(10, 3)
+  volume            Decimal?              @db.Decimal(10, 3)
   /// Stock mínimo: debajo de esto se alerta y se sugiere comprar.
-  minStock          Decimal?            @map("min_stock") @db.Decimal(12, 3)
+  minStock          Decimal?              @map("min_stock") @db.Decimal(12, 3)
   // Archivo WebP en UPLOADS_DIR/products (ver lib/product-image).
-  imageFile         String?             @map("image_file")
+  imageFile         String?               @map("image_file")
   // Pausado: no se ve en el catálogo, pero conserva historial y stock.
-  isActive          Boolean             @default(true) @map("is_active")
-  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
-  deletedAt         DateTime?           @map("deleted_at") @db.Timestamptz(3)
-  createdById       String?             @map("created_by")
-  updatedById       String?             @map("updated_by")
-  category          Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  measurementUnit   MeasurementUnit     @relation(fields: [measurementUnitId], references: [id], onDelete: Restrict)
-  taxRate           TaxRate             @relation(fields: [taxRateId], references: [id], onDelete: Restrict)
-  createdBy         User?               @relation("ProductCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy         User?               @relation("ProductUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  isActive          Boolean               @default(true) @map("is_active")
+  createdAt         DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt         DateTime?             @map("deleted_at") @db.Timestamptz(3)
+  createdById       String?               @map("created_by")
+  updatedById       String?               @map("updated_by")
+  category          Category              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  measurementUnit   MeasurementUnit       @relation(fields: [measurementUnitId], references: [id], onDelete: Restrict)
+  taxRate           TaxRate               @relation(fields: [taxRateId], references: [id], onDelete: Restrict)
+  createdBy         User?                 @relation("ProductCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy         User?                 @relation("ProductUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   saleItems         SaleItem[]
   stocks            ProductStock[]
   suppliers         SupplierProduct[]
@@ -227,6 +228,7 @@ model Product {
   stockMovements    StockMovement[]
   purchaseItems     PurchaseOrderItem[]
   receiptItems      GoodsReceiptItem[]
+  invoiceItems      SupplierInvoiceItem[]
 
   @@index([categoryId], map: "idx_products_category_id")
   @@index([measurementUnitId], map: "idx_products_measurement_unit_id")
@@ -305,6 +307,7 @@ model Supplier {
   updatedBy      User?             @relation("SupplierUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   products       SupplierProduct[]
   purchaseOrders PurchaseOrder[]
+  invoices       SupplierInvoice[]
 
   @@index([cityId], map: "idx_suppliers_city_id")
   @@map("suppliers")
@@ -512,6 +515,9 @@ model User {
   purchaseOrdersUpdated    PurchaseOrder[]   @relation("PurchaseOrderUpdatedBy")
   goodsReceiptsCreated     GoodsReceipt[]    @relation("GoodsReceiptCreatedBy")
   goodsReceiptsAnnulled    GoodsReceipt[]    @relation("GoodsReceiptAnnulledBy")
+  supplierInvoicesCreated  SupplierInvoice[] @relation("SupplierInvoiceCreatedBy")
+  supplierInvoicesApproved SupplierInvoice[] @relation("SupplierInvoiceApprovedBy")
+  supplierInvoicesAnnulled SupplierInvoice[] @relation("SupplierInvoiceAnnulledBy")
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")
@@ -844,6 +850,7 @@ model PurchaseOrder {
   updatedBy    User?               @relation("PurchaseOrderUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   items        PurchaseOrderItem[]
   receipts     GoodsReceipt[]
+  invoices     SupplierInvoice[]
 
   @@index([supplierId, state], map: "idx_purchase_orders_supplier_id_state")
   @@index([state], map: "idx_purchase_orders_state")
@@ -914,4 +921,79 @@ model GoodsReceiptItem {
   @@id([goodsReceiptId, productId])
   @@index([productId], map: "idx_goods_receipt_items_product_id")
   @@map("goods_receipt_items")
+}
+
+/// Letra de la factura del proveedor.
+enum InvoiceType {
+  A
+  B
+  C
+}
+
+enum SupplierInvoiceState {
+  /// El control de 3 vías encontró diferencias: espera la aprobación de un admin.
+  FLAGGED
+  /// Lista para pagar.
+  APPROVED
+  ANNULLED
+}
+
+/// Factura de un proveedor por una OC (puede haber varias por OC).
+model SupplierInvoice {
+  id              String                @id @default(cuid(2))
+  purchaseOrderId String                @map("purchase_order_id")
+  /// El de la OC (para la cuenta del proveedor y el control de número repetido).
+  supplierId      String                @map("supplier_id")
+  type            InvoiceType
+  pointOfSale     Int                   @map("point_of_sale")
+  number          Int
+  issueDate       DateTime              @map("issue_date") @db.Date
+  dueDate         DateTime?             @map("due_date") @db.Date
+  /// Neto e IVA salen de las líneas; las percepciones se cargan como importes.
+  subTotal        Decimal               @map("sub_total") @db.Decimal(12, 2)
+  tax             Decimal               @db.Decimal(12, 2)
+  vatPerception   Decimal               @default(0) @map("vat_perception") @db.Decimal(12, 2)
+  iibbPerception  Decimal               @default(0) @map("iibb_perception") @db.Decimal(12, 2)
+  otherTaxes      Decimal               @default(0) @map("other_taxes") @db.Decimal(12, 2)
+  total           Decimal               @db.Decimal(12, 2)
+  /// El total impreso en la factura (si no coincide con el calculado, es una diferencia).
+  printedTotal    Decimal               @map("printed_total") @db.Decimal(12, 2)
+  /// Diferencias del control de 3 vías al cargarla (vacío si no hubo).
+  differences     Json                  @default("[]")
+  notes           String?               @db.VarChar(300)
+  state           SupplierInvoiceState
+  approvalNote    String?               @map("approval_note") @db.VarChar(300)
+  approvedAt      DateTime?             @map("approved_at") @db.Timestamptz(3)
+  approvedById    String?               @map("approved_by")
+  annulledAt      DateTime?             @map("annulled_at") @db.Timestamptz(3)
+  annulReason     String?               @map("annul_reason") @db.VarChar(300)
+  annulledById    String?               @map("annulled_by")
+  createdAt       DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdById     String?               @map("created_by")
+  purchaseOrder   PurchaseOrder         @relation(fields: [purchaseOrderId], references: [id], onDelete: Restrict)
+  supplier        Supplier              @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  createdBy       User?                 @relation("SupplierInvoiceCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  approvedBy      User?                 @relation("SupplierInvoiceApprovedBy", fields: [approvedById], references: [id], onDelete: Restrict)
+  annulledBy      User?                 @relation("SupplierInvoiceAnnulledBy", fields: [annulledById], references: [id], onDelete: Restrict)
+  items           SupplierInvoiceItem[]
+
+  @@index([purchaseOrderId], map: "idx_supplier_invoices_purchase_order_id")
+  @@index([supplierId, type, pointOfSale, number], map: "idx_supplier_invoices_supplier_id_number")
+  @@index([state], map: "idx_supplier_invoices_state")
+  @@map("supplier_invoices")
+}
+
+/// Producto facturado: cantidad, costo neto y alícuota (la de la OC).
+model SupplierInvoiceItem {
+  invoiceId String          @map("invoice_id")
+  productId String          @map("product_id")
+  quantity  Decimal         @db.Decimal(12, 3)
+  unitCost  Decimal         @map("unit_cost") @db.Decimal(12, 2)
+  taxRate   Decimal         @map("tax_rate") @db.Decimal(5, 4)
+  invoice   SupplierInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@id([invoiceId, productId])
+  @@index([productId], map: "idx_supplier_invoice_items_product_id")
+  @@map("supplier_invoice_items")
 }

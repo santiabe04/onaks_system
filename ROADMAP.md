@@ -238,8 +238,8 @@ Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
 | PR  | Contenido                                                                          | Estado           |
 | --- | ---------------------------------------------------------------------------------- | ---------------- |
 | 9.1 | Stock mínimo + orden de compra (sugerencia, estados, impresión y WhatsApp)         | ✅ v1.34.0-alpha |
-| 9.2 | Informe de recepción: depósito, remito, cantidades, diferencias e ingreso de stock | 🟡 PR listo      |
-| 9.3 | Factura de proveedor con control de 3 vías y actualización del último costo        | ⏳               |
+| 9.2 | Informe de recepción: depósito, remito, cantidades, diferencias e ingreso de stock | ✅ v1.35.0-alpha |
+| 9.3 | Factura de proveedor con control de 3 vías y actualización del último costo        | 🟡 PR listo      |
 | 9.4 | Cuenta corriente del proveedor: órdenes de pago y notas de crédito                 | ⏳               |
 
 **Decisiones**
@@ -254,9 +254,12 @@ Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
   pedido**; el stock entra como ingreso con referencia al IR y la OC. Se puede recibir **de más** (con
   aviso). Lo que falta queda pendiente para otro IR, o el admin **cierra la OC con faltante** (con
   motivo). Un IR se **anula con motivo**: revierte el stock y lo recibido (y reabre la OC).
-- Factura: tipo A/B/C, punto de venta y número, fecha, vencimiento, neto, IVA, total. **Control de 3
-  vías** (OC vs IR vs factura) marca diferencias antes de pagar. Actualiza el **último costo** del
-  producto en ese proveedor.
+- Factura: **de una OC** (puede haber varias por OC), tipo A/B/C, punto de venta y número, fecha,
+  vencimiento, neto, IVA, **percepciones** (IVA, IIBB, otros) y el total impreso. **Control de 3 vías**:
+  costo contra la OC (exacto, al centavo), cantidad contra lo recibido sin facturar y total impreso
+  contra el calculado. Sin diferencias queda **aprobada**; con diferencias, **observada** hasta que un
+  admin la aprueba con comentario (solo las aprobadas se pagan). Al aprobarse actualiza el **último
+  costo** del producto en ese proveedor. Se anula con motivo; un IR ya facturado no se anula.
 - **Deuda con el proveedor por las facturas**: suman facturas, restan notas de crédito y órdenes de pago.
 - **Stock mínimo por producto** para alertar y sugerir compras.
 

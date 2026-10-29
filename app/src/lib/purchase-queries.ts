@@ -164,6 +164,63 @@ export async function getPurchaseOrder(number: number) {
           warehouse: { select: { name: true } },
         },
       },
+      invoices: {
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          type: true,
+          pointOfSale: true,
+          number: true,
+          issueDate: true,
+          total: true,
+          state: true,
+          items: { select: { productId: true, quantity: true } },
+        },
+      },
+    },
+  });
+}
+
+/** Una factura de proveedor con su OC, líneas y quién la cargó, aprobó o anuló. */
+export async function getSupplierInvoice(id: string) {
+  return db.supplierInvoice.findUnique({
+    where: { id },
+    include: {
+      purchaseOrder: {
+        select: {
+          number: true,
+          items: {
+            select: {
+              productId: true,
+              unitCost: true,
+              quantity: true,
+              receivedQuantity: true,
+            },
+          },
+        },
+      },
+      supplier: { select: { legalName: true, tradeName: true, cuit: true } },
+      createdBy: {
+        select: { person: { select: { name: true, surname: true } } },
+      },
+      approvedBy: {
+        select: { person: { select: { name: true, surname: true } } },
+      },
+      annulledBy: {
+        select: { person: { select: { name: true, surname: true } } },
+      },
+      items: {
+        orderBy: { product: { name: "asc" } },
+        include: {
+          product: {
+            select: {
+              name: true,
+              sku: true,
+              measurementUnit: { select: { name: true } },
+            },
+          },
+        },
+      },
     },
   });
 }

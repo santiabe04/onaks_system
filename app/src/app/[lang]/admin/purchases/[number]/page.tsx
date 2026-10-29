@@ -8,6 +8,7 @@ import {
   PurchaseEditor,
 } from "@/components/purchases/purchase-forms";
 import { DifferenceLabel } from "@/components/purchases/difference-label";
+import { InvoiceState } from "@/components/purchases/invoice-state";
 import { ReasonForm } from "@/components/purchases/receipt-forms";
 import { SheetActionButton } from "@/components/routes/route-forms";
 import { buttonClass } from "@/components/ui/button";
@@ -27,6 +28,10 @@ import { isoDay } from "@/lib/order-period";
 import { PO_CANCELABLE, purchaseOrderText } from "@/lib/purchase-order";
 import { getPurchaseLines, getPurchaseOrder } from "@/lib/purchase-queries";
 import { toMilli } from "@/lib/quantity";
+import {
+  formatInvoiceNumber,
+  invoicedQuantities,
+} from "@/lib/supplier-invoice";
 import { closePurchaseOrderShort } from "../../receipts/actions";
 import {
   backToDraft,
@@ -92,6 +97,9 @@ async function PurchaseOrder({
     ? await getPurchaseLines(order.supplier.id, order.id)
     : [];
   const hasLines = order.items.length > 0;
+  const hasReceived = order.items.some(
+    (item) => toMilli(item.receivedQuantity) > BigInt(0),
+  );
 
   const whatsapp = purchaseOrderText(
     {
@@ -148,6 +156,14 @@ async function PurchaseOrder({
             className={buttonClass()}
           >
             {p.receive}
+          </Link>
+        )}
+        {hasReceived && (
+          <Link
+            href={`${PATH}/${order.number}/invoice`}
+            className={buttonClass("secondary")}
+          >
+            {p.invoice}
           </Link>
         )}
         {draft && hasLines && (
@@ -237,6 +253,7 @@ async function PurchaseOrder({
         <>
           <PurchaseItems order={order} t={t} format={format} />
           <Receipts order={order} t={t} format={format} />
+          <Invoices order={order} t={t} format={format} />
           {order.state === "PARTIALLY_RECEIVED" && (
             <div className="mt-6">
               <ReasonForm
@@ -252,6 +269,39 @@ async function PurchaseOrder({
         </>
       )}
     </>
+  );
+}
+
+/** Las facturas del proveedor por esta OC. */
+function Invoices({
+  order,
+  t,
+  format,
+}: {
+  order: NonNullable<Awaited<ReturnType<typeof getPurchaseOrder>>>;
+  t: Awaited<ReturnType<typeof getT>>;
+  format: ReturnType<typeof formatters>;
+}) {
+  if (order.invoices.length === 0) return null;
+  const i = t.invoices;
+  return (
+    <section className="mt-8">
+      <h2 className="mb-2 text-lg font-medium">{t.purchases.invoices}</h2>
+      <ul className="flex flex-col gap-1 text-sm">
+        {order.invoices.map((invoice) => (
+          <li key={invoice.id}>
+            <Link
+              href={`/admin/invoices/${invoice.id}`}
+              className="font-mono font-medium hover:underline"
+            >
+              {formatInvoiceNumber(invoice)}
+            </Link>{" "}
+            · {format.money(invoice.total)} ·{" "}
+            <InvoiceState state={invoice.state} label={i.states} />
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -306,6 +356,7 @@ function PurchaseItems({
   format: ReturnType<typeof formatters>;
 }) {
   const c = t.purchases.columns;
+  const invoiced = invoicedQuantities(order.invoices);
   return (
     <section className="mt-6">
       <table className="w-full text-left text-sm">
@@ -316,6 +367,7 @@ function PurchaseItems({
             <th className="py-2 pr-3 text-right font-medium">{c.quantity}</th>
             <th className="py-2 pr-3 text-right font-medium">{c.received}</th>
             <th className="py-2 pr-3 text-right font-medium">{c.difference}</th>
+            <th className="py-2 pr-3 text-right font-medium">{c.invoiced}</th>
             <th className="py-2 pr-3 text-right font-medium">{c.unitCost}</th>
             <th className="py-2 text-right font-medium">{c.lineTotal}</th>
           </tr>
@@ -350,6 +402,9 @@ function PurchaseItems({
                     format={format}
                   />
                 )}
+              </td>
+              <td className="py-2 pr-3 text-right whitespace-nowrap">
+                {format.number(invoiced.get(item.productId) ?? "0")}
               </td>
               <td className="py-2 pr-3 text-right whitespace-nowrap">
                 {format.money(item.unitCost)}
