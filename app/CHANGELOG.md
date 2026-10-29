@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.36.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.35.0-alpha...v1.36.0-alpha) (2026-10-29)
+
+
+### Features
+
+* **purchases:** add supplier invoices with three-way match ([#89](https://github.com/santiabe04/onaks_system/issues/89)) ([dbde9ed](https://github.com/santiabe04/onaks_system/commit/dbde9edac25f1ce9bdd01b6d4d1b60b966d41c47))
+
 ## [1.35.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.34.0-alpha...v1.35.0-alpha) (2026-10-29)
 
 
