@@ -17,6 +17,7 @@ export const en: Dictionary = {
   userMenu: {
     changePassword: "Change password",
     logout: "Log out",
+    version: "Installed version",
   },
   notFound: {
     title: "Page not found",

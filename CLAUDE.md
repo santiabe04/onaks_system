@@ -286,6 +286,10 @@ docker compose up --build           # db + migrate + app
 - Etapas con numeración continua: ALPHA (`1.0.0-alpha`) → BETA (siguiente minor `-beta`) → PROD (siguiente major).
   En cada salto de etapa se pone `release-as` en `release-please-config.json` y se borra después de la release.
   El sufijo se mantiene mientras sube MAJOR.MINOR.PATCH (versionado por defecto, no `"versioning": "prerelease"`).
+- release-please solo abre el PR de release si hay commits visibles en el changelog (`feat`, `fix`, …) que
+  toquen `app/`: un `chore`/`test`/`ci` solo, aunque tenga `release-as`, no publica nada.
+- La versión instalada (`APP_VERSION` en `lib/version`, de `package.json`) se ve al pie del menú del admin,
+  solo con sesión.
 
 ## CI/CD
 

@@ -3,6 +3,7 @@ import { logout } from "@/app/[lang]/login/actions";
 import { getT } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
 import { CHANGE_PASSWORD_PATH } from "@/lib/routes";
+import { APP_VERSION } from "@/lib/version";
 
 /** Pie del menú del admin. Lee la sesión: va dentro de un <Suspense>. */
 export async function SidebarUser() {
@@ -27,6 +28,9 @@ export async function SidebarUser() {
           </button>
         </form>
       </div>
+      <span className="text-xs opacity-50" title={t.userMenu.version}>
+        {APP_VERSION}
+      </span>
     </div>
   );
 }

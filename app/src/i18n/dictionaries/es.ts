@@ -19,6 +19,7 @@ export const es = {
   userMenu: {
     changePassword: "Cambiar contraseña",
     logout: "Salir",
+    version: "Versión instalada",
   },
   notFound: {
     title: "Página no encontrada",
