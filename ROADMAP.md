@@ -239,8 +239,8 @@ Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
 | --- | ---------------------------------------------------------------------------------- | ---------------- |
 | 9.1 | Stock mínimo + orden de compra (sugerencia, estados, impresión y WhatsApp)         | ✅ v1.34.0-alpha |
 | 9.2 | Informe de recepción: depósito, remito, cantidades, diferencias e ingreso de stock | ✅ v1.35.0-alpha |
-| 9.3 | Factura de proveedor con control de 3 vías y actualización del último costo        | 🟡 PR listo      |
-| 9.4 | Cuenta corriente del proveedor: órdenes de pago y notas de crédito                 | ⏳               |
+| 9.3 | Factura de proveedor con control de 3 vías y actualización del último costo        | ✅ v1.36.0-alpha |
+| 9.4 | Cuenta corriente del proveedor: órdenes de pago y notas de crédito                 | 🟡 PR listo      |
 
 **Decisiones**
 
@@ -260,7 +260,14 @@ Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
   contra el calculado. Sin diferencias queda **aprobada**; con diferencias, **observada** hasta que un
   admin la aprueba con comentario (solo las aprobadas se pagan). Al aprobarse actualiza el **último
   costo** del producto en ese proveedor. Se anula con motivo; un IR ya facturado no se anula.
-- **Deuda con el proveedor por las facturas**: suman facturas, restan notas de crédito y órdenes de pago.
+- **Deuda con el proveedor por las facturas**: suman las facturas aprobadas (las observadas no se pagan),
+  restan notas de crédito y órdenes de pago.
+- OP: efectivo, transferencia, cheque (banco, número y fecha de cobro) y retenciones (IVA, IIBB,
+  Ganancias, con certificado), varios medios por OP. **El admin elige qué facturas cancela** y cuánto
+  (con un botón que imputa a las más viejas); lo que sobra queda a cuenta y se imputa después. Se
+  imprime y se anula con motivo.
+- Notas de crédito **por importe** (neto + IVA), asociadas o no a una factura; se imputan como un pago.
+- Estado de cuenta por proveedor y **deuda con proveedores** (vencido, vence en 7 días, sin imputar).
 - **Stock mínimo por producto** para alertar y sugerir compras.
 
 ## Fase 10 — Lista de picking ⏳ a debatir

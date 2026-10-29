@@ -132,6 +132,16 @@ comentarios y textos de UI en español.
   con → Observada hasta que se aprueba con comentario. Al aprobarse, `updateLastCosts`
   (`lib/supplier-invoice-ledger`) pasa el costo al último del proveedor si no hay uno más nuevo. Se
   anulan con motivo. Un IR no se anula si deja lo recibido por debajo de lo facturado.
+- Cuenta corriente de proveedores (`/admin/suppliers/[id]/account`, deuda en `/admin/supplier-debts`):
+  facturas aprobadas − órdenes de pago − notas de crédito, sin anuladas (`summarizeSupplierAccount` en
+  `lib/supplier-account`, en centavos; vencida = con saldo y vencimiento anterior a hoy, sin vencimiento
+  cuenta la fecha). OP (`supplier_payments` + `supplier_payment_lines`, `/admin/supplier-payments`, con
+  impresión): varios medios (efectivo, transferencia, cheque, retención). Notas de crédito por importe
+  (`supplier_credit_notes`, `/admin/credit-notes`). Ambas se imputan a facturas aprobadas con saldo en
+  `supplier_allocations` (elige el admin, `autoAllocate` precarga de la más vieja; lo que sobra queda a
+  cuenta y se imputa después). Anular una OP o NC deja sus imputaciones sin efecto (las filas quedan).
+  Una factura con imputaciones vigentes no se anula. Todo con el proveedor bloqueado (`lockSupplier`,
+  `lib/supplier-account-ledger`); orden: OC, factura, proveedor.
 - Forms de compras: los campos son controlados (`useFieldValues`) porque React resetea los no
   controlados después de cada action y con un error se perdería lo tipeado.
 

@@ -259,3 +259,62 @@ export async function getGoodsReceipt(number: number) {
     },
   });
 }
+
+const personName = {
+  select: { person: { select: { name: true, surname: true } } },
+} as const;
+
+/** Una orden de pago con su proveedor, medios e imputaciones. */
+export async function getSupplierPayment(number: number) {
+  return db.supplierPayment.findUnique({
+    where: { number },
+    include: {
+      supplier: {
+        select: {
+          id: true,
+          legalName: true,
+          tradeName: true,
+          cuit: true,
+          contactName: true,
+          contactPhone: true,
+        },
+      },
+      lines: { orderBy: { id: "asc" } },
+      allocations: {
+        orderBy: { createdAt: "asc" },
+        include: {
+          invoice: {
+            select: { id: true, type: true, pointOfSale: true, number: true },
+          },
+        },
+      },
+      createdBy: personName,
+      annulledBy: personName,
+    },
+  });
+}
+
+/** Una nota de crédito de proveedor con su factura asociada e imputaciones. */
+export async function getCreditNote(id: string) {
+  return db.supplierCreditNote.findUnique({
+    where: { id },
+    include: {
+      supplier: {
+        select: { id: true, legalName: true, tradeName: true, cuit: true },
+      },
+      invoice: {
+        select: { id: true, type: true, pointOfSale: true, number: true },
+      },
+      allocations: {
+        orderBy: { createdAt: "asc" },
+        include: {
+          invoice: {
+            select: { id: true, type: true, pointOfSale: true, number: true },
+          },
+        },
+      },
+      createdBy: personName,
+      annulledBy: personName,
+    },
+  });
+}

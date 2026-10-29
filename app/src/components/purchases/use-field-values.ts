@@ -15,5 +15,8 @@ export function useFieldValues(initial: Record<string, string>) {
     onChange: (event: { target: { value: string } }) =>
       setValues((current) => ({ ...current, [name]: event.target.value })),
   });
-  return { value, bind };
+  /** Cambia varios campos a la vez (p. ej. una imputación automática). */
+  const setMany = (changes: Record<string, string>) =>
+    setValues((current) => ({ ...current, ...changes }));
+  return { value, bind, setMany };
 }

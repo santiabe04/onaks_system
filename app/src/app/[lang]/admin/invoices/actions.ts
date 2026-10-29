@@ -11,6 +11,7 @@ import { parseReason } from "@/lib/goods-receipt";
 import { isCuid } from "@/lib/ids";
 import { lockPurchaseOrder } from "@/lib/purchase-lock";
 import { toMilli } from "@/lib/quantity";
+import { lockSupplier } from "@/lib/supplier-account-ledger";
 import {
   invoiceTotals,
   matchInvoice,
@@ -25,7 +26,7 @@ import {
 // Facturas de proveedores: se cargan por OC y pasan el control de 3 vías.
 // Sin diferencias quedan aprobadas; con diferencias, observadas hasta que un
 // admin las aprueba. Al aprobarse actualizan el último costo del proveedor.
-// Orden de bloqueo: la OC, después el proveedor o la factura.
+// Orden de bloqueo: la OC, después la factura y el proveedor.
 const PERMISSION = "purchases:manage";
 const ENTITY = "SUPPLIER_INVOICE";
 
@@ -280,6 +281,18 @@ export async function annulSupplierInvoice(
       if (invoice.state === "ANNULLED") {
         throw new InvoiceError(t.alreadyAnnulled);
       }
+      // Con el proveedor bloqueado nadie imputa a la factura mientras tanto.
+      await lockSupplier(tx, invoice.supplierId);
+      const allocated = await tx.supplierAllocation.count({
+        where: {
+          invoiceId: invoice.id,
+          OR: [
+            { payment: { annulledAt: null } },
+            { creditNote: { annulledAt: null } },
+          ],
+        },
+      });
+      if (allocated > 0) throw new InvoiceError(t.allocated);
       const after = await tx.supplierInvoice.update({
         where: { id: invoice.id },
         data: {
