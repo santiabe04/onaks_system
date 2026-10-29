@@ -311,8 +311,8 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
 | PR   | Contenido                                                              | Estado           |
 | ---- | ---------------------------------------------------------------------- | ---------------- |
 | 11.1 | Revisión de seguridad y permisos                                       | ✅ v1.38.1-alpha |
-| 11.2 | Pasada de UI en celular                                                | 🟡 PR listo      |
-| 11.3 | Datos de demo en el seed (con una variable de entorno)                 | ⏳               |
+| 11.2 | Pasada de UI en celular                                                | ✅ v1.38.2-alpha |
+| 11.3 | Datos de demo en el seed (con una variable de entorno)                 | 🟡 PR listo      |
 | 11.4 | Producción: Caddy con HTTPS, backups automáticos y guía de instalación | ⏳               |
 | 11.5 | Tests end-to-end con Playwright en el CI (usan los datos de demo)      | ⏳               |
 | 11.6 | Salto a BETA con `release-as`                                          | ⏳               |
@@ -339,6 +339,9 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
 - 11.2: todas las tablas van en un contenedor con scroll horizontal (que en papel no corta columnas), los
   márgenes de las pantallas bajan a 16 px en celular, los montos grandes del inicio se achican y el botón
   "Agregar" de las tarjetas del catálogo baja a su propia línea.
+- 11.3: la demo se activa con `SEED_DEMO=true`, solo en una base sin productos y nunca con
+  `NODE_ENV=production`. Usuarios `*@demo.onaks.local` (admin, repartidor y tres clientes) con contraseña
+  `demo1234` y sin cambio obligatorio, para poder entrar directo y para los tests.
 
 ## Fase 12 — Pedido cargado por el admin ⏳
 
