@@ -1,0 +1,75 @@
+# Producción: se suma a docker-compose.yml.
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Usa las imágenes publicadas (APP_IMAGE:APP_VERSION) en vez de compilar, no
+# publica los puertos de la base ni de la app (solo entra Caddy por 80/443) y
+# suma el proxy con HTTPS y los backups automáticos. Ver docs/instalacion.md.
+
+services:
+  db:
+    # La base no se publica: solo la ven los otros servicios.
+    ports: !reset []
+
+  migrate:
+    image: ${APP_IMAGE:-ghcr.io/santiabe04/onaks_system}-migrator:${APP_VERSION:?Falta APP_VERSION en el .env}
+
+  app:
+    image: ${APP_IMAGE:-ghcr.io/santiabe04/onaks_system}:${APP_VERSION:?Falta APP_VERSION en el .env}
+    # Sin puerto publicado: si quedara abierto, se podría entrar sin pasar por
+    # Caddy y mandar un X-Forwarded-For falso (bloqueo de login, auditoría).
+    ports: !reset []
+
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    # El modo de TLS elige el Caddyfile: auto | custom | proxy.
+    command:
+      [
+        "caddy",
+        "run",
+        "--config",
+        "/etc/caddy/${TLS_MODE:-auto}.Caddyfile",
+        "--adapter",
+        "caddyfile",
+      ]
+    environment:
+      DOMAIN: ${DOMAIN:?Falta DOMAIN en el .env}
+      # Avisos del certificado (Let's Encrypt/ZeroSSL). En los otros modos no se usa, pero se pide igual.
+      ACME_EMAIL: ${ACME_EMAIL:?Falta ACME_EMAIL en el .env}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-private_ranges}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/caddy:/etc/caddy:ro
+      # Solo para TLS_MODE=custom (si no, puede estar vacía).
+      - ./certs:/certs:ro
+      # Certificados emitidos y estado de Caddy: no borrar (rate limits de Let's Encrypt).
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+  backup:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    entrypoint: ["sh", "/backup.sh"]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      BACKUP_HOUR: ${BACKUP_HOUR:-3}
+      TZ: America/Argentina/Buenos_Aires
+    volumes:
+      - ./deploy/backup/backup.sh:/backup.sh:ro
+      - uploads:/uploads:ro
+      # Carpeta del servidor: copiarla también fuera del servidor (ver la guía).
+      - ${BACKUP_DIR:-./backups}:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  caddy_data:
+  caddy_config:

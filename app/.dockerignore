@@ -11,3 +11,9 @@ coverage
 npm-debug.log*
 Dockerfile
 CHANGELOG.md
+# Archivos subidos, certificados y backups: nunca dentro de la imagen.
+uploads
+certs
+backups
+backups-*
+deploy

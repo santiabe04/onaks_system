@@ -1,0 +1,12 @@
+# TLS_MODE=custom: certificado propio (comprado o descargado del proveedor) en
+# ./certs del servidor, en PEM: fullchain.pem (el certificado + los intermedios)
+# y privkey.pem. Caddy no lo renueva: al reemplazar los archivos, recargar Caddy
+# (ver docs/instalacion.md).
+{
+	auto_https disable_certs
+}
+
+{$DOMAIN} {
+	tls /certs/fullchain.pem /certs/privkey.pem
+	import /etc/caddy/app.caddy
+}

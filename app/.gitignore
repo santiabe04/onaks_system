@@ -26,3 +26,8 @@ npm-debug.log*
 
 # imágenes subidas en desarrollo
 /uploads
+
+# Producción: certificados (TLS_MODE=custom) y backups del servidor.
+/certs
+/backups
+/backups-*

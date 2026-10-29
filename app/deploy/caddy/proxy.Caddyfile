@@ -1,0 +1,14 @@
+# TLS_MODE=proxy: el HTTPS lo termina el proxy o balanceador del proveedor y el
+# tráfico llega por HTTP. Caddy no maneja certificados y confía en ese proxy
+# (TRUSTED_PROXIES, por defecto las redes privadas) para tomar la IP real del
+# cliente del X-Forwarded-For.
+{
+	auto_https off
+	servers {
+		trusted_proxies static {$TRUSTED_PROXIES:private_ranges}
+	}
+}
+
+:80 {
+	import /etc/caddy/app.caddy
+}

@@ -29,6 +29,9 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   // No anunciar el framework en cada respuesta.
   poweredByHeader: false,
+  // La app lee archivos de UPLOADS_DIR con rutas dinámicas y el tracing de
+  // `standalone` copiaba la carpeta local entera (firmas incluidas) a la imagen.
+  outputFileTracingExcludes: { "**": ["./uploads/**/*"] },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },

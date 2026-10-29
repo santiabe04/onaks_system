@@ -36,7 +36,13 @@ comentarios y textos de UI en español.
 ## Estructura
 
 - `app/`: **todo el código** (Next, Prisma, Dockerfile, tooling, husky). Los comandos de npm se corren acá.
-- Raíz: solo docs y configuración no funcional (`.github/`, `release-please-*.json`, README).
+- Raíz: solo docs y configuración no funcional (`.github/`, `release-please-*.json`, README, `docs/`).
+- Producción: `app/docker-compose.prod.yml` se suma al compose base (imágenes de GHCR por `APP_VERSION`,
+  sin puertos de base ni app publicados, Caddy y backups). Caddy en `app/deploy/caddy/` (un Caddyfile por
+  `TLS_MODE`: `auto`, `custom`, `proxy`, más `app.caddy` común); backups diarios con
+  `app/deploy/backup/backup.sh` (`pg_dump` + `uploads`, retención). Guía completa en `docs/instalacion.md`.
+- `uploads/`, `certs/` y `backups/` nunca van a la imagen (`.dockerignore` y `outputFileTracingExcludes`:
+  el tracing de `standalone` copiaba la carpeta local de uploads) ni al repo (`.gitignore`).
 - `app/src/generated/prisma`: cliente generado, no se versiona (lo crea el `postinstall`).
 - `app/src/lib/db.ts`: cliente Prisma singleton. No valida `DATABASE_URL` al importar a propósito,
   para que `next build` y `prisma generate` anden sin base de datos.
@@ -279,7 +285,8 @@ docker compose up --build           # db + migrate + app
 ## CI/CD
 
 - `.github/workflows/ci.yml` (PR a main): `conventional-commits` siempre; `app-checks` (format, lint,
-  typecheck, test, migraciones + drift, build) y `docker` (compose + `/api/health`) solo si cambia `app/`.
+  typecheck, test, migraciones + drift, build) y `docker` (valida el compose de producción y los
+  Caddyfile, compose + `/api/health`) solo si cambia `app/`.
   `ci-ok` resume todo y es el único check required.
 - `.github/workflows/release.yml` (PR mergeado): release-please; si crea release, publica en GHCR
   `<repo>:<versión>` y `<repo>-migrator:<versión>` (`latest` solo en estables).
