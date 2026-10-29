@@ -312,8 +312,8 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
 | ---- | ---------------------------------------------------------------------- | ---------------- |
 | 11.1 | Revisión de seguridad y permisos                                       | ✅ v1.38.1-alpha |
 | 11.2 | Pasada de UI en celular                                                | ✅ v1.38.2-alpha |
-| 11.3 | Datos de demo en el seed (con una variable de entorno)                 | 🟡 PR listo      |
-| 11.4 | Producción: Caddy con HTTPS, backups automáticos y guía de instalación | ⏳               |
+| 11.3 | Datos de demo en el seed (con una variable de entorno)                 | ✅ v1.39.0-alpha |
+| 11.4 | Producción: Caddy con HTTPS, backups automáticos y guía de instalación | 🟡 PR listo      |
 | 11.5 | Tests end-to-end con Playwright en el CI (usan los datos de demo)      | ⏳               |
 | 11.6 | Salto a BETA con `release-as`                                          | ⏳               |
 
@@ -342,6 +342,10 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
 - 11.3: la demo se activa con `SEED_DEMO=true`, solo en una base sin productos y nunca con
   `NODE_ENV=production`. Usuarios `*@demo.onaks.local` (admin, repartidor y tres clientes) con contraseña
   `demo1234` y sin cambio obligatorio, para poder entrar directo y para los tests.
+- 11.4: `docker-compose.prod.yml` (se suma al compose base) usa las imágenes publicadas, no publica los
+  puertos de la base ni de la app y suma Caddy (un Caddyfile por `TLS_MODE` en `app/deploy/caddy`) y el
+  servicio de backups (`app/deploy/backup/backup.sh`). Guía en `docs/instalacion.md`. De paso, la imagen
+  dejó de poder llevar la carpeta local `uploads` (firmas) cuando se compila a mano.
 
 ## Fase 12 — Pedido cargado por el admin ⏳
 

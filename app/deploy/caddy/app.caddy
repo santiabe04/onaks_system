@@ -1,0 +1,6 @@
+# Lo común a los tres modos: comprimir y pasar todo a la app. Caddy reemplaza
+# el X-Forwarded-For que llega de internet por la IP real del cliente (salvo
+# que venga de un proxy de confianza, ver proxy.Caddyfile): la app la usa para
+# el bloqueo de login y la auditoría.
+encode zstd gzip
+reverse_proxy app:3000

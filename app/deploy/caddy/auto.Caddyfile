@@ -1,0 +1,10 @@
+# TLS_MODE=auto (por defecto): Caddy saca el certificado solo (Let's Encrypt o
+# ZeroSSL) y lo renueva antes de que venza. Hace falta que DOMAIN apunte al
+# servidor y que los puertos 80 y 443 estén abiertos.
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	import /etc/caddy/app.caddy
+}

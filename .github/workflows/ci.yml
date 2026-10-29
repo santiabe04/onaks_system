@@ -105,6 +105,22 @@ jobs:
         run: |
           cp .env.example .env
           sed -i "s|^SESSION_SECRET=.*|SESSION_SECRET=$(openssl rand -base64 32)|" .env
+      - name: Validate production config
+        # El compose de producción y los Caddyfile de los tres modos de TLS se
+        # validan sin levantar nada (los valores son de ejemplo).
+        env:
+          DOMAIN: pedidos.example.com
+          ACME_EMAIL: ci@example.com
+          APP_VERSION: ci
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml config -q
+          for mode in auto custom proxy; do
+            docker run --rm -v "$PWD/deploy/caddy:/etc/caddy:ro" \
+              -e DOMAIN -e ACME_EMAIL -e TRUSTED_PROXIES=private_ranges \
+              caddy:2.10.2-alpine \
+              caddy adapt --config "/etc/caddy/$mode.Caddyfile" --adapter caddyfile > /dev/null
+            echo "Caddyfile $mode OK"
+          done
       - name: Image Build
         run: docker compose build
       - name: Start stack
