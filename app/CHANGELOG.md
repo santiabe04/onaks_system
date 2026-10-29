@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.38.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.37.0-alpha...v1.38.0-alpha) (2026-10-29)
+
+
+### Features
+
+* **picking:** add picking lists with confirmation and product locations ([#93](https://github.com/santiabe04/onaks_system/issues/93)) ([b32888f](https://github.com/santiabe04/onaks_system/commit/b32888f27610310d60c2fc5f789b2c648544791e))
+
 ## [1.37.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.36.0-alpha...v1.37.0-alpha) (2026-10-29)
 
 
