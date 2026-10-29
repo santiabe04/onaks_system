@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.39.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.38.2-alpha...v1.39.0-alpha) (2026-10-29)
+
+
+### Features
+
+* **seed:** add demo data behind SEED_DEMO ([#100](https://github.com/santiabe04/onaks_system/issues/100)) ([86358e2](https://github.com/santiabe04/onaks_system/commit/86358e2e7de044dca49f72cd0469c21f455dadb9))
+
 ## [1.38.2-alpha](https://github.com/santiabe04/onaks_system/compare/v1.38.1-alpha...v1.38.2-alpha) (2026-10-29)
 
 
