@@ -17,3 +17,7 @@ certs
 backups
 backups-*
 deploy
+e2e
+test-results
+playwright-report
+playwright.config.ts
