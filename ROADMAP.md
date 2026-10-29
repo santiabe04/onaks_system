@@ -314,8 +314,8 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
 | 11.2 | Pasada de UI en celular                                                | ✅ v1.38.2-alpha |
 | 11.3 | Datos de demo en el seed (con una variable de entorno)                 | ✅ v1.39.0-alpha |
 | 11.4 | Producción: Caddy con HTTPS, backups automáticos y guía de instalación | ✅ v1.40.0-alpha |
-| 11.5 | Tests end-to-end con Playwright en el CI (usan los datos de demo)      | 🟡 PR listo      |
-| 11.6 | Salto a BETA con `release-as`                                          | ⏳               |
+| 11.5 | Tests end-to-end con Playwright en el CI (usan los datos de demo)      | ✅ (#104)        |
+| 11.6 | Salto a BETA con `release-as`                                          | 🟡 PR listo      |
 
 **Decisiones**
 
@@ -349,6 +349,9 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
 - 11.5: Playwright (Chromium) en `app/e2e/` contra la app compilada y una base nueva con la demo: compra
   del cliente, picking + hoja de ruta + parada desde el celular con entrega parcial + cierre, compras
   (OC → recepción → factura → orden de pago) y permisos. Job `e2e` en el CI, requerido por `ci-ok`.
+- 11.6: `release-as: 1.41.0-beta` en `release-please-config.json`. release-please no abre el PR de
+  release sin cambios visibles en `app/`, así que el salto va con uno: la versión instalada al pie del
+  menú del admin (solo con sesión). Después de publicar la 1.41.0-beta se saca `release-as`.
 
 ## Fase 12 — Pedido cargado por el admin ⏳
 

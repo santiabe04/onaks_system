@@ -6,7 +6,8 @@
       "release-type": "node",
       "package-name": "onaks_system",
       "changelog-path": "CHANGELOG.md",
-      "prerelease": true
+      "prerelease": true,
+      "release-as": "1.41.0-beta"
     }
   }
 }
