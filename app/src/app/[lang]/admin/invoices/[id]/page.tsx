@@ -7,9 +7,11 @@ import { ReasonForm } from "@/components/purchases/receipt-forms";
 import { interpolate } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
+import { fromCents, toCents } from "@/lib/account";
 import { getUserWithPermission } from "@/lib/auth";
 import { lineTotals } from "@/lib/cart";
 import { formatCuit } from "@/lib/cuit";
+import { db } from "@/lib/db";
 import { isCuid } from "@/lib/ids";
 import { getSupplierInvoice } from "@/lib/purchase-queries";
 import { toMilli } from "@/lib/quantity";
@@ -57,6 +59,19 @@ async function Invoice({ params }: { params: Promise<{ id: string }> }) {
   if (!invoice) notFound();
 
   const order = invoice.purchaseOrder;
+  // Lo pagado: imputaciones de OP y notas de crédito sin anular.
+  const paid = await db.supplierAllocation.aggregate({
+    where: {
+      invoiceId: invoice.id,
+      OR: [
+        { payment: { annulledAt: null } },
+        { creditNote: { annulledAt: null } },
+      ],
+    },
+    _sum: { amount: true },
+  });
+  const paidAmount = fromCents(toCents(paid._sum.amount ?? "0"));
+  const outstanding = fromCents(toCents(invoice.total) - toCents(paidAmount));
   const fullName = (user: typeof invoice.createdBy) =>
     user ? `${user.person.name} ${user.person.surname}` : "—";
   const day = (date: Date) =>
@@ -227,7 +242,35 @@ async function Invoice({ params }: { params: Promise<{ id: string }> }) {
           <dt className="opacity-70">{i.printedTotal}</dt>
           <dd>{format.money(invoice.printedTotal)}</dd>
         </div>
+        {invoice.state === "APPROVED" && (
+          <>
+            <div className="flex justify-between border-t border-current/20 pt-1">
+              <dt className="opacity-70">{i.paid}</dt>
+              <dd>{format.money(paidAmount)}</dd>
+            </div>
+            <div className="flex justify-between font-semibold">
+              <dt>{i.outstanding}</dt>
+              <dd>{format.money(outstanding)}</dd>
+            </div>
+          </>
+        )}
       </dl>
+      {invoice.state !== "ANNULLED" && (
+        <div className="mt-4 flex flex-wrap justify-end gap-3 text-sm">
+          <Link
+            href={`/admin/suppliers/${invoice.supplierId}/account`}
+            className="hover:underline"
+          >
+            {t.supplierAccount.title}
+          </Link>
+          <Link
+            href={`/admin/credit-notes/new?supplier=${invoice.supplierId}&invoice=${invoice.id}`}
+            className="hover:underline"
+          >
+            {t.supplierAccount.newCreditNote}
+          </Link>
+        </div>
+      )}
 
       <div className="mt-8 flex flex-col gap-4">
         {invoice.state === "FLAGGED" && (

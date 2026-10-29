@@ -141,8 +141,8 @@ export async function updateSupplier(
 }
 
 /**
- * Borra el proveedor y su lista de productos (cascade). Cuando existan las
- * órdenes de compra (fase 9), su FK impedirá borrar uno usado: se desactiva.
+ * Borra el proveedor y su lista de productos (cascade). Si ya tiene compras
+ * o pagos, las FK lo impiden y se avisa que se desactive.
  */
 export async function deleteSupplier(id: string): Promise<DeleteState> {
   const user = await requirePermission(PERMISSION);
@@ -164,8 +164,11 @@ export async function deleteSupplier(id: string): Promise<DeleteState> {
       });
     });
   } catch (error) {
+    const code = prismaErrorCode(error);
+    // P2003: tiene órdenes de compra, facturas o pagos; se desactiva en vez de borrarse.
+    if (code === "P2003") return { error: messages().inUse };
     // P2025: ya estaba borrado; igual se vuelve a la lista.
-    if (prismaErrorCode(error) !== "P2025") throw error;
+    if (code !== "P2025") throw error;
   }
 
   revalidatePath(LIST_ROUTE, "page");

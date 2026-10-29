@@ -71,20 +71,28 @@ export type InvoiceHeader = {
 };
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
-const isDay = (value: string) =>
+export const isDay = (value: string) =>
   DAY.test(value) && !Number.isNaN(Date.parse(value));
 
-export function parseInvoiceHeader(
+export type Voucher = {
+  type: InvoiceType;
+  pointOfSale: number;
+  number: number;
+  /** YYYY-MM-DD. */
+  issueDate: string;
+};
+
+/** Tipo, punto de venta, número y fecha de un comprobante (factura o nota de crédito). */
+export function parseVoucher(
   formData: FormData,
-  t: Messages,
-): { ok: true; data: InvoiceHeader } | { ok: false; error: string } {
+  t: Pick<Messages, "type" | "number" | "issueDate">,
+): { ok: true; data: Voucher } | { ok: false; error: string } {
   const read = (key: string) => {
     const value = formData.get(key);
     return typeof value === "string" ? value.trim() : "";
   };
   const type = read("type") as InvoiceType;
   if (!INVOICE_TYPES.includes(type)) return { ok: false, error: t.type };
-
   const whole = (raw: string, max: number) =>
     /^\d{1,8}$/.test(raw) && Number(raw) >= 1 && Number(raw) <= max
       ? Number(raw)
@@ -94,9 +102,23 @@ export function parseInvoiceHeader(
   if (pointOfSale === null || number === null) {
     return { ok: false, error: t.number };
   }
-
   const issueDate = read("issueDate");
   if (!isDay(issueDate)) return { ok: false, error: t.issueDate };
+  return { ok: true, data: { type, pointOfSale, number, issueDate } };
+}
+
+export function parseInvoiceHeader(
+  formData: FormData,
+  t: Messages,
+): { ok: true; data: InvoiceHeader } | { ok: false; error: string } {
+  const read = (key: string) => {
+    const value = formData.get(key);
+    return typeof value === "string" ? value.trim() : "";
+  };
+  const voucher = parseVoucher(formData, t);
+  if (!voucher.ok) return voucher;
+  const { type, pointOfSale, number, issueDate } = voucher.data;
+
   const dueDate = read("dueDate");
   if (dueDate && (!isDay(dueDate) || dueDate < issueDate)) {
     return { ok: false, error: t.dueDate };

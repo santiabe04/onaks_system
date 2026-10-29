@@ -100,6 +100,12 @@ async function SupplierDetail({
         </div>
         <div className="flex items-start gap-4 text-sm">
           <Link
+            href={`/admin/suppliers/${supplier.id}/account`}
+            className={buttonClass("secondary")}
+          >
+            {t.supplierAccount.title}
+          </Link>
+          <Link
             href={`/admin/suppliers/${supplier.id}/edit`}
             className={buttonClass("secondary")}
           >
