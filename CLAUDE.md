@@ -142,8 +142,25 @@ comentarios y textos de UI en español.
   cuenta y se imputa después). Anular una OP o NC deja sus imputaciones sin efecto (las filas quedan).
   Una factura con imputaciones vigentes no se anula. Todo con el proveedor bloqueado (`lockSupplier`,
   `lib/supplier-account-ledger`); orden: OC, factura, proveedor.
-- Forms de compras: los campos son controlados (`useFieldValues`) porque React resetea los no
-  controlados después de cada action y con un error se perdería lo tipeado.
+- Forms con selects o valores que se calculan en vivo: campos controlados con `useFieldValues` y
+  `onSubmit={submitWithoutReset(action)}` (`components/ui/use-field-values`). React resetea el `<form
+action>` después de cada action: los no controlados pierden lo tipeado con un error y un select
+  controlado vuelve a su primera opción.
+
+## Picking
+
+- Listas de picking (`/admin/picking`, `picking_lists` + `picking_list_items` por pedido y producto),
+  armadas desde las casillas de "Todos" o "Por zona" (`PickingFromSelection`, como `RouteFromSelection`).
+  Un depósito por lista y solo pedidos Pendientes: `createPickingList` los pasa a En preparación con
+  `applySaleStateChange` (descuenta de ese depósito), ordenados por cliente, todo o nada. Confirmar
+  (`confirmPickingList`) pasa cada pedido a Listo para despachar y aplica los faltantes con
+  `applyShortages` (`lib/partial-delivery-ledger`, compartido con la entrega parcial): SALE_RETURN y,
+  según el motivo, WRITE_OFF (roto o vencido) o ADJUSTMENT por diferencia (`recordStockCorrection`, no
+  había). Sacar un pedido o anular la lista lo devuelve a Pendiente. Orden de bloqueo: lista, después
+  cuenta del cliente y pedido.
+- Ubicación por producto y depósito en `product_stocks.location` (se edita en `/admin/stock/[producto]`;
+  si no hay saldo, crea la fila en 0). El recorrido (`pickingRoute` en `lib/picking`) agrupa por
+  producto y ordena por ubicación en orden natural (`A-2` antes que `A-10`), sin ubicación al final.
 
 ## UI del admin
 

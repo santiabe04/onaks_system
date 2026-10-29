@@ -110,6 +110,54 @@ export async function recordMovement(
   return legs;
 }
 
+/**
+ * Saca del saldo lo que no estaba (ajuste por inventario de una diferencia,
+ * no de un conteo): bloquea el saldo y escribe saldo + movimiento ADJUSTMENT
+ * negativo + auditoría. El depósito tiene que estar activo.
+ */
+export async function recordStockCorrection(
+  tx: Prisma.TransactionClient,
+  line: { productId: string; warehouseId: string; missing: string },
+  comment: string,
+  userId: string,
+): Promise<void> {
+  const active = await tx.$queryRaw<{ id: string }[]>`
+    SELECT "id" FROM "warehouses"
+    WHERE "id" = ${line.warehouseId} AND "is_active" = true
+    FOR SHARE`;
+  if (active.length === 0) throw new StockLedgerError("warehouseInactive");
+  const before = await lockBalance(tx, line.productId, line.warehouseId);
+  const delta = -toMilli(line.missing);
+  const balanceAfter = fromMilli(toMilli(before) + delta);
+  await tx.productStock.update({
+    where: {
+      productId_warehouseId: {
+        productId: line.productId,
+        warehouseId: line.warehouseId,
+      },
+    },
+    data: { quantity: balanceAfter },
+  });
+  const movement = await tx.stockMovement.create({
+    data: {
+      productId: line.productId,
+      warehouseId: line.warehouseId,
+      type: "ADJUSTMENT",
+      quantity: fromMilli(delta),
+      balanceAfter,
+      comment,
+      createdById: userId,
+    },
+  });
+  await audit(tx, {
+    action: "CREATE",
+    actorUserId: userId,
+    entityType: "STOCK_MOVEMENT",
+    entityId: movement.id,
+    after: movement,
+  });
+}
+
 export type LinkedStockLine = {
   productId: string;
   warehouseId: string;

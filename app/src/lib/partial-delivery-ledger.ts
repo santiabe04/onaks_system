@@ -5,20 +5,27 @@ import { cartTotals } from "./cart";
 import { deliveredQuantities, type Shortage } from "./partial-delivery";
 import { fromMilli, toMilli } from "./quantity";
 import { pendingReturns } from "./sale-state";
-import { recordMovement, recordSaleMovements } from "./stock-ledger";
+import {
+  recordMovement,
+  recordSaleMovements,
+  recordStockCorrection,
+} from "./stock-ledger";
 
 /**
- * Aplica una entrega parcial dentro de la transacción de la parada, antes de
- * pasar el pedido a Entregado:
+ * Aplica faltantes a un pedido que ya descontó stock (entrega parcial en una
+ * parada o lo que no se pudo preparar en un picking), dentro de la transacción:
  * - lo que falta vuelve al depósito del que salió (SALE_RETURN);
- * - si se rompió o venció, además se da de baja (WRITE_OFF), así el libro lo
- *   muestra y una cancelación posterior no devuelve unidades rotas;
- * - el pedido queda con lo entregado y se recalculan sus totales.
+ * - si se rompió o venció, además se da de baja (WRITE_OFF); si no estaba,
+ *   se corrige el saldo (ADJUSTMENT). Así el libro lo muestra y una
+ *   cancelación posterior no devuelve unidades que no existen;
+ * - el pedido queda con lo entregado/preparado y se recalculan sus totales.
+ * `source` describe de dónde viene (comentario del movimiento y metadata de
+ * la auditoría).
  */
 export async function applyShortages(
   tx: Prisma.TransactionClient,
   sale: { id: string; number: number },
-  sheetNumber: number,
+  source: { comment: string; metadata: Record<string, unknown> },
   shortages: Shortage[],
   userId: string,
 ): Promise<void> {
@@ -52,8 +59,8 @@ export async function applyShortages(
       lines.push({ ...line, quantity: fromMilli(take) });
     }
     await recordSaleMovements(tx, sale, "SALE_RETURN", lines, userId);
-    if (shortage.reason === "WRITTEN_OFF") {
-      for (const line of lines) {
+    for (const line of lines) {
+      if (shortage.reason === "WRITTEN_OFF") {
         await recordMovement(
           tx,
           {
@@ -62,8 +69,15 @@ export async function applyShortages(
             warehouseId: line.warehouseId,
             toWarehouseId: null,
             quantity: line.quantity,
-            comment: `Hoja #${sheetNumber} · pedido #${sale.number}`,
+            comment: source.comment,
           },
+          userId,
+        );
+      } else if (shortage.reason === "MISSING") {
+        await recordStockCorrection(
+          tx,
+          { ...line, missing: line.quantity },
+          source.comment,
           userId,
         );
       }
@@ -107,6 +121,6 @@ export async function applyShortages(
     entityId: sale.id,
     before,
     after,
-    metadata: { partialDelivery: shortages, sheet: sheetNumber },
+    metadata: source.metadata,
   });
 }

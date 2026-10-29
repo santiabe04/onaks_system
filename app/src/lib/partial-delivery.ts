@@ -10,7 +10,13 @@ import { fromMilli, QUANTITY_LIMITS, toMilli } from "./quantity";
  * WRITTEN_OFF: se rompió o venció → se da de baja.
  */
 export const SHORTAGE_REASONS = ["RETURNED", "WRITTEN_OFF"] as const;
-export type ShortageReason = (typeof SHORTAGE_REASONS)[number];
+/**
+ * En el picking: MISSING (no estaba en el depósito → ajuste de stock) o
+ * WRITTEN_OFF (roto o vencido → baja).
+ */
+export const PICKING_SHORTAGE_REASONS = ["MISSING", "WRITTEN_OFF"] as const;
+export type ShortageReason =
+  (typeof SHORTAGE_REASONS)[number] | (typeof PICKING_SHORTAGE_REASONS)[number];
 
 type Numeric = { toString(): string } | string;
 
@@ -60,7 +66,9 @@ export function parsePartialDelivery(
     if (delivered === ordered) continue;
 
     const reason = formData.get(`reason_${item.productId}`);
-    if (!SHORTAGE_REASONS.includes(reason as ShortageReason)) {
+    if (
+      !SHORTAGE_REASONS.includes(reason as (typeof SHORTAGE_REASONS)[number])
+    ) {
       return { ok: false, error: t.shortageReason };
     }
     shortages.push({

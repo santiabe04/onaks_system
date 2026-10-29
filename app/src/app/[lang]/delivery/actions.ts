@@ -174,7 +174,16 @@ export async function recordStop(
           where: { id: stop.saleId },
           select: { id: true, number: true },
         });
-        await applyShortages(tx, sale, stop.sheetNumber, shortages, user.id);
+        await applyShortages(
+          tx,
+          sale,
+          {
+            comment: `Hoja #${stop.sheetNumber} · pedido #${sale.number}`,
+            metadata: { partialDelivery: shortages, sheet: stop.sheetNumber },
+          },
+          shortages,
+          user.id,
+        );
       }
       await applySaleStateChange(
         tx,

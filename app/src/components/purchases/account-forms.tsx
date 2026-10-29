@@ -9,7 +9,10 @@ import {
   createSupplierPayment,
   type SupplierPaymentActionState,
 } from "@/app/[lang]/admin/supplier-payments/actions";
-import { useFieldValues } from "@/components/purchases/use-field-values";
+import {
+  submitWithoutReset,
+  useFieldValues,
+} from "@/components/ui/use-field-values";
 import { buttonClass } from "@/components/ui/button";
 import { Field, FormError, Input, SubmitButton } from "@/components/ui/form";
 import type { Locale } from "@/i18n/config";
@@ -200,7 +203,10 @@ export function PaymentForm({
   );
 
   return (
-    <form action={action} className="flex flex-col gap-6 text-sm">
+    <form
+      onSubmit={submitWithoutReset(action)}
+      className="flex flex-col gap-6 text-sm"
+    >
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label={t.paidOn}>
           <Input type="date" {...fields.bind("paidOn")} required />
@@ -361,7 +367,10 @@ export function CreditNoteForm({
   const total = cents(fields.value("subTotal")) + cents(fields.value("tax"));
 
   return (
-    <form action={action} className="flex flex-col gap-6 text-sm">
+    <form
+      onSubmit={submitWithoutReset(action)}
+      className="flex flex-col gap-6 text-sm"
+    >
       <div className="grid gap-4 sm:grid-cols-4">
         <Field label={t.type}>
           <select {...fields.bind("type")} className={SELECT}>
@@ -469,7 +478,10 @@ export function AllocateForm({
   return (
     <details className="text-sm">
       <summary className="cursor-pointer hover:underline">{title}</summary>
-      <form action={formAction} className="mt-3 flex flex-col gap-3">
+      <form
+        onSubmit={submitWithoutReset(formAction)}
+        className="mt-3 flex flex-col gap-3"
+      >
         <AllocationTable
           invoices={invoices}
           available={toCents(available)}

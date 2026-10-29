@@ -5,19 +5,19 @@ definiciones (UX y funcionales).
 
 Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
 
-| Fase | Contenido                                                        | Estado       |
-| ---- | ---------------------------------------------------------------- | ------------ |
-| 0    | Base transversal (i18n, auditoría, menú, tema, dashboard)        | ✅           |
-| 1    | Admin: datos base (categorías, depósitos, IVA, productos, stock) | ✅           |
-| 2    | Admin: localidades, proveedores, clientes y usuarios             | ✅           |
-| 3    | Cliente: catálogo                                                | ✅           |
-| 4    | Cliente: carrito y compra                                        | ✅           |
-| 5    | Admin: pedidos por zona                                          | ✅           |
-| 6    | Filtros de pedidos                                               | ✅           |
-| 7    | Gestión de pedidos (estados)                                     | ✅           |
-| 8    | Hojas de ruta de entrega                                         | ✅           |
-| 9    | Órdenes de compra a proveedores                                  | 🔄 en curso  |
-| 10   | Lista de picking                                                 | ⏳ a debatir |
+| Fase | Contenido                                                        | Estado      |
+| ---- | ---------------------------------------------------------------- | ----------- |
+| 0    | Base transversal (i18n, auditoría, menú, tema, dashboard)        | ✅          |
+| 1    | Admin: datos base (categorías, depósitos, IVA, productos, stock) | ✅          |
+| 2    | Admin: localidades, proveedores, clientes y usuarios             | ✅          |
+| 3    | Cliente: catálogo                                                | ✅          |
+| 4    | Cliente: carrito y compra                                        | ✅          |
+| 5    | Admin: pedidos por zona                                          | ✅          |
+| 6    | Filtros de pedidos                                               | ✅          |
+| 7    | Gestión de pedidos (estados)                                     | ✅          |
+| 8    | Hojas de ruta de entrega                                         | ✅          |
+| 9    | Órdenes de compra a proveedores                                  | ✅          |
+| 10   | Lista de picking                                                 | 🔄 en curso |
 
 ---
 
@@ -233,14 +233,14 @@ Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
 - Impresión por parada: cliente, dirección y contacto, productos y peso, **monto a cobrar** (pedido +
   deuda anterior o saldo a favor) y firma de recepción.
 
-## Fase 9 — Compras a proveedores 🔄
+## Fase 9 — Compras a proveedores ✅
 
 | PR  | Contenido                                                                          | Estado           |
 | --- | ---------------------------------------------------------------------------------- | ---------------- |
 | 9.1 | Stock mínimo + orden de compra (sugerencia, estados, impresión y WhatsApp)         | ✅ v1.34.0-alpha |
 | 9.2 | Informe de recepción: depósito, remito, cantidades, diferencias e ingreso de stock | ✅ v1.35.0-alpha |
 | 9.3 | Factura de proveedor con control de 3 vías y actualización del último costo        | ✅ v1.36.0-alpha |
-| 9.4 | Cuenta corriente del proveedor: órdenes de pago y notas de crédito                 | 🟡 PR listo      |
+| 9.4 | Cuenta corriente del proveedor: órdenes de pago y notas de crédito                 | ✅ v1.37.0-alpha |
 
 **Decisiones**
 
@@ -270,10 +270,24 @@ Estado al 28/10/2026: fases 0 a 8 terminadas (v1.33.0-alpha); fase 9 en curso.
 - Estado de cuenta por proveedor y **deuda con proveedores** (vencido, vence en 7 días, sin imputar).
 - **Stock mínimo por producto** para alertar y sugerir compras.
 
-## Fase 10 — Lista de picking ⏳ a debatir
+## Fase 10 — Lista de picking 🔄
 
-- Productos y cantidades a sacar del depósito.
-- A debatir: ¿consulta calculada, documento guardado o una por hoja de ruta?
+| PR   | Contenido                                                                  | Estado      |
+| ---- | -------------------------------------------------------------------------- | ----------- |
+| 10.1 | Listas de picking por depósito con confirmación y ubicaciones de productos | 🟡 PR listo |
+
+**Decisiones**
+
+- Documento guardado (número, estado Abierta → Preparada / Anulada) armado **con los pedidos elegidos**
+  en "Todos" o "Por zona" (las casillas de la barra masiva). Solo pedidos **Pendientes** y **un depósito**
+  por lista: al armarla pasan a **En preparación** y se descuenta el stock de ese depósito.
+- El preparador confirma lo que sacó (y quién preparó): los pedidos pasan a **Listo para despachar**. Si
+  faltó algo, el pedido queda con lo preparado y el stock se corrige con motivo: **no había** (ajuste) o
+  **roto o vencido** (baja). Un pedido no puede quedar vacío: se saca de la lista.
+- Sacar un pedido o anular la lista lo devuelve a Pendiente (y el stock al depósito).
+- **Ubicación** opcional por producto y depósito (pasillo-estante-nivel) para ordenar el recorrido;
+  impresión con casillas para tildar.
+- Las hojas de ruta llevan pedidos ya listos para despachar, así que no son origen de una lista.
 
 ---
 
