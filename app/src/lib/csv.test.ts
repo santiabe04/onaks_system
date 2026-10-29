@@ -25,6 +25,17 @@ describe("toCsv", () => {
     );
   });
 
+  it("neutraliza lo que Excel tomaría como fórmula, no los números", () => {
+    expect(
+      toCsv(
+        [['=HYPERLINK("http://x","Ver")', "+54 11 4444", "@admin", "-12,5"]],
+        ";",
+      ),
+    ).toBe(
+      `\uFEFF"'=HYPERLINK(""http://x"",""Ver"")";'+54 11 4444;'@admin;-12,5\r\n`,
+    );
+  });
+
   it("con coma de separador, la coma también lleva comillas", () => {
     expect(toCsv([["Quilmes, Buenos Aires", "1"]], ",")).toBe(
       '\uFEFF"Quilmes, Buenos Aires",1\r\n',

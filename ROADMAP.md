@@ -19,7 +19,7 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
 | 8    | Hojas de ruta de entrega                                         | ✅          |
 | 9    | Órdenes de compra a proveedores                                  | ✅          |
 | 10   | Lista de picking                                                 | ✅          |
-| 11   | Puesta a punto para BETA                                         | ⏳          |
+| 11   | Puesta a punto para BETA                                         | 🔄 en curso |
 | 12   | Pedido cargado por el admin en nombre del cliente                | ⏳          |
 | 13   | Listas de precios y descuentos                                   | ⏳          |
 | 14   | Reportes de ventas y margen                                      | ⏳          |
@@ -306,14 +306,32 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
 
 ---
 
-## Fase 11 — Puesta a punto para BETA ⏳
+## Fase 11 — Puesta a punto para BETA 🔄
 
-- Revisión de seguridad y permisos (actions, rutas, archivos servidos) y pasada de UI en celular.
-- Datos de demo en el seed (distribuidora de alimentos para mascotas) y docs de instalación y backups
-  (base y volumen `uploads`).
-- Tests end-to-end (Playwright) de los circuitos principales en el CI: compra del cliente, preparación,
-  reparto y compras.
-- Salto de versión a BETA con `release-as` (siguiente minor `-beta`).
+| PR   | Contenido                                                              | Estado      |
+| ---- | ---------------------------------------------------------------------- | ----------- |
+| 11.1 | Revisión de seguridad y permisos                                       | 🟡 PR listo |
+| 11.2 | Pasada de UI en celular                                                | ⏳          |
+| 11.3 | Datos de demo en el seed (con una variable de entorno)                 | ⏳          |
+| 11.4 | Producción: Caddy con HTTPS, backups automáticos y guía de instalación | ⏳          |
+| 11.5 | Tests end-to-end con Playwright en el CI (usan los datos de demo)      | ⏳          |
+| 11.6 | Salto a BETA con `release-as`                                          | ⏳          |
+
+**Decisiones**
+
+- Se instala en un **VPS con Docker Compose** y **Caddy** delante, que saca el certificado HTTPS solo
+  (hace falta un dominio). El puerto de la app no se publica: solo entra por Caddy.
+- **Backups automáticos** en el compose: `pg_dump` diario de la base y copia de `uploads` (imágenes y
+  firmas), guardando los últimos días; más la guía para restaurar.
+- **Datos de demo dentro del seed**, activados con una variable de entorno (distribuidora de alimentos
+  para mascotas); nunca en producción.
+- **Tests end-to-end**: compra del cliente; preparación y reparto (picking, hoja de ruta, parada con
+  entrega parcial y cierre); compras (OC → recepción → factura → orden de pago); y permisos (un cliente o
+  un repartidor no entra a pantallas ni acciones del admin).
+- 11.1: todas las Server Actions verifican sesión y permiso primero; el cliente solo toca lo de su empresa
+  y el repartidor sus paradas. Se sumaron cabeceras de seguridad, la neutralización de fórmulas en el
+  CSV, el límite de 10 MB para fotos de celular y que un repartidor vea solo los archivos de sus hojas.
+  Queda para más adelante una CSP (el script inline del tema necesita nonce).
 
 ## Fase 12 — Pedido cargado por el admin ⏳
 

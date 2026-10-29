@@ -7,8 +7,19 @@ const BOM = "\uFEFF";
 
 export type CsvDelimiter = ";" | ",";
 
+/**
+ * Un texto que arranca con `=`, `+`, `-`, `@` o un tab Excel lo toma como
+ * fórmula (inyección: un comentario del cliente como `=HYPERLINK(...)`). Se le
+ * antepone `'`, que Excel no muestra. Los números (`-12,5`) quedan como están.
+ */
+function neutralize(value: string): string {
+  if (!/^[=+\-@\t\r]/.test(value)) return value;
+  return /^-?\d+([.,]\d+)?$/.test(value) ? value : `'${value}`;
+}
+
 /** Comillas solo cuando hacen falta; las comillas internas se duplican. */
-function cell(value: string, delimiter: CsvDelimiter): string {
+function cell(raw: string, delimiter: CsvDelimiter): string {
+  const value = neutralize(raw);
   return value.includes(delimiter) || /["\r\n]/.test(value)
     ? `"${value.replaceAll('"', '""')}"`
     : value;
