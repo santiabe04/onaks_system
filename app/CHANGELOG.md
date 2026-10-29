@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.38.1-alpha](https://github.com/santiabe04/onaks_system/compare/v1.38.0-alpha...v1.38.1-alpha) (2026-10-29)
+
+
+### Bug Fixes
+
+* **security:** add security headers and harden csv export and delivery files ([#96](https://github.com/santiabe04/onaks_system/issues/96)) ([67bcab3](https://github.com/santiabe04/onaks_system/commit/67bcab30dababd6bea9880bc33fd536c353237e2))
+
 ## [1.38.0-alpha](https://github.com/santiabe04/onaks_system/compare/v1.37.0-alpha...v1.38.0-alpha) (2026-10-29)
 
 
