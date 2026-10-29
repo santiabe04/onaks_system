@@ -6,6 +6,7 @@ import {
   savePurchaseOrder,
   type PurchaseActionState,
 } from "@/app/[lang]/admin/purchases/actions";
+import { useFieldValues } from "@/components/purchases/use-field-values";
 import { buttonClass } from "@/components/ui/button";
 import { Field, FormError, Input, SubmitButton } from "@/components/ui/form";
 import type { Dictionary } from "@/i18n/dictionaries/es";
@@ -92,25 +93,26 @@ export function PurchaseEditor({
     PurchaseActionState,
     FormData
   >(savePurchaseOrder.bind(null, orderId), {});
+  const { bind } = useFieldValues({
+    expectedDate,
+    notes,
+    ...Object.fromEntries(
+      lines.flatMap((line) => [
+        [`qty_${line.productId}`, line.quantity],
+        [`cost_${line.productId}`, line.unitCost],
+      ]),
+    ),
+  });
   const c = t.columns;
 
   return (
     <form action={action} className="flex flex-col gap-4 text-sm">
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t.expectedDate}>
-          <Input
-            type="date"
-            name="expectedDate"
-            min={today}
-            defaultValue={expectedDate}
-          />
+          <Input type="date" {...bind("expectedDate")} min={today} />
         </Field>
         <Field label={t.notesOptional}>
-          <Input
-            name="notes"
-            maxLength={PO_NOTES_MAX_LENGTH}
-            defaultValue={notes}
-          />
+          <Input {...bind("notes")} maxLength={PO_NOTES_MAX_LENGTH} />
         </Field>
       </div>
 
@@ -162,9 +164,8 @@ export function PurchaseEditor({
                 <td className="py-2 pr-3">
                   <span className="flex items-center gap-1">
                     <input
-                      name={`qty_${line.productId}`}
+                      {...bind(`qty_${line.productId}`)}
                       inputMode={line.allowsDecimals ? "decimal" : "numeric"}
-                      defaultValue={line.quantity}
                       aria-label={`${c.quantity} ${line.name}`}
                       className={`${CONTROL} w-20`}
                     />
@@ -173,9 +174,8 @@ export function PurchaseEditor({
                 </td>
                 <td className="py-2">
                   <input
-                    name={`cost_${line.productId}`}
+                    {...bind(`cost_${line.productId}`)}
                     inputMode="decimal"
-                    defaultValue={line.unitCost}
                     aria-label={`${c.unitCost} ${line.name}`}
                     className={`${CONTROL} w-28`}
                   />

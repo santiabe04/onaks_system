@@ -19,6 +19,7 @@ import { isCuid } from "@/lib/ids";
 import { lockPurchaseOrder } from "@/lib/purchase-lock";
 import { fromMilli, toMilli } from "@/lib/quantity";
 import { recordReceiptMovements, StockLedgerError } from "@/lib/stock-ledger";
+import { invoicedByProduct } from "@/lib/supplier-invoice-ledger";
 
 // Informes de recepción (IR): lo que llegó de una OC entra al stock de un
 // depósito y suma a lo recibido de la OC. Se anulan con motivo (revierten
@@ -248,6 +249,22 @@ export async function annulGoodsReceipt(
         where: { goodsReceiptId: receipt.id },
         select: { productId: true, quantity: true },
       });
+      // No se puede quedar con menos recibido que lo ya facturado.
+      const [received, invoiced] = await Promise.all([
+        tx.purchaseOrderItem.findMany({
+          where: { purchaseOrderId: order.id },
+          select: { productId: true, receivedQuantity: true },
+        }),
+        invoicedByProduct(tx, order.id),
+      ]);
+      for (const item of items) {
+        const row = received.find((line) => line.productId === item.productId);
+        const left =
+          toMilli(row?.receivedQuantity ?? "0") - toMilli(item.quantity);
+        if (left < toMilli(invoiced.get(item.productId) ?? "0")) {
+          throw new ReceiptError(t.invoiced);
+        }
+      }
 
       await recordReceiptMovements(
         tx,

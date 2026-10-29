@@ -125,10 +125,10 @@ export function parseReceiptHeader(
   };
 }
 
-/** Motivo obligatorio (anular un IR, cerrar una OC con faltante). */
+/** Motivo obligatorio (anular un IR o una factura, cerrar una OC con faltante, aprobar). */
 export function parseReason(
   formData: FormData,
-  t: Messages,
+  t: Pick<Messages, "reasonRequired" | "tooLong">,
 ): { ok: true; reason: string } | { ok: false; error: string } {
   const value = formData.get("reason");
   const reason = typeof value === "string" ? value.trim() : "";

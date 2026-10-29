@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import {
   createGoodsReceipt,
   type ReceiptActionState,
 } from "@/app/[lang]/admin/receipts/actions";
 import { Field, FormError, Input, SubmitButton } from "@/components/ui/form";
 import { DifferenceLabel } from "@/components/purchases/difference-label";
+import { useFieldValues } from "@/components/purchases/use-field-values";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { formatters } from "@/i18n/format";
@@ -81,14 +82,17 @@ export function ReceiptForm({
     createGoodsReceipt.bind(null, orderId),
     {},
   );
-  const [values, setValues] = useState<Record<string, string>>(() =>
-    Object.fromEntries(lines.map((line) => [line.productId, line.initial])),
-  );
+  const { value, bind } = useFieldValues({
+    warehouseId: warehouses.length === 1 ? warehouses[0].id : "",
+    ...Object.fromEntries(
+      lines.map((line) => [`rcv_${line.productId}`, line.initial]),
+    ),
+  });
   const format = formatters(locale);
   const c = t.columns;
   const over = lines.some((line) => {
-    const value = typed(values[line.productId] ?? "");
-    return value !== null && toMilli(value) > toMilli(line.pending);
+    const received = typed(value(`rcv_${line.productId}`));
+    return received !== null && toMilli(received) > toMilli(line.pending);
   });
 
   return (
@@ -96,9 +100,8 @@ export function ReceiptForm({
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label={t.warehouse}>
           <select
-            name="warehouseId"
+            {...bind("warehouseId")}
             required
-            defaultValue={warehouses.length === 1 ? warehouses[0].id : ""}
             className="rounded border border-current/20 bg-transparent px-3 py-2"
           >
             <option value="" disabled>
@@ -112,10 +115,13 @@ export function ReceiptForm({
           </select>
         </Field>
         <Field label={t.deliveryNote}>
-          <Input name="deliveryNote" maxLength={DELIVERY_NOTE_MAX_LENGTH} />
+          <Input
+            {...bind("deliveryNote")}
+            maxLength={DELIVERY_NOTE_MAX_LENGTH}
+          />
         </Field>
         <Field label={t.notesOptional}>
-          <Input name="notes" maxLength={RECEIPT_NOTES_MAX_LENGTH} />
+          <Input {...bind("notes")} maxLength={RECEIPT_NOTES_MAX_LENGTH} />
         </Field>
       </div>
 
@@ -158,15 +164,8 @@ export function ReceiptForm({
                 <td className="py-2 pr-3">
                   <span className="flex items-center gap-1">
                     <input
-                      name={`rcv_${line.productId}`}
+                      {...bind(`rcv_${line.productId}`)}
                       inputMode={line.allowsDecimals ? "decimal" : "numeric"}
-                      value={values[line.productId] ?? ""}
-                      onChange={(event) =>
-                        setValues((current) => ({
-                          ...current,
-                          [line.productId]: event.target.value,
-                        }))
-                      }
                       aria-label={`${c.quantity} ${line.name}`}
                       className={`${CONTROL} w-20`}
                     />
@@ -176,7 +175,7 @@ export function ReceiptForm({
                 <td className="py-2 whitespace-nowrap">
                   <LineDifference
                     pending={line.pending}
-                    value={typed(values[line.productId] ?? "")}
+                    value={typed(value(`rcv_${line.productId}`))}
                     t={t}
                     format={format}
                   />
@@ -203,8 +202,8 @@ export function ReceiptForm({
 }
 
 /**
- * Una acción con motivo obligatorio (anular un informe, cerrar una OC con
- * faltante), plegada hasta que se la pide.
+ * Una acción con motivo obligatorio (anular un informe o una factura, cerrar
+ * una OC con faltante, aprobar una factura observada), plegada hasta que se la pide.
  */
 export function ReasonForm({
   action,
@@ -213,6 +212,7 @@ export function ReasonForm({
   reasonLabel,
   pendingLabel,
   maxLength,
+  tone = "danger",
 }: {
   action: (
     prev: ReceiptActionState,
@@ -223,14 +223,17 @@ export function ReasonForm({
   reasonLabel: string;
   pendingLabel: string;
   maxLength: number;
+  /** Rojo para anular; neutro para aprobar. */
+  tone?: "danger" | "neutral";
 }) {
+  const color = tone === "danger" ? "text-red-600" : "";
   const [state, formAction, pending] = useActionState<
     ReceiptActionState,
     FormData
   >(action, {});
   return (
     <details className="text-sm">
-      <summary className="cursor-pointer text-red-600 hover:underline">
+      <summary className={`cursor-pointer hover:underline ${color}`}>
         {label}
       </summary>
       <form action={formAction} className="mt-2 flex max-w-md flex-col gap-2">
@@ -247,7 +250,7 @@ export function ReasonForm({
         <button
           type="submit"
           disabled={pending}
-          className="self-start text-red-600 hover:underline disabled:opacity-50"
+          className={`self-start hover:underline disabled:opacity-50 ${color}`}
         >
           {pending ? pendingLabel : label}
         </button>

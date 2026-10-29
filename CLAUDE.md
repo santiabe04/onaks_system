@@ -124,6 +124,16 @@ comentarios y textos de UI en español.
   anulan con motivo (`PURCHASE_RECEIPT_REVERSAL`, reabre la OC). Una OC Recibida parcial se cierra con
   faltante (`closed_at` + motivo, queda Recibida). Orden de bloqueo: **OC (`lockPurchaseOrder`), informe
   y saldos**.
+- Facturas de proveedores (`/admin/invoices`, `supplier_invoices` + `supplier_invoice_items`, cargadas
+  desde la OC en `[number]/invoice`): comprobante (tipo, punto de venta, número; repetido por proveedor
+  se rechaza con el proveedor bloqueado), líneas con la alícuota de la OC, percepciones y total impreso.
+  Control de 3 vías en `matchInvoice` (`lib/supplier-invoice`): costo ≠ OC, cantidad > recibido sin
+  facturar, total impreso ≠ calculado; se guardan en `differences` (JSON). Sin diferencias → Aprobada;
+  con → Observada hasta que se aprueba con comentario. Al aprobarse, `updateLastCosts`
+  (`lib/supplier-invoice-ledger`) pasa el costo al último del proveedor si no hay uno más nuevo. Se
+  anulan con motivo. Un IR no se anula si deja lo recibido por debajo de lo facturado.
+- Forms de compras: los campos son controlados (`useFieldValues`) porque React resetea los no
+  controlados después de cada action y con un error se perdería lo tipeado.
 
 ## UI del admin
 
