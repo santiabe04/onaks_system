@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SupplierDebtsPage() {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.supplierAccount.debtsTitle}</h1>
       {/* Las cuentas salen de la DB y dependen de hoy: van en Suspense. */}
       <Suspense
@@ -91,47 +91,52 @@ async function Debts() {
     );
 
   return (
-    <table className="mt-6 w-full text-left text-sm">
-      <thead className="border-b border-current/20">
-        <tr>
-          <th className="py-2 pr-3 font-medium">{a.debtsColumns.supplier}</th>
-          {COLUMNS.map((column) => (
-            <th key={column} className="py-2 pr-3 text-right font-medium">
-              {a.debtsColumns[column]}
-            </th>
+    <div className="overflow-x-auto print:overflow-visible">
+      <table className="mt-6 w-full text-left text-sm">
+        <thead className="border-b border-current/20">
+          <tr>
+            <th className="py-2 pr-3 font-medium">{a.debtsColumns.supplier}</th>
+            {COLUMNS.map((column) => (
+              <th key={column} className="py-2 pr-3 text-right font-medium">
+                {a.debtsColumns[column]}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(({ supplier, summary }) => (
+            <tr key={supplier.id} className="border-b border-current/10">
+              <td className="py-2 pr-3">
+                <Link
+                  href={`/admin/suppliers/${supplier.id}/account`}
+                  className="font-medium hover:underline"
+                >
+                  {supplier.tradeName ?? supplier.legalName}
+                </Link>
+              </td>
+              {COLUMNS.map((column) => (
+                <td
+                  key={column}
+                  className="py-2 pr-3 text-right whitespace-nowrap"
+                >
+                  {cell(summary[column], column === "overdue")}
+                </td>
+              ))}
+            </tr>
           ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map(({ supplier, summary }) => (
-          <tr key={supplier.id} className="border-b border-current/10">
-            <td className="py-2 pr-3">
-              <Link
-                href={`/admin/suppliers/${supplier.id}/account`}
-                className="font-medium hover:underline"
-              >
-                {supplier.tradeName ?? supplier.legalName}
-              </Link>
-            </td>
+          <tr className="font-semibold">
+            <td className="py-2 pr-3">{a.totalRow}</td>
             {COLUMNS.map((column) => (
               <td
                 key={column}
                 className="py-2 pr-3 text-right whitespace-nowrap"
               >
-                {cell(summary[column], column === "overdue")}
+                {cell(total(column), column === "overdue")}
               </td>
             ))}
           </tr>
-        ))}
-        <tr className="font-semibold">
-          <td className="py-2 pr-3">{a.totalRow}</td>
-          {COLUMNS.map((column) => (
-            <td key={column} className="py-2 pr-3 text-right whitespace-nowrap">
-              {cell(total(column), column === "overdue")}
-            </td>
-          ))}
-        </tr>
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   );
 }

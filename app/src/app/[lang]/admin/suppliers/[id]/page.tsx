@@ -30,7 +30,7 @@ export default async function SupplierPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       {/* params y la DB son de request: va en Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
@@ -144,71 +144,73 @@ async function SupplierDetail({
       {supplier.products.length === 0 ? (
         <p className="mt-3 text-sm opacity-70">{s.productsEmpty}</p>
       ) : (
-        <table className="mt-3 w-full text-left text-sm">
-          <thead className="border-b border-current/20">
-            <tr>
-              <th className="py-2 pr-3 font-medium">{s.product}</th>
-              <th className="py-2 pr-3 font-medium">{s.supplierCodeShort}</th>
-              <th className="py-2 pr-3 text-right font-medium">
-                {s.lastCostShort}
-              </th>
-              <th className="py-2 pr-3 font-medium">{s.lastCostAt}</th>
-              <th className="py-2">
-                <span className="sr-only">{t.common.actions}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {supplier.products.map((row) => (
-              <tr
-                key={row.productId}
-                className={`border-b border-current/10 align-top ${
-                  row.product.deletedAt ? "opacity-50" : ""
-                }`}
-              >
-                <td className="py-2 pr-3">
-                  {row.product.name}
-                  <span className="block font-mono text-xs opacity-70">
-                    {row.product.sku}
-                  </span>
-                </td>
-                <td className="py-2 pr-3 font-mono">
-                  {row.supplierCode ?? "—"}
-                </td>
-                <td className="py-2 pr-3 text-right whitespace-nowrap">
-                  {row.lastCost === null ? "—" : format.money(row.lastCost)}
-                </td>
-                <td className="py-2 pr-3 whitespace-nowrap">
-                  {row.lastCostAt ? format.date(row.lastCostAt) : "—"}
-                </td>
-                <td className="py-2">
-                  <div className="flex items-start justify-end gap-4">
-                    <Link
-                      href={`/admin/suppliers/${supplier.id}?product=${row.productId}`}
-                      className="hover:underline"
-                    >
-                      {t.common.edit}
-                    </Link>
-                    <DeleteButton
-                      action={removeSupplierProduct.bind(
-                        null,
-                        supplier.id,
-                        row.productId,
-                      )}
-                      confirmMessage={interpolate(s.confirmRemoveProduct, {
-                        name: row.product.name,
-                      })}
-                      labels={{
-                        delete: s.removeProduct,
-                        deleting: t.common.deleting,
-                      }}
-                    />
-                  </div>
-                </td>
+        <div className="overflow-x-auto print:overflow-visible">
+          <table className="mt-3 w-full text-left text-sm">
+            <thead className="border-b border-current/20">
+              <tr>
+                <th className="py-2 pr-3 font-medium">{s.product}</th>
+                <th className="py-2 pr-3 font-medium">{s.supplierCodeShort}</th>
+                <th className="py-2 pr-3 text-right font-medium">
+                  {s.lastCostShort}
+                </th>
+                <th className="py-2 pr-3 font-medium">{s.lastCostAt}</th>
+                <th className="py-2">
+                  <span className="sr-only">{t.common.actions}</span>
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {supplier.products.map((row) => (
+                <tr
+                  key={row.productId}
+                  className={`border-b border-current/10 align-top ${
+                    row.product.deletedAt ? "opacity-50" : ""
+                  }`}
+                >
+                  <td className="py-2 pr-3">
+                    {row.product.name}
+                    <span className="block font-mono text-xs opacity-70">
+                      {row.product.sku}
+                    </span>
+                  </td>
+                  <td className="py-2 pr-3 font-mono">
+                    {row.supplierCode ?? "—"}
+                  </td>
+                  <td className="py-2 pr-3 text-right whitespace-nowrap">
+                    {row.lastCost === null ? "—" : format.money(row.lastCost)}
+                  </td>
+                  <td className="py-2 pr-3 whitespace-nowrap">
+                    {row.lastCostAt ? format.date(row.lastCostAt) : "—"}
+                  </td>
+                  <td className="py-2">
+                    <div className="flex items-start justify-end gap-4">
+                      <Link
+                        href={`/admin/suppliers/${supplier.id}?product=${row.productId}`}
+                        className="hover:underline"
+                      >
+                        {t.common.edit}
+                      </Link>
+                      <DeleteButton
+                        action={removeSupplierProduct.bind(
+                          null,
+                          supplier.id,
+                          row.productId,
+                        )}
+                        confirmMessage={interpolate(s.confirmRemoveProduct, {
+                          name: row.product.name,
+                        })}
+                        labels={{
+                          delete: s.removeProduct,
+                          deleting: t.common.deleting,
+                        }}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <h3 className="mt-8 font-medium">{s.addProduct}</h3>

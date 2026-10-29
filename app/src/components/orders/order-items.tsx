@@ -50,7 +50,7 @@ export function OrderItems({
 
   return (
     <>
-      <div className="mt-6 overflow-x-auto">
+      <div className="mt-6 overflow-x-auto print:overflow-visible">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-current/20">
             <tr>

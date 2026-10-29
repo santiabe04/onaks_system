@@ -51,7 +51,7 @@ export default async function RouteSheetPage({
 }: PageProps<"/[lang]/admin/routes/[number]">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <Link href={PATH} className="text-sm hover:underline">
         ← {t.routes.title}
       </Link>
@@ -174,7 +174,7 @@ async function RouteSheet({ params }: { params: Promise<{ number: string }> }) {
         {sheet.stops.length === 0 ? (
           <p className="mt-2 text-sm opacity-70">{r.noStops}</p>
         ) : (
-          <div className="mt-2 overflow-x-auto">
+          <div className="mt-2 overflow-x-auto print:overflow-visible">
             <table className="w-full text-left text-sm">
               <tbody>
                 {sheet.stops.map((stop, index) => (

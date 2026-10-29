@@ -30,7 +30,7 @@ export default async function CustomerAccountPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       {/* params y la cuenta son de request: van en Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
@@ -187,7 +187,7 @@ async function Account({ params }: { params: Promise<{ id: string }> }) {
         {rows.length === 0 ? (
           <p className="mt-3 text-sm opacity-70">{t.account.empty}</p>
         ) : (
-          <div className="mt-3 overflow-x-auto">
+          <div className="mt-3 overflow-x-auto print:overflow-visible">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-current/20">
                 <tr>

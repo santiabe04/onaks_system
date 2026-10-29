@@ -31,7 +31,8 @@ export function AddToCart({
 
   return (
     <form action={action} className="flex flex-col gap-1">
-      <div className="flex items-center gap-2">
+      {/* En tarjetas angostas el botón baja a su propia línea y la ocupa entera. */}
+      <div className="flex flex-wrap items-center gap-2">
         <label className="flex items-center gap-1 text-sm">
           <span className="sr-only">{t.quantity}</span>
           <input
@@ -53,7 +54,9 @@ export function AddToCart({
         <button
           type="submit"
           disabled={pending}
-          className="bg-foreground text-background rounded px-3 py-1 text-sm font-medium disabled:opacity-50"
+          className={`bg-foreground text-background rounded px-3 py-1 text-sm font-medium disabled:opacity-50 ${
+            compact ? "grow" : ""
+          }`}
         >
           {pending ? t.adding : t.add}
         </button>

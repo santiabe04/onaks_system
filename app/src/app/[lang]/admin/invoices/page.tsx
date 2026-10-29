@@ -21,7 +21,7 @@ export default async function InvoicesPage({
 }: PageProps<"/[lang]/admin/invoices">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.invoices.title}</h1>
       {/* El filtro viene de la URL y las facturas de la DB: van en Suspense. */}
       <Suspense
@@ -89,56 +89,58 @@ async function Invoices({
       {invoices.length === 0 ? (
         <p className="mt-6 text-sm opacity-70">{i.empty}</p>
       ) : (
-        <table className="mt-4 w-full text-left text-sm">
-          <thead className="border-b border-current/20">
-            <tr>
-              <th className="py-2 pr-3 font-medium">{c.invoice}</th>
-              <th className="py-2 pr-3 font-medium">{c.date}</th>
-              <th className="py-2 pr-3 font-medium">{c.supplier}</th>
-              <th className="py-2 pr-3 font-medium">{c.order}</th>
-              <th className="py-2 pr-3 font-medium">{i.due}</th>
-              <th className="py-2 pr-3 font-medium">{c.state}</th>
-              <th className="py-2 text-right font-medium">{c.total}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoices.map((invoice) => (
-              <tr key={invoice.id} className="border-b border-current/10">
-                <td className="py-2 pr-3 whitespace-nowrap">
-                  <Link
-                    href={`${PATH}/${invoice.id}`}
-                    className="font-mono font-medium hover:underline"
-                  >
-                    {formatInvoiceNumber(invoice)}
-                  </Link>
-                </td>
-                <td className="py-2 pr-3 whitespace-nowrap">
-                  {day(invoice.issueDate)}
-                </td>
-                <td className="py-2 pr-3">
-                  {invoice.supplier.tradeName ?? invoice.supplier.legalName}
-                </td>
-                <td className="py-2 pr-3">
-                  <Link
-                    href={`/admin/purchases/${invoice.purchaseOrder.number}`}
-                    className="hover:underline"
-                  >
-                    #{invoice.purchaseOrder.number}
-                  </Link>
-                </td>
-                <td className="py-2 pr-3 whitespace-nowrap">
-                  {invoice.dueDate ? day(invoice.dueDate) : "—"}
-                </td>
-                <td className="py-2 pr-3">
-                  <InvoiceState state={invoice.state} label={i.states} />
-                </td>
-                <td className="py-2 text-right whitespace-nowrap">
-                  {format.money(invoice.total)}
-                </td>
+        <div className="overflow-x-auto print:overflow-visible">
+          <table className="mt-4 w-full text-left text-sm">
+            <thead className="border-b border-current/20">
+              <tr>
+                <th className="py-2 pr-3 font-medium">{c.invoice}</th>
+                <th className="py-2 pr-3 font-medium">{c.date}</th>
+                <th className="py-2 pr-3 font-medium">{c.supplier}</th>
+                <th className="py-2 pr-3 font-medium">{c.order}</th>
+                <th className="py-2 pr-3 font-medium">{i.due}</th>
+                <th className="py-2 pr-3 font-medium">{c.state}</th>
+                <th className="py-2 text-right font-medium">{c.total}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {invoices.map((invoice) => (
+                <tr key={invoice.id} className="border-b border-current/10">
+                  <td className="py-2 pr-3 whitespace-nowrap">
+                    <Link
+                      href={`${PATH}/${invoice.id}`}
+                      className="font-mono font-medium hover:underline"
+                    >
+                      {formatInvoiceNumber(invoice)}
+                    </Link>
+                  </td>
+                  <td className="py-2 pr-3 whitespace-nowrap">
+                    {day(invoice.issueDate)}
+                  </td>
+                  <td className="py-2 pr-3">
+                    {invoice.supplier.tradeName ?? invoice.supplier.legalName}
+                  </td>
+                  <td className="py-2 pr-3">
+                    <Link
+                      href={`/admin/purchases/${invoice.purchaseOrder.number}`}
+                      className="hover:underline"
+                    >
+                      #{invoice.purchaseOrder.number}
+                    </Link>
+                  </td>
+                  <td className="py-2 pr-3 whitespace-nowrap">
+                    {invoice.dueDate ? day(invoice.dueDate) : "—"}
+                  </td>
+                  <td className="py-2 pr-3">
+                    <InvoiceState state={invoice.state} label={i.states} />
+                  </td>
+                  <td className="py-2 text-right whitespace-nowrap">
+                    {format.money(invoice.total)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </>
   );

@@ -32,7 +32,7 @@ export default async function SupplierPaymentPrintPage({
 }: PageProps<"/[lang]/admin/supplier-payments/[number]/print">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-3xl p-8 print:p-0">
+    <main className="mx-auto w-full max-w-3xl p-4 sm:p-8 print:p-0">
       {/* params y la OP son de request: van en Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}

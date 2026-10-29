@@ -19,7 +19,7 @@ export default async function EditCityPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-md p-8">
+    <main className="mx-auto w-full max-w-md p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.locations.editCityTitle}</h1>
       {/* params y la query a la DB son de request: van en Suspense. */}
       <Suspense

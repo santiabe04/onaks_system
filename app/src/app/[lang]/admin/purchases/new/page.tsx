@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function NewPurchasePage() {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-md p-8">
+    <main className="mx-auto w-full max-w-md p-4 sm:p-8">
       <h1 className="mb-6 text-2xl font-semibold">{t.purchases.newTitle}</h1>
       {/* Los proveedores salen de la DB: van en Suspense. */}
       <Suspense

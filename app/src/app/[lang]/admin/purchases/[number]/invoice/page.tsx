@@ -28,7 +28,7 @@ export default async function NewInvoicePage({
 }: PageProps<"/[lang]/admin/purchases/[number]/invoice">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-6xl p-8">
+    <main className="mx-auto w-full max-w-6xl p-4 sm:p-8">
       {/* params y la orden son de request: van en Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}

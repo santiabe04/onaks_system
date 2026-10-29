@@ -20,7 +20,7 @@ export default async function PickingListsPage({
 }: PageProps<"/[lang]/admin/picking">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.picking.title}</h1>
       {/* El filtro viene de la URL y las listas de la DB: van en Suspense. */}
       <Suspense
@@ -76,46 +76,49 @@ async function Lists({
       {lists.length === 0 ? (
         <p className="mt-6 text-sm opacity-70">{p.empty}</p>
       ) : (
-        <table className="mt-4 w-full text-left text-sm">
-          <thead className="border-b border-current/20">
-            <tr>
-              <th className="py-2 pr-3 font-medium">{c.number}</th>
-              <th className="py-2 pr-3 font-medium">{c.date}</th>
-              <th className="py-2 pr-3 font-medium">{c.warehouse}</th>
-              <th className="py-2 pr-3 font-medium">{c.orders}</th>
-              <th className="py-2 font-medium">{c.state}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {lists.map((list) => {
-              const count = new Set(list.items.map((item) => item.saleId)).size;
-              return (
-                <tr key={list.number} className="border-b border-current/10">
-                  <td className="py-2 pr-3">
-                    <Link
-                      href={`${PATH}/${list.number}`}
-                      className="font-medium hover:underline"
-                    >
-                      #{list.number}
-                    </Link>
-                  </td>
-                  <td className="py-2 pr-3 whitespace-nowrap">
-                    {format.dateTime(list.createdAt)}
-                  </td>
-                  <td className="py-2 pr-3">{list.warehouse.name}</td>
-                  <td className="py-2 pr-3">
-                    {count === 1
-                      ? p.oneOrder
-                      : interpolate(p.ordersCount, { count })}
-                  </td>
-                  <td className={`py-2 ${STATE_COLOR[list.state]}`}>
-                    {p.states[list.state]}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto print:overflow-visible">
+          <table className="mt-4 w-full text-left text-sm">
+            <thead className="border-b border-current/20">
+              <tr>
+                <th className="py-2 pr-3 font-medium">{c.number}</th>
+                <th className="py-2 pr-3 font-medium">{c.date}</th>
+                <th className="py-2 pr-3 font-medium">{c.warehouse}</th>
+                <th className="py-2 pr-3 font-medium">{c.orders}</th>
+                <th className="py-2 font-medium">{c.state}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lists.map((list) => {
+                const count = new Set(list.items.map((item) => item.saleId))
+                  .size;
+                return (
+                  <tr key={list.number} className="border-b border-current/10">
+                    <td className="py-2 pr-3">
+                      <Link
+                        href={`${PATH}/${list.number}`}
+                        className="font-medium hover:underline"
+                      >
+                        #{list.number}
+                      </Link>
+                    </td>
+                    <td className="py-2 pr-3 whitespace-nowrap">
+                      {format.dateTime(list.createdAt)}
+                    </td>
+                    <td className="py-2 pr-3">{list.warehouse.name}</td>
+                    <td className="py-2 pr-3">
+                      {count === 1
+                        ? p.oneOrder
+                        : interpolate(p.ordersCount, { count })}
+                    </td>
+                    <td className={`py-2 ${STATE_COLOR[list.state]}`}>
+                      {p.states[list.state]}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </>
   );

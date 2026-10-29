@@ -28,7 +28,7 @@ export default async function CustomerPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       {/* params y la DB son de request: va en Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
@@ -100,60 +100,66 @@ async function CustomerDetail({ params }: { params: Promise<{ id: string }> }) {
         {customer.persons.length === 0 ? (
           <p className="mt-3 text-sm opacity-70">{c.personsEmpty}</p>
         ) : (
-          <table className="mt-3 w-full text-left text-sm">
-            <thead className="border-b border-current/20">
-              <tr>
-                <th className="py-2 pr-3 font-medium">{c.name}</th>
-                <th className="py-2 pr-3 font-medium">{c.mail}</th>
-                <th className="py-2 pr-3 font-medium">{c.phone}</th>
-                <th className="py-2 pr-3 font-medium">{c.user}</th>
-                <th className="py-2">
-                  <span className="sr-only">{t.common.actions}</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {customer.persons.map((person) => (
-                <tr
-                  key={person.id}
-                  className="border-b border-current/10 align-top"
-                >
-                  <td className="py-2 pr-3">
-                    {person.name} {person.surname}
-                  </td>
-                  <td className="py-2 pr-3">{person.mail}</td>
-                  <td className="py-2 pr-3">{person.phone ?? "—"}</td>
-                  <td className="py-2 pr-3">
-                    <UserControls
-                      {...userControlProps(person, {
-                        lockedMails,
-                        currentUserId: admin.id,
-                        formatTime: format.time,
-                        t: t.users,
-                      })}
-                    />
-                  </td>
-                  <td className="py-2">
-                    <div className="flex items-start justify-end gap-4">
-                      <Link
-                        href={`${base}/persons/${person.id}/edit`}
-                        className="hover:underline"
-                      >
-                        {t.common.edit}
-                      </Link>
-                      <DeleteButton
-                        action={deletePerson.bind(null, customer.id, person.id)}
-                        confirmMessage={interpolate(c.confirmDeletePerson, {
-                          name: `${person.name} ${person.surname}`,
-                        })}
-                        labels={labels}
-                      />
-                    </div>
-                  </td>
+          <div className="overflow-x-auto print:overflow-visible">
+            <table className="mt-3 w-full text-left text-sm">
+              <thead className="border-b border-current/20">
+                <tr>
+                  <th className="py-2 pr-3 font-medium">{c.name}</th>
+                  <th className="py-2 pr-3 font-medium">{c.mail}</th>
+                  <th className="py-2 pr-3 font-medium">{c.phone}</th>
+                  <th className="py-2 pr-3 font-medium">{c.user}</th>
+                  <th className="py-2">
+                    <span className="sr-only">{t.common.actions}</span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {customer.persons.map((person) => (
+                  <tr
+                    key={person.id}
+                    className="border-b border-current/10 align-top"
+                  >
+                    <td className="py-2 pr-3">
+                      {person.name} {person.surname}
+                    </td>
+                    <td className="py-2 pr-3">{person.mail}</td>
+                    <td className="py-2 pr-3">{person.phone ?? "—"}</td>
+                    <td className="py-2 pr-3">
+                      <UserControls
+                        {...userControlProps(person, {
+                          lockedMails,
+                          currentUserId: admin.id,
+                          formatTime: format.time,
+                          t: t.users,
+                        })}
+                      />
+                    </td>
+                    <td className="py-2">
+                      <div className="flex items-start justify-end gap-4">
+                        <Link
+                          href={`${base}/persons/${person.id}/edit`}
+                          className="hover:underline"
+                        >
+                          {t.common.edit}
+                        </Link>
+                        <DeleteButton
+                          action={deletePerson.bind(
+                            null,
+                            customer.id,
+                            person.id,
+                          )}
+                          confirmMessage={interpolate(c.confirmDeletePerson, {
+                            name: `${person.name} ${person.surname}`,
+                          })}
+                          labels={labels}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
 
@@ -170,59 +176,61 @@ async function CustomerDetail({ params }: { params: Promise<{ id: string }> }) {
         {customer.addresses.length === 0 ? (
           <p className="mt-3 text-sm opacity-70">{c.addressesEmpty}</p>
         ) : (
-          <table className="mt-3 w-full text-left text-sm">
-            <thead className="border-b border-current/20">
-              <tr>
-                <th className="py-2 pr-3 font-medium">{c.addressName}</th>
-                <th className="py-2 pr-3 font-medium">{c.address}</th>
-                <th className="py-2 pr-3 font-medium">{c.city}</th>
-                <th className="py-2">
-                  <span className="sr-only">{t.common.actions}</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {customer.addresses.map((address) => (
-                <tr
-                  key={address.id}
-                  className="border-b border-current/10 align-top"
-                >
-                  <td className="py-2 pr-3 font-medium">{address.name}</td>
-                  <td className="py-2 pr-3">
-                    {address.address}
-                    {address.zipCode && ` (${address.zipCode})`}
-                    {address.description && (
-                      <span className="block text-xs opacity-70">
-                        {address.description}
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-2 pr-3">{address.city.name}</td>
-                  <td className="py-2">
-                    <div className="flex items-start justify-end gap-4">
-                      <Link
-                        href={`${base}/addresses/${address.id}/edit`}
-                        className="hover:underline"
-                      >
-                        {t.common.edit}
-                      </Link>
-                      <DeleteButton
-                        action={deleteAddress.bind(
-                          null,
-                          customer.id,
-                          address.id,
-                        )}
-                        confirmMessage={interpolate(c.confirmDeleteAddress, {
-                          name: address.name,
-                        })}
-                        labels={labels}
-                      />
-                    </div>
-                  </td>
+          <div className="overflow-x-auto print:overflow-visible">
+            <table className="mt-3 w-full text-left text-sm">
+              <thead className="border-b border-current/20">
+                <tr>
+                  <th className="py-2 pr-3 font-medium">{c.addressName}</th>
+                  <th className="py-2 pr-3 font-medium">{c.address}</th>
+                  <th className="py-2 pr-3 font-medium">{c.city}</th>
+                  <th className="py-2">
+                    <span className="sr-only">{t.common.actions}</span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {customer.addresses.map((address) => (
+                  <tr
+                    key={address.id}
+                    className="border-b border-current/10 align-top"
+                  >
+                    <td className="py-2 pr-3 font-medium">{address.name}</td>
+                    <td className="py-2 pr-3">
+                      {address.address}
+                      {address.zipCode && ` (${address.zipCode})`}
+                      {address.description && (
+                        <span className="block text-xs opacity-70">
+                          {address.description}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2 pr-3">{address.city.name}</td>
+                    <td className="py-2">
+                      <div className="flex items-start justify-end gap-4">
+                        <Link
+                          href={`${base}/addresses/${address.id}/edit`}
+                          className="hover:underline"
+                        >
+                          {t.common.edit}
+                        </Link>
+                        <DeleteButton
+                          action={deleteAddress.bind(
+                            null,
+                            customer.id,
+                            address.id,
+                          )}
+                          confirmMessage={interpolate(c.confirmDeleteAddress, {
+                            name: address.name,
+                          })}
+                          labels={labels}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </>

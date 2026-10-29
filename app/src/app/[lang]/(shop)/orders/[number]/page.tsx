@@ -27,7 +27,7 @@ export default async function OrderPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-4xl p-4 sm:p-8">
+    <main className="mx-auto w-full max-w-4xl p-4 sm:p-4 sm:p-8">
       <Link href="/orders" className="text-sm hover:underline">
         ← {t.orders.title}
       </Link>

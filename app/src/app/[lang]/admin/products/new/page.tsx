@@ -16,7 +16,7 @@ export default async function NewProductPage() {
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-8">
+    <main className="mx-auto w-full max-w-2xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.products.newTitle}</h1>
       {/* Las opciones salen de la DB: va en Suspense. */}
       <Suspense

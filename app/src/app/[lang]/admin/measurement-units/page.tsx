@@ -19,7 +19,7 @@ export default async function MeasurementUnitsPage() {
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-3xl p-8">
+    <main className="mx-auto w-full max-w-3xl p-4 sm:p-8">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{t.measurementUnits.title}</h1>
         <Link href="/admin/measurement-units/new" className={buttonClass()}>
@@ -54,62 +54,66 @@ async function MeasurementUnitsTable() {
   }
 
   return (
-    <table className="mt-6 w-full text-left text-sm">
-      <thead className="border-b border-current/20">
-        <tr>
-          <th className="py-2 font-medium">{t.measurementUnits.name}</th>
-          <th className="py-2 font-medium">{t.measurementUnits.description}</th>
-          <th className="py-2 font-medium">{t.measurementUnits.decimals}</th>
-          <th className="py-2 text-right font-medium">
-            {t.measurementUnits.products}
-          </th>
-          <th className="py-2">
-            <span className="sr-only">{t.common.actions}</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {units.map((unit) => (
-          <tr key={unit.id} className="border-b border-current/10 align-top">
-            <td className="py-2 font-mono">{unit.name}</td>
-            <td className="py-2">{unit.description ?? "—"}</td>
-            <td className="py-2">
-              {unit.allowsDecimals ? t.common.yes : t.common.no}
-            </td>
-            <td className="py-2 text-right">
-              {format.number(unit._count.products)}
-            </td>
-            <td className="py-2">
-              <div className="flex items-start justify-end gap-4">
-                <Link
-                  href={`/admin/measurement-units/${unit.id}/edit`}
-                  className="hover:underline"
-                >
-                  {t.common.edit}
-                </Link>
-                <DeleteButton
-                  action={deleteMeasurementUnit.bind(null, unit.id)}
-                  confirmMessage={interpolate(
-                    t.measurementUnits.confirmDelete,
-                    {
-                      name: unit.name,
-                    },
-                  )}
-                  labels={{
-                    delete: t.common.delete,
-                    deleting: t.common.deleting,
-                  }}
-                  disabledReason={
-                    unit._count.products > 0
-                      ? t.measurementUnits.hasProducts
-                      : undefined
-                  }
-                />
-              </div>
-            </td>
+    <div className="overflow-x-auto print:overflow-visible">
+      <table className="mt-6 w-full text-left text-sm">
+        <thead className="border-b border-current/20">
+          <tr>
+            <th className="py-2 font-medium">{t.measurementUnits.name}</th>
+            <th className="py-2 font-medium">
+              {t.measurementUnits.description}
+            </th>
+            <th className="py-2 font-medium">{t.measurementUnits.decimals}</th>
+            <th className="py-2 text-right font-medium">
+              {t.measurementUnits.products}
+            </th>
+            <th className="py-2">
+              <span className="sr-only">{t.common.actions}</span>
+            </th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {units.map((unit) => (
+            <tr key={unit.id} className="border-b border-current/10 align-top">
+              <td className="py-2 font-mono">{unit.name}</td>
+              <td className="py-2">{unit.description ?? "—"}</td>
+              <td className="py-2">
+                {unit.allowsDecimals ? t.common.yes : t.common.no}
+              </td>
+              <td className="py-2 text-right">
+                {format.number(unit._count.products)}
+              </td>
+              <td className="py-2">
+                <div className="flex items-start justify-end gap-4">
+                  <Link
+                    href={`/admin/measurement-units/${unit.id}/edit`}
+                    className="hover:underline"
+                  >
+                    {t.common.edit}
+                  </Link>
+                  <DeleteButton
+                    action={deleteMeasurementUnit.bind(null, unit.id)}
+                    confirmMessage={interpolate(
+                      t.measurementUnits.confirmDelete,
+                      {
+                        name: unit.name,
+                      },
+                    )}
+                    labels={{
+                      delete: t.common.delete,
+                      deleting: t.common.deleting,
+                    }}
+                    disabledReason={
+                      unit._count.products > 0
+                        ? t.measurementUnits.hasProducts
+                        : undefined
+                    }
+                  />
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

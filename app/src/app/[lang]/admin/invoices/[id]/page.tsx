@@ -32,7 +32,7 @@ export default async function InvoicePage({
 }: PageProps<"/[lang]/admin/invoices/[id]">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <Link href="/admin/invoices" className="text-sm hover:underline">
         ← {t.invoices.title}
       </Link>
@@ -168,54 +168,58 @@ async function Invoice({ params }: { params: Promise<{ id: string }> }) {
         </p>
       )}
 
-      <table className="mt-6 w-full text-left text-sm">
-        <thead className="border-b border-current/20">
-          <tr>
-            <th className="py-2 pr-3 font-medium">{c.product}</th>
-            <th className="py-2 pr-3 text-right font-medium">{c.quantity}</th>
-            <th className="py-2 pr-3 text-right font-medium">{c.unitCost}</th>
-            <th className="py-2 pr-3 text-right font-medium">{c.orderCost}</th>
-            <th className="py-2 text-right font-medium">{c.lineTotal}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {invoice.items.map((item) => {
-            const orderCost = order.items.find(
-              (line) => line.productId === item.productId,
-            )?.unitCost;
-            return (
-              <tr key={item.productId} className="border-b border-current/10">
-                <td className="py-2 pr-3">
-                  {item.product.name}
-                  <span className="block font-mono text-xs opacity-70">
-                    {item.product.sku}
-                  </span>
-                </td>
-                <td className="py-2 pr-3 text-right whitespace-nowrap">
-                  {format.number(item.quantity)}{" "}
-                  {item.product.measurementUnit.name}
-                </td>
-                <td className="py-2 pr-3 text-right whitespace-nowrap">
-                  {format.money(item.unitCost)}
-                </td>
-                <td className="py-2 pr-3 text-right whitespace-nowrap opacity-70">
-                  {orderCost !== undefined ? format.money(orderCost) : "—"}
-                </td>
-                <td className="py-2 text-right whitespace-nowrap">
-                  {format.money(
-                    lineTotals({
-                      price: item.unitCost,
-                      rate: item.taxRate,
-                      quantity: item.quantity,
-                      weight: "0",
-                    }).net,
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="overflow-x-auto print:overflow-visible">
+        <table className="mt-6 w-full text-left text-sm">
+          <thead className="border-b border-current/20">
+            <tr>
+              <th className="py-2 pr-3 font-medium">{c.product}</th>
+              <th className="py-2 pr-3 text-right font-medium">{c.quantity}</th>
+              <th className="py-2 pr-3 text-right font-medium">{c.unitCost}</th>
+              <th className="py-2 pr-3 text-right font-medium">
+                {c.orderCost}
+              </th>
+              <th className="py-2 text-right font-medium">{c.lineTotal}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoice.items.map((item) => {
+              const orderCost = order.items.find(
+                (line) => line.productId === item.productId,
+              )?.unitCost;
+              return (
+                <tr key={item.productId} className="border-b border-current/10">
+                  <td className="py-2 pr-3">
+                    {item.product.name}
+                    <span className="block font-mono text-xs opacity-70">
+                      {item.product.sku}
+                    </span>
+                  </td>
+                  <td className="py-2 pr-3 text-right whitespace-nowrap">
+                    {format.number(item.quantity)}{" "}
+                    {item.product.measurementUnit.name}
+                  </td>
+                  <td className="py-2 pr-3 text-right whitespace-nowrap">
+                    {format.money(item.unitCost)}
+                  </td>
+                  <td className="py-2 pr-3 text-right whitespace-nowrap opacity-70">
+                    {orderCost !== undefined ? format.money(orderCost) : "—"}
+                  </td>
+                  <td className="py-2 text-right whitespace-nowrap">
+                    {format.money(
+                      lineTotals({
+                        price: item.unitCost,
+                        rate: item.taxRate,
+                        quantity: item.quantity,
+                        weight: "0",
+                      }).net,
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
       <dl className="mt-4 ml-auto flex w-full max-w-xs flex-col gap-1 text-sm">
         <div className="flex justify-between">

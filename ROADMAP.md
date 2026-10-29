@@ -308,19 +308,23 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
 
 ## Fase 11 — Puesta a punto para BETA 🔄
 
-| PR   | Contenido                                                              | Estado      |
-| ---- | ---------------------------------------------------------------------- | ----------- |
-| 11.1 | Revisión de seguridad y permisos                                       | 🟡 PR listo |
-| 11.2 | Pasada de UI en celular                                                | ⏳          |
-| 11.3 | Datos de demo en el seed (con una variable de entorno)                 | ⏳          |
-| 11.4 | Producción: Caddy con HTTPS, backups automáticos y guía de instalación | ⏳          |
-| 11.5 | Tests end-to-end con Playwright en el CI (usan los datos de demo)      | ⏳          |
-| 11.6 | Salto a BETA con `release-as`                                          | ⏳          |
+| PR   | Contenido                                                              | Estado           |
+| ---- | ---------------------------------------------------------------------- | ---------------- |
+| 11.1 | Revisión de seguridad y permisos                                       | ✅ v1.38.1-alpha |
+| 11.2 | Pasada de UI en celular                                                | 🟡 PR listo      |
+| 11.3 | Datos de demo en el seed (con una variable de entorno)                 | ⏳               |
+| 11.4 | Producción: Caddy con HTTPS, backups automáticos y guía de instalación | ⏳               |
+| 11.5 | Tests end-to-end con Playwright en el CI (usan los datos de demo)      | ⏳               |
+| 11.6 | Salto a BETA con `release-as`                                          | ⏳               |
 
 **Decisiones**
 
 - Se instala en un **VPS con Docker Compose** y **Caddy** delante, que saca el certificado HTTPS solo
   (hace falta un dominio). El puerto de la app no se publica: solo entra por Caddy.
+- Certificado según `TLS_MODE` en el `.env`: `auto` (por defecto, Let's Encrypt/ZeroSSL con renovación
+  sola), `custom` (certificado propio o del proveedor en `./certs`, PEM con la cadena completa; se
+  renueva a mano y se recarga Caddy) o `proxy` (el proveedor termina el HTTPS: Caddy escucha HTTP y
+  confía en ese proxy para la IP del cliente). La guía cubre los tres casos y la conversión de formatos.
 - **Backups automáticos** en el compose: `pg_dump` diario de la base y copia de `uploads` (imágenes y
   firmas), guardando los últimos días; más la guía para restaurar.
 - **Datos de demo dentro del seed**, activados con una variable de entorno (distribuidora de alimentos
@@ -332,6 +336,9 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
   y el repartidor sus paradas. Se sumaron cabeceras de seguridad, la neutralización de fórmulas en el
   CSV, el límite de 10 MB para fotos de celular y que un repartidor vea solo los archivos de sus hojas.
   Queda para más adelante una CSP (el script inline del tema necesita nonce).
+- 11.2: todas las tablas van en un contenedor con scroll horizontal (que en papel no corta columnas), los
+  márgenes de las pantallas bajan a 16 px en celular, los montos grandes del inicio se achican y el botón
+  "Agregar" de las tarjetas del catálogo baja a su propia línea.
 
 ## Fase 12 — Pedido cargado por el admin ⏳
 

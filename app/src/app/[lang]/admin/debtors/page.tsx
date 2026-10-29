@@ -26,7 +26,7 @@ export default async function DebtorsPage() {
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.debtors.title}</h1>
       <p className="mt-1 text-sm opacity-70">{t.debtors.intro}</p>
       {/* Los saldos salen de la DB en cada request: van en Suspense. */}
@@ -101,7 +101,7 @@ function BalancesTable({
 }) {
   const d = t.debtors;
   return (
-    <div className="mt-4 overflow-x-auto">
+    <div className="mt-4 overflow-x-auto print:overflow-visible">
       <table className="w-full text-left text-sm">
         <thead className="border-b border-current/20">
           <tr>

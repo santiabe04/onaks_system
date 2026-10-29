@@ -18,7 +18,7 @@ export default async function NewCategoryPage({
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-md p-8">
+    <main className="mx-auto w-full max-w-md p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.categories.newTitle}</h1>
       {/* Las opciones de padre salen de la DB y `?parent=` de la URL. */}
       <Suspense

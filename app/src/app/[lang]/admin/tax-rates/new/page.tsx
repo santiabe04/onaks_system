@@ -12,7 +12,7 @@ export default async function NewTaxRatePage() {
   const t = await getT();
 
   return (
-    <main className="mx-auto w-full max-w-md p-8">
+    <main className="mx-auto w-full max-w-md p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.taxRates.newTitle}</h1>
       <TaxRateForm
         action={createTaxRate}

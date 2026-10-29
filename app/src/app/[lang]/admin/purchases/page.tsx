@@ -23,7 +23,7 @@ export default async function PurchasesPage({
 }: PageProps<"/[lang]/admin/purchases">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{t.purchases.title}</h1>
         <Link href={`${PATH}/new`} className={buttonClass()}>
@@ -109,45 +109,49 @@ async function Purchases({
       {orders.length === 0 ? (
         <p className="mt-6 text-sm opacity-70">{p.empty}</p>
       ) : (
-        <table className="mt-4 w-full text-left text-sm">
-          <thead className="border-b border-current/20">
-            <tr>
-              <th className="py-2 pr-3 font-medium">{p.columns.number}</th>
-              <th className="py-2 pr-3 font-medium">{p.supplier}</th>
-              <th className="py-2 pr-3 font-medium">{p.columns.date}</th>
-              <th className="py-2 pr-3 font-medium">{p.expected}</th>
-              <th className="py-2 pr-3 font-medium">{p.columns.state}</th>
-              <th className="py-2 text-right font-medium">{p.columns.total}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order.number} className="border-b border-current/10">
-                <td className="py-2 pr-3">
-                  <Link
-                    href={`${PATH}/${order.number}`}
-                    className="font-medium hover:underline"
-                  >
-                    #{order.number}
-                  </Link>
-                </td>
-                <td className="py-2 pr-3">
-                  {order.supplier.tradeName ?? order.supplier.legalName}
-                </td>
-                <td className="py-2 pr-3 whitespace-nowrap">
-                  {format.date(order.createdAt)}
-                </td>
-                <td className="py-2 pr-3 whitespace-nowrap">
-                  {order.expectedDate ? day(order.expectedDate) : "—"}
-                </td>
-                <td className="py-2 pr-3">{p.states[order.state]}</td>
-                <td className="py-2 text-right whitespace-nowrap">
-                  {format.money(order.total)}
-                </td>
+        <div className="overflow-x-auto print:overflow-visible">
+          <table className="mt-4 w-full text-left text-sm">
+            <thead className="border-b border-current/20">
+              <tr>
+                <th className="py-2 pr-3 font-medium">{p.columns.number}</th>
+                <th className="py-2 pr-3 font-medium">{p.supplier}</th>
+                <th className="py-2 pr-3 font-medium">{p.columns.date}</th>
+                <th className="py-2 pr-3 font-medium">{p.expected}</th>
+                <th className="py-2 pr-3 font-medium">{p.columns.state}</th>
+                <th className="py-2 text-right font-medium">
+                  {p.columns.total}
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order.number} className="border-b border-current/10">
+                  <td className="py-2 pr-3">
+                    <Link
+                      href={`${PATH}/${order.number}`}
+                      className="font-medium hover:underline"
+                    >
+                      #{order.number}
+                    </Link>
+                  </td>
+                  <td className="py-2 pr-3">
+                    {order.supplier.tradeName ?? order.supplier.legalName}
+                  </td>
+                  <td className="py-2 pr-3 whitespace-nowrap">
+                    {format.date(order.createdAt)}
+                  </td>
+                  <td className="py-2 pr-3 whitespace-nowrap">
+                    {order.expectedDate ? day(order.expectedDate) : "—"}
+                  </td>
+                  <td className="py-2 pr-3">{p.states[order.state]}</td>
+                  <td className="py-2 text-right whitespace-nowrap">
+                    {format.money(order.total)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </>
   );

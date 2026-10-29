@@ -147,7 +147,7 @@ export function ConfirmPickingForm({
       className="flex flex-col gap-4 text-sm"
     >
       <p className="opacity-70">{t.confirmHint}</p>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto print:overflow-visible">
         <table className="w-full text-left">
           <thead className="border-b border-current/20">
             <tr>

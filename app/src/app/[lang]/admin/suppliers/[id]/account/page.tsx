@@ -29,7 +29,7 @@ export default async function SupplierAccountPage({
 }: PageProps<"/[lang]/admin/suppliers/[id]/account">) {
   const t = await getT();
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       {/* params y la cuenta son de request: van en Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
@@ -187,98 +187,102 @@ async function Account({ params }: { params: Promise<{ id: string }> }) {
       {open.length === 0 ? (
         <p className="mt-2 text-sm opacity-70">{a.noOpenInvoices}</p>
       ) : (
-        <table className="mt-3 w-full text-left text-sm">
-          <thead className="border-b border-current/20">
-            <tr>
-              <th className="py-2 pr-3 font-medium">{c.invoice}</th>
-              <th className="py-2 pr-3 font-medium">{c.due}</th>
-              <th className="py-2 pr-3 text-right font-medium">{c.total}</th>
-              <th className="py-2 pr-3 text-right font-medium">{c.paid}</th>
-              <th className="py-2 text-right font-medium">{c.outstanding}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {open.map((row) => (
-              <tr key={row.id} className="border-b border-current/10">
-                <td className="py-2 pr-3">
-                  <Link
-                    href={`/admin/invoices/${row.id}`}
-                    className="font-mono hover:underline"
-                  >
-                    {formatInvoiceNumber(row.invoice)}
-                  </Link>
-                </td>
-                <td
-                  className={`py-2 pr-3 whitespace-nowrap ${row.overdue ? "text-red-600" : ""}`}
-                >
-                  {formatDay(format, row.dueOn)}
-                  {row.overdue && ` · ${a.overdueTag}`}
-                </td>
-                <td className="py-2 pr-3 text-right whitespace-nowrap">
-                  {format.money(row.invoice.total)}
-                </td>
-                <td className="py-2 pr-3 text-right whitespace-nowrap">
-                  {format.money(row.paid)}
-                </td>
-                <td className="py-2 text-right font-semibold whitespace-nowrap">
-                  {format.money(row.outstanding)}
-                </td>
+        <div className="overflow-x-auto print:overflow-visible">
+          <table className="mt-3 w-full text-left text-sm">
+            <thead className="border-b border-current/20">
+              <tr>
+                <th className="py-2 pr-3 font-medium">{c.invoice}</th>
+                <th className="py-2 pr-3 font-medium">{c.due}</th>
+                <th className="py-2 pr-3 text-right font-medium">{c.total}</th>
+                <th className="py-2 pr-3 text-right font-medium">{c.paid}</th>
+                <th className="py-2 text-right font-medium">{c.outstanding}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {open.map((row) => (
+                <tr key={row.id} className="border-b border-current/10">
+                  <td className="py-2 pr-3 whitespace-nowrap">
+                    <Link
+                      href={`/admin/invoices/${row.id}`}
+                      className="font-mono hover:underline"
+                    >
+                      {formatInvoiceNumber(row.invoice)}
+                    </Link>
+                  </td>
+                  <td
+                    className={`py-2 pr-3 whitespace-nowrap ${row.overdue ? "text-red-600" : ""}`}
+                  >
+                    {formatDay(format, row.dueOn)}
+                    {row.overdue && ` · ${a.overdueTag}`}
+                  </td>
+                  <td className="py-2 pr-3 text-right whitespace-nowrap">
+                    {format.money(row.invoice.total)}
+                  </td>
+                  <td className="py-2 pr-3 text-right whitespace-nowrap">
+                    {format.money(row.paid)}
+                  </td>
+                  <td className="py-2 text-right font-semibold whitespace-nowrap">
+                    {format.money(row.outstanding)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <h2 className="mt-8 text-lg font-medium">{a.movements}</h2>
       {withBalance.length === 0 ? (
         <p className="mt-2 text-sm opacity-70">{a.noMovements}</p>
       ) : (
-        <table className="mt-3 w-full text-left text-sm">
-          <thead className="border-b border-current/20">
-            <tr>
-              <th className="py-2 pr-3 font-medium">{c.date}</th>
-              <th className="py-2 pr-3 font-medium">{c.concept}</th>
-              <th className="py-2 pr-3 text-right font-medium">{c.charge}</th>
-              <th className="py-2 pr-3 text-right font-medium">{c.credit}</th>
-              <th className="py-2 text-right font-medium">{c.balance}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {withBalance.map((row) => (
-              <tr key={row.key} className="border-b border-current/10">
-                <td className="py-2 pr-3 whitespace-nowrap">
-                  {formatDay(format, row.day)}
-                </td>
-                <td className="py-2 pr-3">
-                  <Link
-                    href={row.href}
-                    className={`hover:underline ${row.struck ? "line-through opacity-60" : ""}`}
-                  >
-                    {row.concept}
-                  </Link>
-                  {row.tag && (
-                    <span className="ml-2 text-xs text-amber-700 dark:text-amber-400">
-                      {row.tag}
-                    </span>
-                  )}
-                </td>
-                <td className="py-2 pr-3 text-right whitespace-nowrap">
-                  {row.amount > BigInt(0)
-                    ? format.money(fromCents(row.amount))
-                    : ""}
-                </td>
-                <td className="py-2 pr-3 text-right whitespace-nowrap">
-                  {row.amount < BigInt(0)
-                    ? format.money(fromCents(-row.amount))
-                    : ""}
-                </td>
-                <td className="py-2 text-right whitespace-nowrap">
-                  {format.money(fromCents(row.balance))}
-                </td>
+        <div className="overflow-x-auto print:overflow-visible">
+          <table className="mt-3 w-full text-left text-sm">
+            <thead className="border-b border-current/20">
+              <tr>
+                <th className="py-2 pr-3 font-medium">{c.date}</th>
+                <th className="py-2 pr-3 font-medium">{c.concept}</th>
+                <th className="py-2 pr-3 text-right font-medium">{c.charge}</th>
+                <th className="py-2 pr-3 text-right font-medium">{c.credit}</th>
+                <th className="py-2 text-right font-medium">{c.balance}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {withBalance.map((row) => (
+                <tr key={row.key} className="border-b border-current/10">
+                  <td className="py-2 pr-3 whitespace-nowrap">
+                    {formatDay(format, row.day)}
+                  </td>
+                  <td className="py-2 pr-3">
+                    <Link
+                      href={row.href}
+                      className={`hover:underline ${row.struck ? "line-through opacity-60" : ""}`}
+                    >
+                      {row.concept}
+                    </Link>
+                    {row.tag && (
+                      <span className="ml-2 text-xs text-amber-700 dark:text-amber-400">
+                        {row.tag}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-3 text-right whitespace-nowrap">
+                    {row.amount > BigInt(0)
+                      ? format.money(fromCents(row.amount))
+                      : ""}
+                  </td>
+                  <td className="py-2 pr-3 text-right whitespace-nowrap">
+                    {row.amount < BigInt(0)
+                      ? format.money(fromCents(-row.amount))
+                      : ""}
+                  </td>
+                  <td className="py-2 text-right whitespace-nowrap">
+                    {format.money(fromCents(row.balance))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </>
   );
