@@ -255,6 +255,8 @@ action>` después de cada action: los no controlados pierden lo tipeado con un e
   con `DEMO_PASSWORD` (`demo1234`, sin cambio obligatorio): `admin`, `reparto`, `patitas`, `sanroque`,
   `varela`. Solo carga en una base sin productos y falla con `NODE_ENV=production`. Los tests de punta a
   punta usan esta demo.
+- El seed corre en la imagen `migrator` (Dockerfile), que solo tiene `prisma/` y `src/lib`: lo que
+  importe el seed tiene que estar ahí (y sin el alias `@/`).
 
 ## Comandos (en `app/`)
 
