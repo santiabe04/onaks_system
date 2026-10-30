@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.42.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.41.0-beta...v1.42.0-beta) (2026-10-30)
+
+
+### Features
+
+* **orders:** let admins place orders on behalf of customers ([#107](https://github.com/santiabe04/onaks_system/issues/107)) ([926f1c4](https://github.com/santiabe04/onaks_system/commit/926f1c4879986519b68afdf40011ac264b5347a0))
+
 ## [1.41.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.40.0-alpha...v1.41.0-beta) (2026-10-29)
 
 
