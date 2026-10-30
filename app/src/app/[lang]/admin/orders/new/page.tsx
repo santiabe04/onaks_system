@@ -41,7 +41,7 @@ async function NewOrder({
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const { customer } = await searchParams;
 
-  const [customers, products] = await Promise.all([
+  const [customers, products, priceLists] = await Promise.all([
     db.customer.findMany({
       where: { deletedAt: null },
       orderBy: { tradeName: "asc" },
@@ -49,6 +49,9 @@ async function NewOrder({
         id: true,
         tradeName: true,
         cuit: true,
+        priceListId: true,
+        priceList: { select: { name: true } },
+        discountRate: true,
         addresses: {
           where: { deletedAt: null },
           orderBy: { name: "asc" },
@@ -75,6 +78,14 @@ async function NewOrder({
         measurementUnit: { select: { name: true, allowsDecimals: true } },
       },
     }),
+    // El precio depende del cliente que se elija: van todas las listas.
+    db.priceList.findMany({
+      select: {
+        id: true,
+        adjustment: true,
+        items: { select: { productId: true, price: true } },
+      },
+    }),
   ]);
 
   return (
@@ -83,6 +94,9 @@ async function NewOrder({
         id: row.id,
         name: row.tradeName,
         cuit: formatCuit(row.cuit),
+        priceListId: row.priceListId,
+        priceListName: row.priceList?.name ?? null,
+        discount: row.discountRate.toString(),
         addresses: row.addresses.map((address) => ({
           id: address.id,
           name: address.name,
@@ -100,6 +114,17 @@ async function NewOrder({
         rate: row.taxRate.rate.toString(),
         weight: row.weight.toString(),
       }))}
+      priceLists={Object.fromEntries(
+        priceLists.map((list) => [
+          list.id,
+          {
+            adjustment: list.adjustment.toString(),
+            overrides: Object.fromEntries(
+              list.items.map((item) => [item.productId, item.price.toString()]),
+            ),
+          },
+        ]),
+      )}
       initialCustomerId={
         isCuid(customer) && customers.some((row) => row.id === customer)
           ? customer

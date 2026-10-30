@@ -9,11 +9,14 @@ import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth";
 import { cartTotals } from "@/lib/cart";
 import { VISIBLE_PRODUCT } from "@/lib/catalog";
+import { customerPrice, saleDiscount } from "@/lib/customer-price";
 import { db } from "@/lib/db";
 import { isCuid } from "@/lib/ids";
+import { getPricing } from "@/lib/pricing-queries";
 
 // Pedido cargado por el admin en nombre de un cliente: queda Pendiente, con
-// el admin como quien lo hizo, precios de lista del momento y efectivo. Mismo
+// el admin como quien lo hizo, los precios del cliente (su lista y su
+// descuento) del momento y efectivo. Mismo
 // orden de bloqueo que el checkout: la cuenta del cliente primero.
 
 export type NewOrderState = { error?: string };
@@ -70,13 +73,19 @@ export async function createOrderForCustomer(
       if (!address) throw new NewOrderError(t.address);
       await lockAccount(tx, customerId);
 
-      const items = lines.map((line) => ({
-        line,
-        product: products.find((product) => product.id === line.productId)!,
-      }));
+      const pricing = await getPricing(
+        customerId,
+        lines.map((line) => line.productId),
+        tx,
+      );
+      const items = lines.map((line) => {
+        const product = products.find((row) => row.id === line.productId)!;
+        const price = customerPrice(product.id, product.price, pricing);
+        return { line, product, price };
+      });
       const totals = cartTotals(
-        items.map(({ line, product }) => ({
-          price: product.price,
+        items.map(({ line, product, price }) => ({
+          price,
           rate: product.taxRate.rate,
           quantity: line.quantity,
           weight: product.weight,
@@ -88,13 +97,19 @@ export async function createOrderForCustomer(
           userId: user.id,
           subTotal: totals.net,
           tax: totals.tax,
-          discount: "0",
+          discount: saleDiscount(
+            items.map(({ line, product, price }) => ({
+              listPrice: product.price,
+              price,
+              quantity: line.quantity,
+            })),
+          ),
           total: totals.total,
           paymentMethod: "CASH",
           notes,
           items: {
-            create: items.map(({ line, product }) =>
-              saleItemSnapshot(product, line.quantity),
+            create: items.map(({ line, product, price }) =>
+              saleItemSnapshot(product, line.quantity, price),
             ),
           },
         },

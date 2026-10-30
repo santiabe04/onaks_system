@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getT } from "@/i18n/server";
 import { formatCuit } from "@/lib/cuit";
+import { db } from "@/lib/db";
+import { formatters } from "@/i18n/format";
+import { getLocale } from "@/i18n/server";
+import { fractionToPercent } from "@/lib/tax-rate";
 import { updateCustomer } from "../../actions";
 import { loadCustomer } from "../../data";
 import { CustomerForm } from "../../forms";
@@ -31,7 +35,15 @@ export default async function EditCustomerPage({
 
 async function EditForm({ params }: { params: Promise<{ id: string }> }) {
   const customer = await loadCustomer((await params).id);
-  const t = await getT();
+  const [t, locale, priceLists] = await Promise.all([
+    getT(),
+    getLocale(),
+    db.priceList.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+  ]);
+  const discount = fractionToPercent(customer.discountRate);
 
   return (
     <CustomerForm
@@ -41,8 +53,11 @@ async function EditForm({ params }: { params: Promise<{ id: string }> }) {
         legalName: customer.legalName,
         cuit: formatCuit(customer.cuit),
         taxCondition: customer.taxCondition,
+        priceListId: customer.priceListId ?? "",
+        discount: discount ? formatters(locale).number(discount) : "",
       }}
       taxConditions={t.taxConditions}
+      priceLists={priceLists}
       cancelHref={`/admin/customers/${customer.id}`}
       submitLabel={t.common.save}
       t={t.customers}

@@ -76,11 +76,13 @@ export function CustomerForm({
   action,
   defaultValues,
   taxConditions,
+  priceLists,
   ...props
 }: Common & {
   action: Action<CustomerValues>;
   defaultValues: CustomerValues;
   taxConditions: Dictionary["taxConditions"];
+  priceLists: { id: string; name: string }[];
 }) {
   const { t } = props;
   const [state, formAction, pending] = useActionState(action, {});
@@ -138,6 +140,32 @@ export function CustomerForm({
               </option>
             ))}
           </select>
+        </Field>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={t.priceList} error={errors?.priceListId}>
+          <select
+            key={`pl${values.priceListId}`}
+            name="priceListId"
+            defaultValue={values.priceListId}
+            className={selectClass}
+          >
+            <option value="">{t.noPriceList}</option>
+            {priceLists.map((list) => (
+              <option key={list.id} value={list.id}>
+                {list.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label={t.discount} error={errors?.discount}>
+          <Input
+            name="discount"
+            defaultValue={values.discount}
+            inputMode="decimal"
+            placeholder="0"
+          />
+          <span className="text-xs opacity-60">{t.discountHint}</span>
         </Field>
       </div>
       <Footer pending={pending} errors={errors?.form} {...props} />

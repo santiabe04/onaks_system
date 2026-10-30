@@ -3,7 +3,7 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 29/10/2026: fases 0 a 11 terminadas, en BETA (v1.41.0-beta). Siguen las funciones nuevas
+Estado al 30/10/2026: fases 0 a 12 terminadas, en BETA (v1.42.0-beta). Siguen las funciones nuevas
 (fases 12 a 22); facturación electrónica y app del repartidor quedan al fondo.
 
 | Fase | Contenido                                                        | Estado      |
@@ -20,8 +20,8 @@ Estado al 29/10/2026: fases 0 a 11 terminadas, en BETA (v1.41.0-beta). Siguen la
 | 9    | Órdenes de compra a proveedores                                  | ✅          |
 | 10   | Lista de picking                                                 | ✅          |
 | 11   | Puesta a punto para BETA                                         | ✅          |
-| 12   | Pedido cargado por el admin en nombre del cliente                | 🟡          |
-| 13   | Listas de precios y descuentos                                   | ⏳          |
+| 12   | Pedido cargado por el admin en nombre del cliente                | ✅          |
+| 13   | Listas de precios y descuentos                                   | 🟡          |
 | 14   | Reportes de ventas y margen                                      | ⏳          |
 | 15   | Avisos al cliente (mail y WhatsApp)                              | ⏳          |
 | 16   | Límite de crédito y bloqueo por deuda                            | ⏳          |
@@ -353,21 +353,27 @@ Estado al 29/10/2026: fases 0 a 11 terminadas, en BETA (v1.41.0-beta). Siguen la
   release sin cambios visibles en `app/`, así que el salto va con uno: la versión instalada al pie del
   menú del admin (solo con sesión). Después de publicar la 1.41.0-beta se saca `release-as`.
 
-## Fase 12 — Pedido cargado por el admin 🟡
+## Fase 12 — Pedido cargado por el admin ✅
 
 Pedidos que llegan por teléfono o WhatsApp. Definiciones: pantalla "Nuevo pedido" en Pedidos (y botón
 en la ficha del cliente), buscador de productos con lista propia (no toca el carrito del cliente),
 precios de lista y efectivo. Queda Pendiente con el admin como autor; el cliente lo ve como cargado por
 la distribuidora y lo cancela o pide cambiarlo como cualquier otro.
 
-| PR   | Contenido                                                     | Estado      |
-| ---- | ------------------------------------------------------------- | ----------- |
-| 12.1 | Nuevo pedido para un cliente (`/admin/orders/new`) + test e2e | 🟡 PR listo |
+| PR   | Contenido                                                     | Estado          |
+| ---- | ------------------------------------------------------------- | --------------- |
+| 12.1 | Nuevo pedido para un cliente (`/admin/orders/new`) + test e2e | ✅ v1.42.0-beta |
 
-## Fase 13 — Listas de precios y descuentos ⏳
+## Fase 13 — Listas de precios y descuentos 🟡
 
-- Listas de precios (por ejemplo pet shop, veterinaria, mayorista), descuento por cliente y
-  bonificaciones por cantidad. Base existente sin usar: tablas `discounts` y `used_discounts`.
+Definiciones: cada lista es un % sobre el precio base (negativo = más barato) con precio fijo opcional
+por producto; cada cliente tiene una lista (o ninguna: precio base) y un descuento propio sobre ella. El
+cliente ve su precio con el base tachado. Bonificaciones por cantidad: no por ahora. Las tablas
+`discounts` y `used_discounts` siguen sin usarse.
+
+| PR   | Contenido                                                                          | Estado      |
+| ---- | ---------------------------------------------------------------------------------- | ----------- |
+| 13.1 | Listas de precios, descuento por cliente y precios del cliente en tienda y pedidos | 🟡 PR listo |
 
 ## Fase 14 — Reportes de ventas y margen ⏳
 

@@ -9,6 +9,7 @@ import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { VISIBLE_PRODUCT } from "@/lib/catalog";
 import { CATALOG_PRODUCT_SELECT, toCatalogItem } from "@/lib/catalog-queries";
+import { getPricing } from "@/lib/pricing-queries";
 import { flattenCategoryTree } from "@/lib/category";
 import { db } from "@/lib/db";
 import { can } from "@/lib/permissions";
@@ -71,7 +72,8 @@ async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
     db.category.findMany({ select: { id: true, name: true, parentId: true } }),
   ]);
   const format = formatters(locale);
-  const item = toCatalogItem(product, locale, t.catalog);
+  const pricing = await getPricing(user.customerId, [product.id]);
+  const item = toCatalogItem(product, locale, t.catalog, pricing);
   const path = flattenCategoryTree(categories).find(
     (node) => node.id === product.categoryId,
   )?.path;
@@ -111,6 +113,11 @@ async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
             ` · ${interpolate(t.catalog.barcode, { code: product.barcode })}`}
         </p>
         <div>
+          {item.baseFinalPrice && (
+            <p className="text-sm line-through opacity-60">
+              {item.baseFinalPrice}
+            </p>
+          )}
           <p className="text-3xl font-semibold">{item.finalPrice}</p>
           <p className="text-sm opacity-70">{item.netLine}</p>
         </div>

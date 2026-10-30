@@ -7,7 +7,12 @@ import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { cartTotals, lineTotals } from "@/lib/cart";
-import { getCart, toCartLine, toFingerprintLine } from "@/lib/cart-queries";
+import {
+  cartDiscount,
+  getCart,
+  toCartLine,
+  toFingerprintLine,
+} from "@/lib/cart-queries";
 import { cartFingerprint } from "@/lib/cart-fingerprint";
 import { db } from "@/lib/db";
 import { CheckoutForm } from "./checkout-form";
@@ -39,7 +44,7 @@ async function Checkout() {
   const format = formatters(locale);
 
   const [{ available, unavailable }, addresses] = await Promise.all([
-    getCart(user.personId),
+    getCart(user.personId, user.customerId),
     db.customerAddress.findMany({
       // Las direcciones son de la empresa: cualquier persona usa cualquiera.
       where: { customerId: user.customerId ?? "", deletedAt: null },
@@ -62,6 +67,7 @@ async function Checkout() {
   });
 
   const totals = cartTotals(available.map(toCartLine));
+  const discount = cartDiscount(available);
 
   return (
     <>
@@ -125,6 +131,13 @@ async function Checkout() {
                 weight: format.number(totals.weight),
               })}
             </p>
+            {Number(discount) > 0 && (
+              <p className="text-xs opacity-70">
+                {interpolate(t.cart.discountIncluded, {
+                  amount: format.money(discount),
+                })}
+              </p>
+            )}
           </dl>
         </section>
 

@@ -15,6 +15,7 @@ export async function loadCustomer(id: string) {
   const customer = await db.customer.findFirst({
     where: { id, deletedAt: null },
     include: {
+      priceList: { select: { name: true } },
       persons: {
         where: { deletedAt: null },
         orderBy: [{ surname: "asc" }, { name: "asc" }],

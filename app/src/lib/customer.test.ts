@@ -54,6 +54,60 @@ describe("validateCustomerForm", () => {
       },
     });
   });
+
+  it("sin lista ni descuento: precio base", () => {
+    expect(
+      validateCustomerForm(
+        form({
+          tradeName: "Patitas",
+          legalName: "Patitas SRL",
+          cuit: "30-50001091-2",
+          taxCondition: "REGISTERED_TAXPAYER",
+        }),
+        t,
+      ),
+    ).toMatchObject({
+      ok: true,
+      data: { priceListId: null, discountRate: "0" },
+    });
+  });
+
+  it("toma la lista y el descuento como fracción", () => {
+    const priceListId = "tz4a98xxat96iws9zmbrgj3a";
+    const result = validateCustomerForm(
+      form({
+        tradeName: "Mascotas Varela",
+        legalName: "Mascotas Varela SRL",
+        cuit: "30-50001091-2",
+        taxCondition: "REGISTERED_TAXPAYER",
+        priceListId,
+        discount: "2,5",
+      }),
+      t,
+    );
+    expect(result).toMatchObject({
+      ok: true,
+      data: { priceListId, discountRate: "0.0250" },
+    });
+    expect(result.ok && "discount" in result.data).toBe(false);
+  });
+
+  it("rechaza un descuento de 100 % o una lista inválida", () => {
+    expect(
+      validateCustomerForm(
+        form({ priceListId: "no es un id", discount: "100" }),
+        t,
+      ),
+    ).toMatchObject({
+      ok: false,
+      state: {
+        errors: {
+          priceListId: [t.priceListInvalid],
+          discount: [t.discountInvalid],
+        },
+      },
+    });
+  });
 });
 
 describe("validatePersonForm", () => {

@@ -24,6 +24,7 @@ export function OrderItems({
   items,
   subTotal,
   tax,
+  discount,
   total,
   locale,
   format,
@@ -32,6 +33,8 @@ export function OrderItems({
   items: OrderItem[];
   subTotal: Numeric;
   tax: Numeric;
+  /** Bonificación neta incluida (lista y descuento del cliente). */
+  discount: Numeric;
   total: Numeric;
   locale: string;
   format: ReturnType<typeof formatters>;
@@ -106,6 +109,13 @@ export function OrderItems({
         <p className="mt-1 text-xs opacity-70">
           {interpolate(t.weight, { weight: format.number(weight) })}
         </p>
+        {Number(discount.toString()) > 0 && (
+          <p className="text-xs opacity-70">
+            {interpolate(t.discountIncluded, {
+              amount: format.money(discount),
+            })}
+          </p>
+        )}
       </dl>
     </>
   );

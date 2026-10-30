@@ -79,13 +79,21 @@ comentarios y textos de UI en español.
 - El cliente ve los productos vigentes y **activos** (`VISIBLE_PRODUCT` en `lib/catalog`); el stock no
   se muestra ni oculta nada: si no se quiere vender, el admin pausa el producto.
 - Precio: final grande + "neto + IVA x%" (`lib/catalog-queries` formatea todo en el server).
+- Precio del cliente (`lib/customer-price`, en enteros): lista de precios (`price_lists`: ajuste como
+  fracción sobre el neto base, negativo = más barato; `price_list_items`: precio neto fijo que pisa el
+  ajuste) y después el descuento propio del cliente (`customers.discount_rate`). Sin cliente o sin lista:
+  precio base. `getPricing` (`lib/pricing-queries`) lo carga; `getCart` ya trae `price` por ítem, así la
+  huella del checkout usa el precio del cliente. Si es menor al base, el base se ve tachado.
+  `sale_items.unit_list_price` guarda el base y `sales.discount` la bonificación neta (`saleDiscount`,
+  también al ajustar una entrega parcial). ABM en `/admin/price-lists` (permiso `price-lists:manage`);
+  la lista y el descuento se eligen en el form del cliente.
 - Pedido (4.2): `/checkout` (dirección de la empresa, comentario, solo efectivo) → `placeOrder`, que en
   una transacción recalcula todo, compara la huella del carrito (`lib/cart-fingerprint`: productos,
   cantidades, precios, IVA) con la que vio el cliente y la rechaza si cambió; vacía el carrito **antes**
   de crear el pedido (así un doble envío no lo duplica) y guarda la foto en `sale_items` + auditoría.
 - Pedido cargado por el admin (`/admin/orders/new`, permiso `sales:manage`, también desde la ficha del
   cliente con `?customer=`): elige cliente y dirección y busca productos (`searchProducts` en
-  `lib/admin-order`), sin tocar el carrito del cliente. `createOrderForCustomer` usa precios de lista y
+  `lib/admin-order`), sin tocar el carrito del cliente. `createOrderForCustomer` usa los precios del cliente y
   efectivo, bloquea la cuenta del cliente y guarda la foto con `saleItemSnapshot` (compartido con
   `placeOrder`). El autor es el admin: el cliente lo ve como "La distribuidora".
 - `sales.number` es el número correlativo que ve la gente (`/orders/[number]`). "Mis pedidos" muestra
@@ -265,8 +273,8 @@ action>` después de cada action: los no controlados pierden lo tipeado con un e
   `prisma migrate diff --from-config-datasource --to-schema ... --exit-code` para detectar drift.
 - Seed idempotente (`app/prisma/seed.ts`): provincias, partidos del sur, unidades y admin inicial
   (con `password_must_change = true`). Con `SEED_DEMO=true` suma la demo (`prisma/seed-demo.ts`):
-  categorías, 2 depósitos, 12 productos con stock (ingresos en el libro) y ubicación, 2 proveedores, 3
-  clientes con usuario, un repartidor con vehículo y 4 pedidos pendientes. Usuarios `*@demo.onaks.local`
+  categorías, 2 depósitos, 12 productos con stock (ingresos en el libro) y ubicación, 2 proveedores, 2 listas de
+  precios (Varela con Mayorista y 2 %), 3 clientes con usuario, un repartidor con vehículo y 4 pedidos pendientes. Usuarios `*@demo.onaks.local`
   con `DEMO_PASSWORD` (`demo1234`, sin cambio obligatorio): `admin`, `reparto`, `patitas`, `sanroque`,
   `varela`. Solo carga en una base sin productos y falla con `NODE_ENV=production`. Los tests de punta a
   punta usan esta demo.
