@@ -3,8 +3,8 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 29/10/2026: fases 0 a 10 terminadas (v1.38.0-alpha). Sigue la puesta a punto para BETA y
-las funciones nuevas (fases 11 a 22); facturación electrónica y app del repartidor quedan al fondo.
+Estado al 29/10/2026: fases 0 a 11 terminadas, en BETA (v1.41.0-beta). Siguen las funciones nuevas
+(fases 12 a 22); facturación electrónica y app del repartidor quedan al fondo.
 
 | Fase | Contenido                                                        | Estado      |
 | ---- | ---------------------------------------------------------------- | ----------- |
@@ -19,8 +19,8 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
 | 8    | Hojas de ruta de entrega                                         | ✅          |
 | 9    | Órdenes de compra a proveedores                                  | ✅          |
 | 10   | Lista de picking                                                 | ✅          |
-| 11   | Puesta a punto para BETA                                         | 🔄 en curso |
-| 12   | Pedido cargado por el admin en nombre del cliente                | ⏳          |
+| 11   | Puesta a punto para BETA                                         | ✅          |
+| 12   | Pedido cargado por el admin en nombre del cliente                | 🟡          |
 | 13   | Listas de precios y descuentos                                   | ⏳          |
 | 14   | Reportes de ventas y margen                                      | ⏳          |
 | 15   | Avisos al cliente (mail y WhatsApp)                              | ⏳          |
@@ -306,7 +306,7 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
 
 ---
 
-## Fase 11 — Puesta a punto para BETA 🔄
+## Fase 11 — Puesta a punto para BETA ✅
 
 | PR   | Contenido                                                              | Estado           |
 | ---- | ---------------------------------------------------------------------- | ---------------- |
@@ -315,7 +315,7 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
 | 11.3 | Datos de demo en el seed (con una variable de entorno)                 | ✅ v1.39.0-alpha |
 | 11.4 | Producción: Caddy con HTTPS, backups automáticos y guía de instalación | ✅ v1.40.0-alpha |
 | 11.5 | Tests end-to-end con Playwright en el CI (usan los datos de demo)      | ✅ (#104)        |
-| 11.6 | Salto a BETA con `release-as`                                          | 🟡 PR listo      |
+| 11.6 | Salto a BETA con `release-as`                                          | ✅ v1.41.0-beta  |
 
 **Decisiones**
 
@@ -353,10 +353,16 @@ las funciones nuevas (fases 11 a 22); facturación electrónica y app del repart
   release sin cambios visibles en `app/`, así que el salto va con uno: la versión instalada al pie del
   menú del admin (solo con sesión). Después de publicar la 1.41.0-beta se saca `release-as`.
 
-## Fase 12 — Pedido cargado por el admin ⏳
+## Fase 12 — Pedido cargado por el admin 🟡
 
-- El admin (o un vendedor) arma un pedido en nombre de un cliente: elige cliente y dirección, carga los
-  productos y confirma con la misma lógica del checkout (pedidos que llegan por teléfono o WhatsApp).
+Pedidos que llegan por teléfono o WhatsApp. Definiciones: pantalla "Nuevo pedido" en Pedidos (y botón
+en la ficha del cliente), buscador de productos con lista propia (no toca el carrito del cliente),
+precios de lista y efectivo. Queda Pendiente con el admin como autor; el cliente lo ve como cargado por
+la distribuidora y lo cancela o pide cambiarlo como cualquier otro.
+
+| PR   | Contenido                                                     | Estado      |
+| ---- | ------------------------------------------------------------- | ----------- |
+| 12.1 | Nuevo pedido para un cliente (`/admin/orders/new`) + test e2e | 🟡 PR listo |
 
 ## Fase 13 — Listas de precios y descuentos ⏳
 

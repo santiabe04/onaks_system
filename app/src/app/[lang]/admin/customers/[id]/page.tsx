@@ -74,6 +74,12 @@ async function CustomerDetail({ params }: { params: Promise<{ id: string }> }) {
           </div>
         </div>
         <div className="flex items-start gap-4 text-sm">
+          <Link
+            href={`/admin/orders/new?customer=${customer.id}`}
+            className={buttonClass()}
+          >
+            {t.adminOrderNew.newOrderButton}
+          </Link>
           <Link href={`${base}/edit`} className={buttonClass("secondary")}>
             {t.common.edit}
           </Link>
