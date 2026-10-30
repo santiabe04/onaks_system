@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.43.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.42.0-beta...v1.43.0-beta) (2026-10-30)
+
+
+### Features
+
+* **pricing:** add price lists and per-customer discounts ([#109](https://github.com/santiabe04/onaks_system/issues/109)) ([5bb0b12](https://github.com/santiabe04/onaks_system/commit/5bb0b12214665c544bc30549e26b0e20219892bb))
+
 ## [1.42.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.41.0-beta...v1.42.0-beta) (2026-10-30)
 
 
