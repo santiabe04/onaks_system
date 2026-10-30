@@ -107,6 +107,13 @@ export async function createCustomer(
       return customer.id;
     });
   } catch (error) {
+    // P2003: la lista de precios elegida ya no existe.
+    if (prismaErrorCode(error) === "P2003") {
+      return {
+        errors: { priceListId: [t.priceListInvalid] },
+        values: result.values,
+      };
+    }
     return formError(error, result.values, {
       field: "cuit",
       message: t.duplicateCuit,
@@ -151,6 +158,13 @@ export async function updateCustomer(
       });
     });
   } catch (error) {
+    // P2003: la lista de precios elegida ya no existe.
+    if (prismaErrorCode(error) === "P2003") {
+      return {
+        errors: { priceListId: [t.priceListInvalid] },
+        values: result.values,
+      };
+    }
     return formError(error, result.values, {
       field: "cuit",
       message: t.duplicateCuit,

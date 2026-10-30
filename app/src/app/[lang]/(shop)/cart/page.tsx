@@ -8,7 +8,7 @@ import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { cartTotals, lineTotals } from "@/lib/cart";
 import { db } from "@/lib/db";
-import { getCart, toCartLine } from "@/lib/cart-queries";
+import { cartDiscount, getCart, toCartLine } from "@/lib/cart-queries";
 import { finalPrice } from "@/lib/price";
 import { CartLineControls, RemoveCartLine } from "./cart-line";
 
@@ -39,7 +39,7 @@ async function Cart() {
   const format = formatters(locale);
 
   const [{ items, available, unavailable }, editing] = await Promise.all([
-    getCart(user.personId),
+    getCart(user.personId, user.customerId),
     // Si está modificando un pedido, el carrito lo va a reemplazar.
     db.sale.findFirst({
       where: { editingPersonId: user.personId },
@@ -67,6 +67,7 @@ async function Cart() {
   }
 
   const totals = cartTotals(available.map(toCartLine));
+  const discount = cartDiscount(available);
 
   return (
     <>
@@ -94,8 +95,18 @@ async function Cart() {
                 </Link>
                 <p className="text-xs opacity-70">
                   {item.product.sku} ·{" "}
+                  {Number(item.price) < Number(item.product.price) && (
+                    <span className="line-through opacity-70">
+                      {format.money(
+                        finalPrice(
+                          item.product.price,
+                          item.product.taxRate.rate,
+                        ),
+                      )}
+                    </span>
+                  )}{" "}
                   {format.money(
-                    finalPrice(item.product.price, item.product.taxRate.rate),
+                    finalPrice(item.price, item.product.taxRate.rate),
                   )}{" "}
                   / {item.product.measurementUnit.name}
                 </p>
@@ -154,6 +165,13 @@ async function Cart() {
               weight: format.number(totals.weight),
             })}
           </p>
+          {Number(discount) > 0 && (
+            <p className="text-xs opacity-70">
+              {interpolate(t.cart.discountIncluded, {
+                amount: format.money(discount),
+              })}
+            </p>
+          )}
           <p className="text-xs opacity-70">{t.cart.pricesHint}</p>
           <Link
             href="/checkout"

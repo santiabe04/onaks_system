@@ -13,6 +13,11 @@ import { formatters } from "@/i18n/format";
 import { searchKey, searchProducts } from "@/lib/admin-order";
 import { cartTotals, lineTotals, parseCartQuantity } from "@/lib/cart";
 import { NOTES_MAX_LENGTH } from "@/lib/checkout";
+import {
+  BASE_PRICING,
+  customerPrice,
+  type Pricing,
+} from "@/lib/customer-price";
 
 const CONTROL = "rounded border border-current/20 bg-transparent px-3 py-2";
 
@@ -20,8 +25,18 @@ export type OrderCustomer = {
   id: string;
   name: string;
   cuit: string;
+  priceListId: string | null;
+  priceListName: string | null;
+  /** Descuento propio como fracción. */
+  discount: string;
   addresses: { id: string; name: string; detail: string }[];
 };
+
+/** Por lista: ajuste como fracción y precios fijos por producto. */
+export type OrderPriceLists = Record<
+  string,
+  { adjustment: string; overrides: Record<string, string> }
+>;
 
 export type OrderProduct = {
   id: string;
@@ -40,12 +55,14 @@ export type OrderProduct = {
 export function NewOrderForm({
   customers,
   products,
+  priceLists,
   initialCustomerId,
   locale,
   t,
 }: {
   customers: OrderCustomer[];
   products: OrderProduct[];
+  priceLists: OrderPriceLists;
   initialCustomerId: string;
   locale: Locale;
   t: Dictionary["adminOrderNew"];
@@ -68,6 +85,19 @@ export function NewOrderForm({
   const [notes, setNotes] = useState("");
 
   const customer = customers.find((row) => row.id === customerId);
+  // Los precios del cliente elegido (el server los vuelve a calcular).
+  const list = customer?.priceListId ? priceLists[customer.priceListId] : null;
+  const pricing: Pricing = customer
+    ? {
+        adjustment: list?.adjustment ?? "0",
+        discount: customer.discount,
+        overrides: list?.overrides ?? {},
+      }
+    : BASE_PRICING;
+  const priced = (row: OrderProduct) => ({
+    ...row,
+    price: customerPrice(row.id, row.price, pricing),
+  });
   const customerOptions = customerQuery.trim()
     ? customers.filter(
         (row) =>
@@ -84,7 +114,8 @@ export function NewOrderForm({
   };
 
   const found = searchProducts(products, productQuery);
-  const product = (id: string) => products.find((row) => row.id === id)!;
+  const product = (id: string) =>
+    priced(products.find((row) => row.id === id)!);
   const add = (id: string) => {
     if (lines.some((line) => line.productId === id)) return;
     setLines([...lines, { productId: id, quantity: "1" }]);
@@ -147,6 +178,14 @@ export function NewOrderForm({
         </div>
 
         {customer && (
+          <p className="text-xs opacity-70">
+            {interpolate(t.pricing, {
+              list: customer.priceListName ?? t.basePricing,
+              discount: format.percent(customer.discount),
+            })}
+          </p>
+        )}
+        {customer && (
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-1 font-medium">{t.address}</legend>
             {customer.addresses.length === 0 ? (
@@ -204,7 +243,7 @@ export function NewOrderForm({
                       <span className="block font-mono text-xs opacity-70">
                         {row.sku} ·{" "}
                         {format.money(
-                          lineTotals({ ...row, quantity: "1" }).total,
+                          lineTotals({ ...priced(row), quantity: "1" }).total,
                         )}{" "}
                         / {row.unit}
                       </span>

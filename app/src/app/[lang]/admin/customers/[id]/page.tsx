@@ -62,6 +62,13 @@ async function CustomerDetail({ params }: { params: Promise<{ id: string }> }) {
             {customer.legalName} · CUIT {formatCuit(customer.cuit)} ·{" "}
             {t.taxConditions[customer.taxCondition]}
           </p>
+          <p className="text-sm opacity-70">
+            {c.pricing}:{" "}
+            {interpolate(c.pricingSummary, {
+              list: customer.priceList?.name ?? c.noPriceList,
+              discount: format.percent(customer.discountRate),
+            })}
+          </p>
           <div className="mt-2 flex flex-wrap items-baseline gap-x-4 text-sm">
             <BalanceLine
               balance={account.summary.balance}

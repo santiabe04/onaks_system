@@ -6,6 +6,7 @@ import { formatters } from "@/i18n/format";
 import { VISIBLE_PRODUCT, visibleCategoryTree } from "./catalog";
 import type { CategoryNode } from "./category";
 import { db } from "./db";
+import { customerPrice, type Pricing } from "./customer-price";
 import { finalPrice } from "./price";
 import { productImageUrl } from "./product";
 
@@ -16,7 +17,10 @@ export type CatalogItem = {
   sku: string;
   description: string | null;
   imageUrl: string | null;
+  /** Precio final del cliente (su lista y su descuento). */
   finalPrice: string;
+  /** Precio final base, solo si el del cliente es menor (se muestra tachado). */
+  baseFinalPrice: string | null;
   /** "Neto $ 25.000,00 + IVA 10,5%". */
   netLine: string;
   /** "u · 15 kg". */
@@ -64,17 +68,23 @@ export function toCatalogItem(
   product: CatalogProduct,
   locale: Locale,
   t: Dictionary["catalog"],
+  pricing: Pricing,
 ): CatalogItem {
   const format = formatters(locale);
+  const rate = product.taxRate.rate;
+  const net = customerPrice(product.id, product.price, pricing);
+  const base = finalPrice(product.price, rate);
+  const final = finalPrice(net, rate);
   return {
     id: product.id,
     name: product.name,
     sku: product.sku,
     description: product.description,
     imageUrl: product.imageFile ? productImageUrl(product.imageFile) : null,
-    finalPrice: format.money(finalPrice(product.price, product.taxRate.rate)),
+    finalPrice: format.money(final),
+    baseFinalPrice: Number(final) < Number(base) ? format.money(base) : null,
     netLine: interpolate(t.netPlusTax, {
-      net: format.money(product.price),
+      net: format.money(net),
       rate: format.percent(product.taxRate.rate),
     }),
     unitName: product.measurementUnit.name,

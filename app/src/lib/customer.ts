@@ -3,6 +3,8 @@ import { TaxCondition } from "@/generated/prisma/enums";
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { isValidCuit, normalizeCuit } from "./cuit";
+import { isCuid } from "./ids";
+import { discountToFraction } from "./price-list";
 
 // Puro: validación de clientes, sus personas y sus direcciones de entrega.
 
@@ -66,6 +68,10 @@ export type CustomerValues = {
   legalName: string;
   cuit: string;
   taxCondition: string;
+  /** "" = sin lista (precio base). */
+  priceListId: string;
+  /** Porcentaje como lo tipeó ("5" o "2,5"). */
+  discount: string;
 };
 
 export type CustomerInput = {
@@ -73,6 +79,8 @@ export type CustomerInput = {
   legalName: string;
   cuit: string;
   taxCondition: TaxCondition;
+  priceListId: string | null;
+  discountRate: string;
 };
 
 export function validateCustomerForm(
@@ -84,18 +92,43 @@ export function validateCustomerForm(
     legalName: read(formData, "legalName"),
     cuit: read(formData, "cuit"),
     taxCondition: read(formData, "taxCondition"),
+    priceListId: read(formData, "priceListId"),
+    discount: read(formData, "discount"),
   };
   return validate(
-    z.object({
-      tradeName: text(t, CUSTOMER_LIMITS.tradeName).min(1, t.tradeNameRequired),
-      legalName: text(t, CUSTOMER_LIMITS.legalName).min(1, t.legalNameRequired),
-      // Se guarda sin guiones: "30-50001091-2" → "30500010912".
-      cuit: z
-        .string()
-        .transform(normalizeCuit)
-        .refine(isValidCuit, t.cuitInvalid),
-      taxCondition: z.enum(TaxCondition, { message: t.taxConditionRequired }),
-    }),
+    z
+      .object({
+        tradeName: text(t, CUSTOMER_LIMITS.tradeName).min(
+          1,
+          t.tradeNameRequired,
+        ),
+        legalName: text(t, CUSTOMER_LIMITS.legalName).min(
+          1,
+          t.legalNameRequired,
+        ),
+        // Se guarda sin guiones: "30-50001091-2" → "30500010912".
+        cuit: z
+          .string()
+          .transform(normalizeCuit)
+          .refine(isValidCuit, t.cuitInvalid),
+        taxCondition: z.enum(TaxCondition, { message: t.taxConditionRequired }),
+        // Que exista se controla con la FK al guardar.
+        priceListId: z
+          .string()
+          .refine((id) => id === "" || isCuid(id), t.priceListInvalid)
+          .transform((id) => id || null),
+        discount: z.string().transform((value, ctx) => {
+          const fraction = discountToFraction(value);
+          if (fraction !== null) return fraction;
+          ctx.addIssue({ code: "custom", message: t.discountInvalid });
+          return z.NEVER;
+        }),
+      })
+      // El form dice `discount` (porcentaje); la columna, `discountRate` (fracción).
+      .transform(({ discount, ...data }) => ({
+        ...data,
+        discountRate: discount,
+      })),
     values,
   );
 }

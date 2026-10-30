@@ -23,6 +23,7 @@ import {
 import { descendantIds, type CategoryNode } from "@/lib/category";
 import { db } from "@/lib/db";
 import { can } from "@/lib/permissions";
+import { getPricing } from "@/lib/pricing-queries";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -76,7 +77,13 @@ async function Catalog({
     }),
   ]);
   const pages = Math.max(1, Math.ceil(total / CATALOG_PAGE_SIZE));
-  const items = products.map((p) => toCatalogItem(p, locale, t.catalog));
+  const pricing = await getPricing(
+    user.customerId,
+    products.map((p) => p.id),
+  );
+  const items = products.map((p) =>
+    toCatalogItem(p, locale, t.catalog, pricing),
+  );
   const current = categories.find((c) => c.id === filters.category);
 
   return (

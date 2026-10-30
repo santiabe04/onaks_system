@@ -8,7 +8,12 @@ import { saleItemSnapshot } from "@/lib/admin-order";
 import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth";
 import { cartTotals } from "@/lib/cart";
-import { getCart, toCartLine, toFingerprintLine } from "@/lib/cart-queries";
+import {
+  cartDiscount,
+  getCart,
+  toCartLine,
+  toFingerprintLine,
+} from "@/lib/cart-queries";
 import { cartFingerprint } from "@/lib/cart-fingerprint";
 import { validateCheckoutForm, type CheckoutFormState } from "@/lib/checkout";
 import { db } from "@/lib/db";
@@ -51,7 +56,8 @@ export async function placeOrder(
       // Mismo orden de bloqueo que cobros y cambios de estado.
       await lockAccount(tx, customerId);
 
-      const { available } = await getCart(user.personId, tx);
+      // Con los precios de su lista y su descuento de ahora.
+      const { available } = await getCart(user.personId, customerId, tx);
       if (available.length === 0) throw new CheckoutError(t.empty);
       if (cartFingerprint(available.map(toFingerprintLine)) !== fingerprint) {
         throw new CheckoutError(t.cartChanged);
@@ -75,6 +81,7 @@ export async function placeOrder(
         addressId,
         subTotal: totals.net,
         tax: totals.tax,
+        discount: cartDiscount(available),
         total: totals.total,
         notes,
         // Foto del producto al vender: los cambios posteriores no tocan el pedido.
@@ -83,6 +90,7 @@ export async function placeOrder(
             saleItemSnapshot(
               { ...item.product, id: item.productId },
               item.quantity,
+              item.price,
             ),
           ),
         },
@@ -122,7 +130,6 @@ export async function placeOrder(
           data: {
             ...data,
             userId: user.id,
-            discount: "0",
             paymentMethod: "CASH",
           },
           include: { items: true },

@@ -261,7 +261,21 @@ const SUPPLIERS = [
   },
 ];
 
-const CUSTOMERS = [
+// Listas de precios: un ajuste sobre el precio base y algún precio fijo.
+const PRICE_LISTS = [
+  { name: "Veterinarias", adjustment: "-0.05", fixed: {} },
+  { name: "Mayorista", adjustment: "-0.10", fixed: { "PIE-4": "5000" } },
+] as const;
+
+const CUSTOMERS: {
+  tradeName: string;
+  legalName: string;
+  cuit: string;
+  person: { name: string; surname: string; user: string };
+  addresses: { name: string; address: string; city: string }[];
+  priceList?: (typeof PRICE_LISTS)[number]["name"];
+  discountRate?: string;
+}[] = [
   {
     tradeName: "Pet Shop Patitas",
     legalName: "Patitas SRL",
@@ -290,6 +304,9 @@ const CUSTOMERS = [
     legalName: "Distribuidora Mascotas Varela SRL",
     cuit: "30712345884",
     person: { name: "Carla", surname: "Ruiz", user: "varela" },
+    // Compra por mayor: lista Mayorista y 2 % más por volumen.
+    priceList: "Mayorista",
+    discountRate: "0.02",
     addresses: [
       {
         name: "Depósito",
@@ -516,6 +533,23 @@ export async function seedDemo(db: Db): Promise<boolean> {
         });
       }
 
+      const priceLists = new Map<string, string>();
+      for (const list of PRICE_LISTS) {
+        const created = await tx.priceList.create({
+          data: {
+            name: list.name,
+            adjustment: list.adjustment,
+            items: {
+              create: Object.entries(list.fixed).map(([sku, price]) => ({
+                productId: products.get(sku)!.id,
+                price,
+              })),
+            },
+          },
+        });
+        priceLists.set(list.name, created.id);
+      }
+
       // Clientes con su persona (usuario CLIENT) y direcciones.
       const customers: { userId: string; addressIds: string[] }[] = [];
       for (const customer of CUSTOMERS) {
@@ -525,6 +559,10 @@ export async function seedDemo(db: Db): Promise<boolean> {
             legalName: customer.legalName,
             cuit: customer.cuit,
             taxCondition: TaxCondition.REGISTERED_TAXPAYER,
+            priceListId: customer.priceList
+              ? priceLists.get(customer.priceList)
+              : undefined,
+            discountRate: customer.discountRate ?? "0",
           },
         });
         const person = await tx.person.create({
@@ -588,7 +626,9 @@ export async function seedDemo(db: Db): Promise<boolean> {
               create: items.map((item) => ({
                 productId: item.id,
                 quantity: item.quantity,
+                // Pedidos de demo a precio base.
                 unitPrice: item.price,
+                unitListPrice: item.price,
                 unitWeight: item.weight,
                 unitVolume: item.volume,
                 unitTaxRate: item.rate,

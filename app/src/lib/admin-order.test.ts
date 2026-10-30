@@ -105,7 +105,7 @@ describe("parseAdminOrder", () => {
 });
 
 describe("saleItemSnapshot", () => {
-  it("copia precio, peso, volumen y alícuota del momento", () => {
+  it("copia precio del cliente, precio base, peso, volumen y alícuota", () => {
     expect(
       saleItemSnapshot(
         {
@@ -116,11 +116,13 @@ describe("saleItemSnapshot", () => {
           taxRate: { rate: "0.105" },
         },
         "3",
+        "23400.00",
       ),
     ).toEqual({
       productId: DOG_FOOD,
       quantity: "3",
-      unitPrice: "26000",
+      unitPrice: "23400.00",
+      unitListPrice: "26000",
       unitWeight: "15",
       unitVolume: null,
       unitTaxRate: "0.105",

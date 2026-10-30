@@ -106,6 +106,7 @@ enum AuditEntity {
   SUPPLIER_CREDIT_NOTE
   PICKING_LIST
   PRODUCT_LOCATION
+  PRICE_LIST
 }
 
 // --- TABLES ---
@@ -235,6 +236,7 @@ model Product {
   receiptItems      GoodsReceiptItem[]
   pickingItems      PickingListItem[]
   invoiceItems      SupplierInvoiceItem[]
+  priceListItems    PriceListItem[]
 
   @@index([categoryId], map: "idx_products_category_id")
   @@index([measurementUnitId], map: "idx_products_measurement_unit_id")
@@ -368,6 +370,10 @@ model Customer {
   legalName    String            @map("legal_name")
   cuit         String            @unique @db.VarChar(11)
   taxCondition TaxCondition      @map("tax_condition")
+  /// Lista de precios; sin lista paga el precio base.
+  priceListId  String?           @map("price_list_id")
+  /// Descuento propio sobre el precio de su lista, como fracción (0.05 = 5 %).
+  discountRate Decimal           @default(0) @map("discount_rate") @db.Decimal(5, 4)
   createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
   deletedAt    DateTime?         @map("deleted_at") @db.Timestamptz(3)
@@ -375,13 +381,49 @@ model Customer {
   updatedById  String?           @map("updated_by")
   createdBy    User?             @relation("CustomerCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   updatedBy    User?             @relation("CustomerUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  priceList    PriceList?        @relation(fields: [priceListId], references: [id], onDelete: Restrict)
   persons      Person[]
   // Las direcciones de entrega son del cliente: cualquier persona del cliente las usa.
   addresses    CustomerAddress[]
   payments     CustomerPayment[]
 
   @@index([deletedAt], map: "idx_customers_deleted_at")
+  @@index([priceListId], map: "idx_customers_price_list_id")
   @@map("customers")
+}
+
+// Lista de precios (pet shop, veterinaria, mayorista): un ajuste sobre el
+// precio base de todos los productos, con precio fijo opcional por producto.
+model PriceList {
+  id          String          @id @default(cuid(2))
+  name        String          @unique @db.VarChar(60)
+  /// Ajuste sobre el precio neto base, como fracción: -0.1 = 10 % menos, 0.15 = 15 % más.
+  adjustment  Decimal         @db.Decimal(5, 4)
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById String?         @map("created_by")
+  updatedById String?         @map("updated_by")
+  createdBy   User?           @relation("PriceListCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy   User?           @relation("PriceListUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  items       PriceListItem[]
+  customers   Customer[]
+
+  @@map("price_lists")
+}
+
+/// Precio neto fijo de un producto en una lista: pisa el ajuste de la lista.
+model PriceListItem {
+  priceListId String    @map("price_list_id")
+  productId   String    @map("product_id")
+  price       Decimal   @db.Decimal(12, 2)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  priceList   PriceList @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@id([priceListId, productId])
+  @@index([productId], map: "idx_price_list_items_product_id")
+  @@map("price_list_items")
 }
 
 model Person {
@@ -493,6 +535,8 @@ model User {
   warehousesUpdated        Warehouse[]          @relation("WarehouseUpdatedBy")
   taxRatesCreated          TaxRate[]            @relation("TaxRateCreatedBy")
   taxRatesUpdated          TaxRate[]            @relation("TaxRateUpdatedBy")
+  priceListsCreated        PriceList[]          @relation("PriceListCreatedBy")
+  priceListsUpdated        PriceList[]          @relation("PriceListUpdatedBy")
   productsCreated          Product[]            @relation("ProductCreatedBy")
   productsUpdated          Product[]            @relation("ProductUpdatedBy")
   stockMovements           StockMovement[]
@@ -559,17 +603,19 @@ model Discount {
 }
 
 model SaleItem {
-  saleId      String   @map("sale_id")
-  productId   String   @map("product_id")
-  quantity    Decimal  @db.Decimal(12, 4)
-  unitPrice   Decimal  @map("unit_price") @db.Decimal(12, 2)
-  unitWeight  Decimal  @map("unit_weight") @db.Decimal(10, 3)
-  unitVolume  Decimal? @map("unit_volume") @db.Decimal(10, 3)
-  unitTaxRate Decimal  @map("unit_tax_rate") @db.Decimal(5, 4)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
-  sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Restrict)
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  saleId        String   @map("sale_id")
+  productId     String   @map("product_id")
+  quantity      Decimal  @db.Decimal(12, 4)
+  unitPrice     Decimal  @map("unit_price") @db.Decimal(12, 2)
+  /// Precio neto base del producto al vender; la diferencia con `unitPrice` es la bonificación.
+  unitListPrice Decimal  @map("unit_list_price") @db.Decimal(12, 2)
+  unitWeight    Decimal  @map("unit_weight") @db.Decimal(10, 3)
+  unitVolume    Decimal? @map("unit_volume") @db.Decimal(10, 3)
+  unitTaxRate   Decimal  @map("unit_tax_rate") @db.Decimal(5, 4)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@id([saleId, productId])
   @@map("sale_items")

@@ -193,6 +193,7 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
         items={sale.items}
         subTotal={sale.subTotal}
         tax={sale.tax}
+        discount={sale.discount}
         total={sale.total}
         locale={locale}
         format={format}

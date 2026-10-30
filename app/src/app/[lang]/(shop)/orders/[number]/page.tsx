@@ -141,6 +141,7 @@ async function Order({
         items={sale.items}
         subTotal={sale.subTotal}
         tax={sale.tax}
+        discount={sale.discount}
         total={sale.total}
         locale={locale}
         format={format}

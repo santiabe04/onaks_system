@@ -2,6 +2,7 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { audit } from "./audit";
 import { cartTotals } from "./cart";
+import { saleDiscount } from "./customer-price";
 import { deliveredQuantities, type Shortage } from "./partial-delivery";
 import { fromMilli, toMilli } from "./quantity";
 import { pendingReturns } from "./sale-state";
@@ -111,7 +112,18 @@ export async function applyShortages(
   );
   const after = await tx.sale.update({
     where: { id: sale.id },
-    data: { subTotal: totals.net, tax: totals.tax, total: totals.total },
+    data: {
+      subTotal: totals.net,
+      tax: totals.tax,
+      discount: saleDiscount(
+        remainingItems.map((item) => ({
+          listPrice: item.unitListPrice,
+          price: item.unitPrice,
+          quantity: item.quantity,
+        })),
+      ),
+      total: totals.total,
+    },
     include: { items: true },
   });
   await audit(tx, {

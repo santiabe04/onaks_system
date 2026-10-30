@@ -113,6 +113,11 @@ export function CatalogView({
               </div>
               {/* El neto puede partirse en dos renglones: en celular deja lugar al nombre. */}
               <div className="max-w-[45%] shrink-0 text-right">
+                {item.baseFinalPrice && (
+                  <p className="text-xs whitespace-nowrap line-through opacity-60">
+                    {item.baseFinalPrice}
+                  </p>
+                )}
                 <p className="font-semibold whitespace-nowrap">
                   {item.finalPrice}
                 </p>
@@ -148,6 +153,11 @@ export function CatalogView({
               )}
               <p className="text-xs opacity-70">{item.unitLine}</p>
               <div className="mt-auto pt-2">
+                {item.baseFinalPrice && (
+                  <p className="text-xs line-through opacity-60">
+                    {item.baseFinalPrice}
+                  </p>
+                )}
                 <p className="text-lg font-semibold">{item.finalPrice}</p>
                 <p className="text-xs opacity-70">{item.netLine}</p>
               </div>
