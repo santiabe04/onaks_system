@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.44.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.43.0-beta...v1.44.0-beta) (2026-10-30)
+
+
+### Features
+
+* **reports:** add sales and margin report ([#111](https://github.com/santiabe04/onaks_system/issues/111)) ([56331e1](https://github.com/santiabe04/onaks_system/commit/56331e1fa18b442841a939567c9521971bf84aed))
+
 ## [1.43.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.42.0-beta...v1.43.0-beta) (2026-10-30)
 
 
