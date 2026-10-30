@@ -80,6 +80,7 @@ export const es = {
     product: "Producto",
     from: "Desde",
     to: "Hasta",
+    held: "Solo retenidos por crédito",
     all: "Todos",
     filter: "Filtrar",
     clear: "Limpiar",
@@ -1023,6 +1024,8 @@ export const es = {
         tooMany: "Se pueden cambiar hasta {max} pedidos a la vez",
         beingEdited:
           "El cliente está modificando el pedido: quitale el permiso o esperá a que lo confirme",
+        creditHold:
+          "El pedido está retenido por crédito: aprobalo o cancelalo antes de seguir",
         notEditable: "Solo se habilita la modificación de pedidos Pendientes",
         invalid: "No se pudo leer el cambio de estado",
         targetRequired: "Elegí el nuevo estado",
@@ -1036,7 +1039,29 @@ export const es = {
         commentTooLong: "Máximo {max} caracteres",
       },
     },
+    creditHold: {
+      title: "Retenido por crédito",
+      hint: "Hasta aprobarlo solo se puede cancelar. Aprobarlo no cambia el límite del cliente.",
+      limit:
+        "Supera el límite: con este pedido debe {exposure} y su límite es {limit}.",
+      overdue:
+        "Tiene deuda vencida: un pedido entregado el {date} sin pagar (plazo de {days} días).",
+      note: "Comentario (opcional)",
+      notePlaceholder: "Ej.: paga el viernes, autorizado por Juan",
+      approve: "Aprobar pedido",
+      approving: "Aprobando…",
+      released: "Aprobado por {name} el {date}.",
+      badge: "Retenido",
+      errors: {
+        notFound: "El pedido ya no existe",
+        notHeld: "El pedido ya no está retenido",
+        noteTooLong: "El comentario es muy largo (máximo 300 caracteres)",
+      },
+    },
     history: {
+      creditHeld: "Retenido por crédito",
+      creditCleared: "Ya no está retenido (se modificó y entra en el crédito)",
+      creditReleased: "Retención aprobada",
       editAllowed: "Modificación habilitada al cliente",
       editRevoked: "Se quitó el permiso de modificar",
       editStarted: "El cliente empezó a modificarlo",
@@ -1118,6 +1143,7 @@ export const es = {
   },
   dashboard: {
     title: "Inicio",
+    heldOrders: "Pedidos retenidos por crédito: {count}",
     shortcuts: "Accesos rápidos",
     newMeasurementUnit: "Nueva unidad de medida",
     summary: "Resumen",
@@ -1626,6 +1652,16 @@ export const es = {
     discountHint: "Sobre el precio de su lista. Vacío o 0: sin descuento.",
     pricing: "Precios",
     pricingSummary: "{list} · descuento {discount}",
+    creditLimit: "Límite de crédito (opcional)",
+    creditLimitHint:
+      "Deuda más pedidos abiertos. Si un pedido lo supera, queda retenido para que lo apruebes. Vacío: sin límite.",
+    paymentTermDays: "Plazo de pago en días (opcional)",
+    paymentTermHint:
+      "Desde la entrega. Si debe algo más viejo, sus pedidos nuevos quedan retenidos. Vacío: no se controla.",
+    credit: "Crédito",
+    creditSummary: "usado {used} de {limit} · disponible {available}",
+    noCreditLimit: "sin límite (usado {used})",
+    paymentTerm: "plazo {days} días",
     zones: "Zonas",
     persons: "Personas",
     personsEmpty: "Todavía no tiene personas cargadas.",
@@ -1664,6 +1700,9 @@ export const es = {
       cuitInvalid: "CUIT inválido (revisá el dígito verificador)",
       taxConditionRequired: "Elegí la condición frente al IVA",
       duplicateCuit: "Ya existe un cliente con ese CUIT",
+      creditLimitInvalid:
+        "Ingresá un monto mayor o igual a 0, con hasta 2 decimales",
+      paymentTermInvalid: "Ingresá una cantidad de días entera entre 1 y 365",
       priceListInvalid: "Elegí una lista de precios válida",
       discountInvalid:
         "Ingresá un porcentaje entre 0 y 99,99, con hasta 2 decimales",

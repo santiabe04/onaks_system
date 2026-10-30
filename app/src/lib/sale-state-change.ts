@@ -40,13 +40,18 @@ export async function applySaleStateChange(
 
   // Bloqueado hasta el final: dos cambios a la vez no descuentan dos veces.
   const [locked] = await tx.$queryRaw<
-    { state: SaleState; number: number; editing: boolean }[]
-  >`SELECT "state", "number", "editing_person_id" IS NOT NULL AS "editing"
+    { state: SaleState; number: number; editing: boolean; held: boolean }[]
+  >`SELECT "state", "number", "editing_person_id" IS NOT NULL AS "editing",
+      ("credit_hold_at" IS NOT NULL AND "credit_released_at" IS NULL) AS "held"
     FROM "sales" WHERE "id" = ${saleId} FOR UPDATE`;
   if (!locked) throw new StateChangeError(t.notFound);
   if (locked.state !== input.from) throw new StateChangeError(t.stale);
   // Sus productos están en el carrito del cliente: no se toca hasta que confirme.
   if (locked.editing) throw new StateChangeError(t.beingEdited);
+  // Retenido por crédito: solo se puede cancelar hasta que se apruebe.
+  if (locked.held && input.to !== "CANCELED") {
+    throw new StateChangeError(t.creditHold);
+  }
   if (!canTransition(locked.state, input.to)) {
     throw new StateChangeError(t.notAllowed);
   }

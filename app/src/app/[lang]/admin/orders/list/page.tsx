@@ -17,6 +17,7 @@ import type { Dictionary } from "@/i18n/dictionary";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
+import { isOnCreditHold } from "@/lib/credit";
 import { db } from "@/lib/db";
 import { can } from "@/lib/permissions";
 import {
@@ -78,6 +79,8 @@ async function OrdersList({
       skip: (filters.page - 1) * ORDERS_PAGE_SIZE,
       take: ORDERS_PAGE_SIZE,
       select: {
+        creditHoldAt: true,
+        creditReleasedAt: true,
         id: true,
         number: true,
         createdAt: true,
@@ -225,7 +228,14 @@ async function OrdersList({
                       {sale.address.customer.tradeName}
                     </td>
                     <td className="py-2 pr-3">{sale.address.city.name}</td>
-                    <td className="py-2 pr-3">{t.orders.states[sale.state]}</td>
+                    <td className="py-2 pr-3">
+                      {t.orders.states[sale.state]}
+                      {isOnCreditHold(sale) && sale.state !== "CANCELED" && (
+                        <span className="ml-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-xs font-medium whitespace-nowrap">
+                          {t.adminOrders.creditHold.badge}
+                        </span>
+                      )}
+                    </td>
                     <td className="py-2 pr-3">
                       {t.orders.paymentMethods[sale.paymentMethod]}
                       <span className="block text-xs opacity-70">
@@ -315,6 +325,15 @@ function FiltersForm({
           defaultValue={filters.to ?? ""}
         />
       </OrderFilterFields>
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          name="held"
+          value="1"
+          defaultChecked={filters.held}
+        />
+        {l.held}
+      </label>
 
       <div className="flex gap-3">
         <button type="submit" className={buttonClass()}>

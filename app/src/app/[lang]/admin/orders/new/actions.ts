@@ -11,6 +11,7 @@ import { cartTotals } from "@/lib/cart";
 import { VISIBLE_PRODUCT } from "@/lib/catalog";
 import { customerPrice, saleDiscount } from "@/lib/customer-price";
 import { latestCosts } from "@/lib/cost-queries";
+import { applyCreditCheck } from "@/lib/credit-ledger";
 import { db } from "@/lib/db";
 import { isCuid } from "@/lib/ids";
 import { getPricing } from "@/lib/pricing-queries";
@@ -134,7 +135,14 @@ export async function createOrderForCustomer(
         metadata: { placedForCustomer: customerId },
       });
       // Un saldo a favor puede dejarlo ya pagado.
-      await recomputeAccount(tx, customerId);
+      const account = await recomputeAccount(tx, customerId);
+      // Igual que en la tienda: si no le da el crédito, queda para aprobar.
+      await applyCreditCheck(tx, {
+        saleId: sale.id,
+        customerId,
+        account,
+        userId: user.id,
+      });
       return sale.number;
     });
   } catch (error) {

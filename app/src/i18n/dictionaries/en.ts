@@ -78,6 +78,7 @@ export const en: Dictionary = {
     product: "Product",
     from: "From",
     to: "To",
+    held: "Only orders on credit hold",
     all: "All",
     filter: "Filter",
     clear: "Clear",
@@ -1020,6 +1021,8 @@ export const en: Dictionary = {
         tooMany: "Up to {max} orders can be changed at once",
         beingEdited:
           "The customer is changing the order: revoke the permission or wait until they place it",
+        creditHold:
+          "The order is on credit hold: approve or cancel it before moving on",
         notEditable: "Only Pending orders can be opened for changes",
         invalid: "The status change could not be read",
         targetRequired: "Choose the new status",
@@ -1033,7 +1036,29 @@ export const en: Dictionary = {
         commentTooLong: "Maximum {max} characters",
       },
     },
+    creditHold: {
+      title: "On credit hold",
+      hint: "Until approved it can only be canceled. Approving does not change the customer's limit.",
+      limit:
+        "Over the limit: with this order they owe {exposure} and their limit is {limit}.",
+      overdue:
+        "Overdue debt: an order delivered on {date} is unpaid (payment term {days} days).",
+      note: "Comment (optional)",
+      notePlaceholder: "E.g.: pays on Friday, approved by John",
+      approve: "Approve order",
+      approving: "Approving…",
+      released: "Approved by {name} on {date}.",
+      badge: "On hold",
+      errors: {
+        notFound: "The order no longer exists",
+        notHeld: "The order is no longer on hold",
+        noteTooLong: "The comment is too long (up to 300 characters)",
+      },
+    },
     history: {
+      creditHeld: "Put on credit hold",
+      creditCleared: "No longer on hold (changed and within credit)",
+      creditReleased: "Credit hold approved",
       editAllowed: "Customer allowed to change it",
       editRevoked: "Permission to change it was revoked",
       editStarted: "The customer started changing it",
@@ -1115,6 +1140,7 @@ export const en: Dictionary = {
   },
   dashboard: {
     title: "Home",
+    heldOrders: "Orders on credit hold: {count}",
     shortcuts: "Shortcuts",
     newMeasurementUnit: "New unit of measure",
     summary: "Summary",
@@ -1622,6 +1648,16 @@ export const en: Dictionary = {
     discountHint: "Over their list price. Empty or 0: no discount.",
     pricing: "Prices",
     pricingSummary: "{list} · discount {discount}",
+    creditLimit: "Credit limit (optional)",
+    creditLimitHint:
+      "Debt plus open orders. An order over it is put on hold for you to approve. Empty: no limit.",
+    paymentTermDays: "Payment term in days (optional)",
+    paymentTermHint:
+      "From delivery. If they owe something older, new orders are put on hold. Empty: not checked.",
+    credit: "Credit",
+    creditSummary: "used {used} of {limit} · available {available}",
+    noCreditLimit: "no limit (used {used})",
+    paymentTerm: "term {days} days",
     zones: "Zones",
     persons: "People",
     personsEmpty: "No people yet.",
@@ -1660,6 +1696,8 @@ export const en: Dictionary = {
       cuitInvalid: "Invalid CUIT (check the verification digit)",
       taxConditionRequired: "Choose the VAT status",
       duplicateCuit: "A customer with that CUIT already exists",
+      creditLimitInvalid: "Enter an amount of 0 or more, with up to 2 decimals",
+      paymentTermInvalid: "Enter a whole number of days between 1 and 365",
       priceListInvalid: "Choose a valid price list",
       discountInvalid:
         "Enter a percentage between 0 and 99.99, with up to 2 decimals",

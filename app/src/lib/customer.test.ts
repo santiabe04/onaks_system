@@ -92,6 +92,42 @@ describe("validateCustomerForm", () => {
     expect(result.ok && "discount" in result.data).toBe(false);
   });
 
+  it("límite de crédito y plazo de pago opcionales", () => {
+    const base = {
+      tradeName: "Patitas",
+      legalName: "Patitas SRL",
+      cuit: "30-50001091-2",
+      taxCondition: "REGISTERED_TAXPAYER",
+    };
+    expect(validateCustomerForm(form(base), t)).toMatchObject({
+      ok: true,
+      data: { creditLimit: null, paymentTermDays: null },
+    });
+    expect(
+      validateCustomerForm(
+        form({ ...base, creditLimit: "500000,50", paymentTermDays: "30" }),
+        t,
+      ),
+    ).toMatchObject({
+      ok: true,
+      data: { creditLimit: "500000.50", paymentTermDays: 30 },
+    });
+    expect(
+      validateCustomerForm(
+        form({ ...base, creditLimit: "-1", paymentTermDays: "0" }),
+        t,
+      ),
+    ).toMatchObject({
+      ok: false,
+      state: {
+        errors: {
+          creditLimit: [t.creditLimitInvalid],
+          paymentTermDays: [t.paymentTermInvalid],
+        },
+      },
+    });
+  });
+
   it("rechaza un descuento de 100 % o una lista inválida", () => {
     expect(
       validateCustomerForm(

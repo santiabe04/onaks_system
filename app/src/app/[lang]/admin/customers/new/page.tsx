@@ -47,6 +47,8 @@ async function NewCustomerForm() {
         taxCondition: "",
         priceListId: "",
         discount: "",
+        creditLimit: "",
+        paymentTermDays: "",
       }}
       taxConditions={t.taxConditions}
       priceLists={priceLists}

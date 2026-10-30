@@ -20,6 +20,7 @@ export async function loadAccount(client: Client, customerId: string) {
         createdAt: true,
         paymentState: true,
         paidAt: true,
+        deliveredAt: true,
       },
     }),
     client.customerPayment.findMany({

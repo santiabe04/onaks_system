@@ -182,7 +182,17 @@ async function ThisWeek() {
   // La semana actual depende de la hora del request, no de la del build.
   await connection();
   const period = parseOrderPeriod({});
-  const orders = await getPeriodOrders(period);
+  const [orders, held] = await Promise.all([
+    getPeriodOrders(period),
+    // De cualquier semana: esperan que el admin decida.
+    db.sale.count({
+      where: {
+        creditHoldAt: { not: null },
+        creditReleasedAt: null,
+        state: { not: "CANCELED" },
+      },
+    }),
+  ]);
   const { zones, totals } = groupOrdersByZone(orders, locale);
   const pending = orders.filter((order) => order.state === "PENDING").length;
   const day = (value: string) =>
@@ -190,6 +200,14 @@ async function ThisWeek() {
 
   return (
     <>
+      {held > 0 && (
+        <Link
+          href="/admin/orders/list?held=1"
+          className="mt-3 block rounded border border-amber-600/50 bg-amber-500/10 p-3 text-sm font-medium hover:underline"
+        >
+          {interpolate(t.dashboard.heldOrders, { count: held })}
+        </Link>
+      )}
       <p className="mt-1 text-xs opacity-70">
         {interpolate(t.dashboard.thisWeekHint, {
           from: day(period.from),

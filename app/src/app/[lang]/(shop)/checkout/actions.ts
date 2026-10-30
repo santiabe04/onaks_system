@@ -17,6 +17,7 @@ import {
 import { cartFingerprint } from "@/lib/cart-fingerprint";
 import { validateCheckoutForm, type CheckoutFormState } from "@/lib/checkout";
 import { latestCosts } from "@/lib/cost-queries";
+import { applyCreditCheck } from "@/lib/credit-ledger";
 import { db } from "@/lib/db";
 
 /** Corta la transacción con un mensaje para el cliente. */
@@ -149,7 +150,14 @@ export async function placeOrder(
         });
       }
       // Un saldo a favor puede dejar el pedido ya pagado (o cambia lo que falta).
-      await recomputeAccount(tx, customerId);
+      const account = await recomputeAccount(tx, customerId);
+      // Si supera el límite o debe algo vencido, queda retenido para revisar.
+      await applyCreditCheck(tx, {
+        saleId: sale.id,
+        customerId,
+        account,
+        userId: user.id,
+      });
       return sale.number;
     });
   } catch (error) {
