@@ -61,7 +61,12 @@ async function Order({
     where: { number, address: { customerId: user.customerId ?? "" } },
     include: {
       address: { include: { city: { select: { name: true } } } },
-      user: { select: { person: { select: { name: true, surname: true } } } },
+      user: {
+        select: {
+          userType: true,
+          person: { select: { name: true, surname: true } },
+        },
+      },
       items: {
         include: {
           product: {
@@ -102,7 +107,9 @@ async function Order({
           {format.dateTime(sale.createdAt)}
         </OrderDetail>
         <OrderDetail label={t.orders.orderedBy}>
-          {sale.user.person.name} {sale.user.person.surname}
+          {sale.user.userType === "CLIENT"
+            ? `${sale.user.person.name} ${sale.user.person.surname}`
+            : t.orders.placedByDistributor}
         </OrderDetail>
         <OrderDetail label={t.orders.address}>
           {sale.address.name}

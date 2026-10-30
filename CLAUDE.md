@@ -83,6 +83,11 @@ comentarios y textos de UI en español.
   una transacción recalcula todo, compara la huella del carrito (`lib/cart-fingerprint`: productos,
   cantidades, precios, IVA) con la que vio el cliente y la rechaza si cambió; vacía el carrito **antes**
   de crear el pedido (así un doble envío no lo duplica) y guarda la foto en `sale_items` + auditoría.
+- Pedido cargado por el admin (`/admin/orders/new`, permiso `sales:manage`, también desde la ficha del
+  cliente con `?customer=`): elige cliente y dirección y busca productos (`searchProducts` en
+  `lib/admin-order`), sin tocar el carrito del cliente. `createOrderForCustomer` usa precios de lista y
+  efectivo, bloquea la cuenta del cliente y guarda la foto con `saleItemSnapshot` (compartido con
+  `placeOrder`). El autor es el admin: el cliente lo ve como "La distribuidora".
 - `sales.number` es el número correlativo que ve la gente (`/orders/[number]`). "Mis pedidos" muestra
   los de **toda la empresa** (filtro por `address.customerId`); uno ajeno da 404.
 - El cliente cancela un pedido Pendiente desde "Mis pedidos". Si el admin lo habilita

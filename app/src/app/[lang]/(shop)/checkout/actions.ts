@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getActionDictionary } from "@/i18n/dictionary";
 import { lockAccount, recomputeAccount } from "@/lib/account-ledger";
+import { saleItemSnapshot } from "@/lib/admin-order";
 import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth";
 import { cartTotals } from "@/lib/cart";
@@ -78,14 +79,12 @@ export async function placeOrder(
         notes,
         // Foto del producto al vender: los cambios posteriores no tocan el pedido.
         items: {
-          create: available.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            unitPrice: item.product.price,
-            unitWeight: item.product.weight,
-            unitVolume: item.product.volume,
-            unitTaxRate: item.product.taxRate.rate,
-          })),
+          create: available.map((item) =>
+            saleItemSnapshot(
+              { ...item.product, id: item.productId },
+              item.quantity,
+            ),
+          ),
         },
       };
 

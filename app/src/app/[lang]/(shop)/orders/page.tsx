@@ -66,7 +66,12 @@ async function Orders({
         state: true,
         total: true,
         address: { select: { name: true } },
-        user: { select: { person: { select: { name: true, surname: true } } } },
+        user: {
+          select: {
+            userType: true,
+            person: { select: { name: true, surname: true } },
+          },
+        },
       },
     }),
   ]);
@@ -120,7 +125,9 @@ async function Orders({
                   {format.dateTime(sale.createdAt)}
                 </td>
                 <td className="py-2 pr-3">
-                  {sale.user.person.name} {sale.user.person.surname}
+                  {sale.user.userType === "CLIENT"
+                    ? `${sale.user.person.name} ${sale.user.person.surname}`
+                    : t.orders.placedByDistributor}
                 </td>
                 <td className="py-2 pr-3">{sale.address.name}</td>
                 <td className="py-2 pr-3">{t.orders.states[sale.state]}</td>
