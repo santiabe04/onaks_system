@@ -168,6 +168,24 @@ export function CustomerForm({
           <span className="text-xs opacity-60">{t.discountHint}</span>
         </Field>
       </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={t.creditLimit} error={errors?.creditLimit}>
+          <Input
+            name="creditLimit"
+            defaultValue={values.creditLimit}
+            inputMode="decimal"
+          />
+          <span className="text-xs opacity-60">{t.creditLimitHint}</span>
+        </Field>
+        <Field label={t.paymentTermDays} error={errors?.paymentTermDays}>
+          <Input
+            name="paymentTermDays"
+            defaultValue={values.paymentTermDays}
+            inputMode="numeric"
+          />
+          <span className="text-xs opacity-60">{t.paymentTermHint}</span>
+        </Field>
+      </div>
       <Footer pending={pending} errors={errors?.form} {...props} />
     </Form>
   );

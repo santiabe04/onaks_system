@@ -3,6 +3,7 @@ import { TaxCondition } from "@/generated/prisma/enums";
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { isValidCuit, normalizeCuit } from "./cuit";
+import { parseDecimalInput, PRICE_LIMITS } from "./decimal-input";
 import { isCuid } from "./ids";
 import { discountToFraction } from "./price-list";
 
@@ -72,6 +73,10 @@ export type CustomerValues = {
   priceListId: string;
   /** Porcentaje como lo tipeó ("5" o "2,5"). */
   discount: string;
+  /** Monto como lo tipeó; "" = sin límite. */
+  creditLimit: string;
+  /** Días; "" = sin control de deuda vencida. */
+  paymentTermDays: string;
 };
 
 export type CustomerInput = {
@@ -81,6 +86,8 @@ export type CustomerInput = {
   taxCondition: TaxCondition;
   priceListId: string | null;
   discountRate: string;
+  creditLimit: string | null;
+  paymentTermDays: number | null;
 };
 
 export function validateCustomerForm(
@@ -94,6 +101,8 @@ export function validateCustomerForm(
     taxCondition: read(formData, "taxCondition"),
     priceListId: read(formData, "priceListId"),
     discount: read(formData, "discount"),
+    creditLimit: read(formData, "creditLimit"),
+    paymentTermDays: read(formData, "paymentTermDays"),
   };
   return validate(
     z
@@ -121,6 +130,20 @@ export function validateCustomerForm(
           const fraction = discountToFraction(value);
           if (fraction !== null) return fraction;
           ctx.addIssue({ code: "custom", message: t.discountInvalid });
+          return z.NEVER;
+        }),
+        creditLimit: z.string().transform((value, ctx) => {
+          if (!value.trim()) return null;
+          const amount = parseDecimalInput(value, PRICE_LIMITS);
+          if (amount !== null) return amount;
+          ctx.addIssue({ code: "custom", message: t.creditLimitInvalid });
+          return z.NEVER;
+        }),
+        paymentTermDays: z.string().transform((value, ctx) => {
+          if (!value.trim()) return null;
+          const days = /^\d{1,3}$/.test(value.trim()) ? Number(value) : 0;
+          if (days >= 1 && days <= 365) return days;
+          ctx.addIssue({ code: "custom", message: t.paymentTermInvalid });
           return z.NEVER;
         }),
       })

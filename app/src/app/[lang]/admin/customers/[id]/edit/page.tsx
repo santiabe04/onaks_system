@@ -55,6 +55,10 @@ async function EditForm({ params }: { params: Promise<{ id: string }> }) {
         taxCondition: customer.taxCondition,
         priceListId: customer.priceListId ?? "",
         discount: discount ? formatters(locale).number(discount) : "",
+        creditLimit: customer.creditLimit
+          ? formatters(locale).input(customer.creditLimit)
+          : "",
+        paymentTermDays: customer.paymentTermDays?.toString() ?? "",
       }}
       taxConditions={t.taxConditions}
       priceLists={priceLists}

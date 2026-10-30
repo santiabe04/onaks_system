@@ -365,27 +365,31 @@ model CartItem {
 }
 
 model Customer {
-  id           String            @id @default(cuid(2))
-  tradeName    String            @map("trade_name")
-  legalName    String            @map("legal_name")
-  cuit         String            @unique @db.VarChar(11)
-  taxCondition TaxCondition      @map("tax_condition")
+  id              String            @id @default(cuid(2))
+  tradeName       String            @map("trade_name")
+  legalName       String            @map("legal_name")
+  cuit            String            @unique @db.VarChar(11)
+  taxCondition    TaxCondition      @map("tax_condition")
   /// Lista de precios; sin lista paga el precio base.
-  priceListId  String?           @map("price_list_id")
+  priceListId     String?           @map("price_list_id")
   /// Descuento propio sobre el precio de su lista, como fracción (0.05 = 5 %).
-  discountRate Decimal           @default(0) @map("discount_rate") @db.Decimal(5, 4)
-  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
-  deletedAt    DateTime?         @map("deleted_at") @db.Timestamptz(3)
-  createdById  String?           @map("created_by")
-  updatedById  String?           @map("updated_by")
-  createdBy    User?             @relation("CustomerCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy    User?             @relation("CustomerUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
-  priceList    PriceList?        @relation(fields: [priceListId], references: [id], onDelete: Restrict)
-  persons      Person[]
+  discountRate    Decimal           @default(0) @map("discount_rate") @db.Decimal(5, 4)
+  /// Límite de crédito (deuda + pedidos abiertos); null = sin límite.
+  creditLimit     Decimal?          @map("credit_limit") @db.Decimal(12, 2)
+  /// Plazo de pago en días desde la entrega; null = sin control de deuda vencida.
+  paymentTermDays Int?              @map("payment_term_days")
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt       DateTime?         @map("deleted_at") @db.Timestamptz(3)
+  createdById     String?           @map("created_by")
+  updatedById     String?           @map("updated_by")
+  createdBy       User?             @relation("CustomerCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy       User?             @relation("CustomerUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  priceList       PriceList?        @relation(fields: [priceListId], references: [id], onDelete: Restrict)
+  persons         Person[]
   // Las direcciones de entrega son del cliente: cualquier persona del cliente las usa.
-  addresses    CustomerAddress[]
-  payments     CustomerPayment[]
+  addresses       CustomerAddress[]
+  payments        CustomerPayment[]
 
   @@index([deletedAt], map: "idx_customers_deleted_at")
   @@index([priceListId], map: "idx_customers_price_list_id")
@@ -526,6 +530,7 @@ model User {
   deletedAt                DateTime?            @map("deleted_at") @db.Timestamptz(3)
   person                   Person               @relation(fields: [personId], references: [id], onDelete: Restrict)
   sales                    Sale[]
+  creditReleasedSales      Sale[]               @relation("SaleCreditReleasedBy")
   auditLogs                AuditLog[]
   measurementUnitsCreated  MeasurementUnit[]    @relation("MeasurementUnitCreatedBy")
   measurementUnitsUpdated  MeasurementUnit[]    @relation("MeasurementUnitUpdatedBy")
@@ -624,44 +629,54 @@ model SaleItem {
 }
 
 model Sale {
-  id              String            @id @default(cuid(2))
+  id                 String            @id @default(cuid(2))
   /// Número correlativo para el cliente y el admin ("Pedido #12").
-  number          Int               @unique @default(autoincrement())
-  userId          String            @map("user_id")
-  addressId       String            @map("address_id")
-  subTotal        Decimal           @map("sub_total") @db.Decimal(12, 2)
-  tax             Decimal           @db.Decimal(12, 2)
-  discount        Decimal           @db.Decimal(12, 2)
-  total           Decimal           @db.Decimal(12, 2)
-  paymentMethod   PaymentMethod     @map("payment_method")
-  state           SaleState         @default(PENDING)
-  paymentState    SalePaymentState  @default(PENDING) @map("payment_state")
-  paidAt          DateTime?         @map("paid_at") @db.Timestamptz(3)
+  number             Int               @unique @default(autoincrement())
+  userId             String            @map("user_id")
+  addressId          String            @map("address_id")
+  subTotal           Decimal           @map("sub_total") @db.Decimal(12, 2)
+  tax                Decimal           @db.Decimal(12, 2)
+  discount           Decimal           @db.Decimal(12, 2)
+  total              Decimal           @db.Decimal(12, 2)
+  paymentMethod      PaymentMethod     @map("payment_method")
+  state              SaleState         @default(PENDING)
+  paymentState       SalePaymentState  @default(PENDING) @map("payment_state")
+  paidAt             DateTime?         @map("paid_at") @db.Timestamptz(3)
   /// Cuándo pasó a Entregado (vuelve a null si se vuelve atrás). Fecha de venta de los reportes.
-  deliveredAt     DateTime?         @map("delivered_at") @db.Timestamptz(3)
+  deliveredAt        DateTime?         @map("delivered_at") @db.Timestamptz(3)
   /// El admin habilitó al cliente a modificar el pedido (se usa una vez).
-  customerCanEdit Boolean           @default(false) @map("customer_can_edit")
+  customerCanEdit    Boolean           @default(false) @map("customer_can_edit")
   /// Persona que lo está modificando (los ítems volvieron a su carrito).
-  editingPersonId String?           @map("editing_person_id")
+  editingPersonId    String?           @map("editing_person_id")
   /// Comentario del cliente al confirmar (horario de entrega, etc.).
-  notes           String?           @db.VarChar(500)
-  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
-  user            User              @relation(fields: [userId], references: [id], onDelete: Restrict)
-  editingPerson   Person?           @relation("SaleEditingPerson", fields: [editingPersonId], references: [id], onDelete: SetNull)
-  address         CustomerAddress   @relation(fields: [addressId], references: [id], onDelete: Restrict)
-  items           SaleItem[]
-  usedDiscounts   UsedDiscount[]
-  stockMovements  StockMovement[]
-  payments        CustomerPayment[]
-  routeStops      RouteStop[]
-  pickingItems    PickingListItem[]
+  notes              String?           @db.VarChar(500)
+  /// Retenido por crédito al confirmar (supera el límite o tiene deuda vencida); null = no.
+  creditHoldAt       DateTime?         @map("credit_hold_at") @db.Timestamptz(3)
+  /// Por qué: { limit, exposure } y/o { overdueSince, termDays }.
+  creditHoldReasons  Json?             @map("credit_hold_reasons")
+  /// El admin lo aprobó: sigue el circuito normal.
+  creditReleasedAt   DateTime?         @map("credit_released_at") @db.Timestamptz(3)
+  creditReleasedById String?           @map("credit_released_by")
+  creditReleaseNote  String?           @map("credit_release_note") @db.VarChar(300)
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user               User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  editingPerson      Person?           @relation("SaleEditingPerson", fields: [editingPersonId], references: [id], onDelete: SetNull)
+  creditReleasedBy   User?             @relation("SaleCreditReleasedBy", fields: [creditReleasedById], references: [id], onDelete: Restrict)
+  address            CustomerAddress   @relation(fields: [addressId], references: [id], onDelete: Restrict)
+  items              SaleItem[]
+  usedDiscounts      UsedDiscount[]
+  stockMovements     StockMovement[]
+  payments           CustomerPayment[]
+  routeStops         RouteStop[]
+  pickingItems       PickingListItem[]
 
   @@index([userId], map: "idx_sales_user_id")
   @@index([addressId], map: "idx_sales_address_id")
   @@index([state], map: "idx_sales_state")
   @@index([createdAt], map: "idx_sales_created_at")
   @@index([deliveredAt], map: "idx_sales_delivered_at")
+  @@index([creditHoldAt], map: "idx_sales_credit_hold_at")
   @@map("sales")
 }
 

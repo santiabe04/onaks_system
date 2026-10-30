@@ -8,6 +8,7 @@ import type { SaleState } from "@/generated/prisma/enums";
 import { Suspense } from "react";
 import { OrderDetail, OrderItems } from "@/components/orders/order-items";
 import { interpolate } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/dictionary";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
@@ -20,6 +21,8 @@ import { isoDay } from "@/lib/order-period";
 import { can } from "@/lib/permissions";
 import { groupOrdersByZone } from "@/lib/orders-by-zone";
 import { allowedTransitions, isStepBack, stockEffect } from "@/lib/sale-state";
+import { isOnCreditHold, type CreditHoldReasons } from "@/lib/credit";
+import { CreditHoldControl } from "./credit-hold-control";
 import { CustomerEditControl } from "./customer-edit-control";
 import { StateChangeForm } from "./state-change-form";
 
@@ -80,6 +83,9 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
         },
       },
       editingPerson: { select: { name: true, surname: true } },
+      creditReleasedBy: {
+        select: { person: { select: { name: true, surname: true } } },
+      },
       items: {
         include: {
           product: {
@@ -138,6 +144,15 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
           {t.orders.states[sale.state]}
         </span>
       </div>
+
+      {sale.creditHoldAt && sale.state !== "CANCELED" && (
+        <CreditHoldBanner
+          sale={sale}
+          canManage={canManage}
+          format={format}
+          t={t.adminOrders.creditHold}
+        />
+      )}
 
       <dl className="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
         <OrderDetail label={t.orders.date}>
@@ -304,6 +319,76 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
   );
 }
 
+/** Por qué quedó retenido y el botón para aprobarlo (o quién lo aprobó). */
+function CreditHoldBanner({
+  sale,
+  canManage,
+  format,
+  t,
+}: {
+  sale: {
+    id: string;
+    creditHoldAt: Date | null;
+    creditHoldReasons: unknown;
+    creditReleasedAt: Date | null;
+    creditReleaseNote: string | null;
+    creditReleasedBy: { person: { name: string; surname: string } } | null;
+  };
+  canManage: boolean;
+  format: ReturnType<typeof formatters>;
+  t: Dictionary["adminOrders"]["creditHold"];
+}) {
+  const reasons = (sale.creditHoldReasons ?? {}) as CreditHoldReasons;
+  const held = isOnCreditHold(sale);
+  const by = sale.creditReleasedBy?.person;
+  return (
+    <section
+      role={held ? "alert" : undefined}
+      className={`mt-4 rounded border p-4 text-sm ${
+        held
+          ? "border-amber-600/50 bg-amber-500/10"
+          : "border-current/20 opacity-80"
+      }`}
+    >
+      <h2 className="font-medium">{t.title}</h2>
+      {reasons.limit && (
+        <p className="mt-1">
+          {interpolate(t.limit, {
+            exposure: format.money(reasons.limit.exposure),
+            limit: format.money(reasons.limit.limit),
+          })}
+        </p>
+      )}
+      {reasons.overdue && (
+        <p className="mt-1">
+          {interpolate(t.overdue, {
+            date: format.date(new Date(reasons.overdue.since)),
+            days: reasons.overdue.termDays,
+          })}
+        </p>
+      )}
+      {held ? (
+        <>
+          <p className="mt-1 text-xs opacity-70">{t.hint}</p>
+          {canManage && <CreditHoldControl saleId={sale.id} t={t} />}
+        </>
+      ) : (
+        <p className="mt-1">
+          {interpolate(t.released, {
+            name: by ? `${by.name} ${by.surname}` : "—",
+            date: format.dateTime(sale.creditReleasedAt!),
+          })}
+          {sale.creditReleaseNote && (
+            <span className="block whitespace-pre-line opacity-80">
+              {sale.creditReleaseNote}
+            </span>
+          )}
+        </p>
+      )}
+    </section>
+  );
+}
+
 /** Confirmación y cambios de estado del pedido, desde la auditoría. */
 async function History({ saleId }: { saleId: string }) {
   const [t, locale] = await Promise.all([getT(), getLocale()]);
@@ -337,6 +422,11 @@ async function History({ saleId }: { saleId: string }) {
     if (meta.editStarted) return h.editStarted;
     if (meta.editDiscarded) return h.editDiscarded;
     if (meta.editedByCustomer) return h.edited;
+    if (meta.creditRelease) return h.creditReleased;
+    if (meta.creditCheck) {
+      const after = log.after as { creditHold?: unknown } | null;
+      return after?.creditHold ? h.creditHeld : h.creditCleared;
+    }
     const canEdit = (value: unknown) =>
       (value as { customerCanEdit?: boolean } | null)?.customerCanEdit;
     const before = canEdit(log.before);

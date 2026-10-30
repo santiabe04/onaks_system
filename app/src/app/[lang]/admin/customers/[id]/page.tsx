@@ -5,7 +5,9 @@ import { buttonClass } from "@/components/ui/button";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { BalanceLine } from "@/components/account/balance-line";
 import { interpolate } from "@/i18n/config";
+import { fromCents, toCents } from "@/lib/account";
 import { loadAccount } from "@/lib/account-ledger";
+import { creditExposure } from "@/lib/credit";
 import { db } from "@/lib/db";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
@@ -50,6 +52,8 @@ async function CustomerDetail({ params }: { params: Promise<{ id: string }> }) {
   ]);
   const format = formatters(locale);
   const c = t.customers;
+  // Lo que debe y va a deber (pedidos abiertos), contra su límite.
+  const used = creditExposure(account.summary);
   const base = `/admin/customers/${customer.id}`;
   const labels = { delete: t.common.delete, deleting: t.common.deleting };
 
@@ -68,6 +72,20 @@ async function CustomerDetail({ params }: { params: Promise<{ id: string }> }) {
               list: customer.priceList?.name ?? c.noPriceList,
               discount: format.percent(customer.discountRate),
             })}
+          </p>
+          <p className="text-sm opacity-70">
+            {c.credit}:{" "}
+            {customer.creditLimit === null
+              ? interpolate(c.noCreditLimit, { used: format.money(used) })
+              : interpolate(c.creditSummary, {
+                  used: format.money(used),
+                  limit: format.money(customer.creditLimit),
+                  available: format.money(
+                    fromCents(toCents(customer.creditLimit) - toCents(used)),
+                  ),
+                })}
+            {customer.paymentTermDays !== null &&
+              ` · ${interpolate(c.paymentTerm, { days: customer.paymentTermDays })}`}
           </p>
           <div className="mt-2 flex flex-wrap items-baseline gap-x-4 text-sm">
             <BalanceLine

@@ -96,6 +96,13 @@ comentarios y textos de UI en español.
   `lib/admin-order`), sin tocar el carrito del cliente. `createOrderForCustomer` usa los precios del cliente y
   efectivo, bloquea la cuenta del cliente y guarda la foto con `saleItemSnapshot` (compartido con
   `placeOrder`). El autor es el admin: el cliente lo ve como "La distribuidora".
+- Crédito (`lib/credit`, `lib/credit-ledger`): límite opcional por cliente (`customers.credit_limit`)
+  contra la exposición (lo pendiente de todos sus pedidos no cancelados, de `summarizeAccount`) y plazo
+  de pago opcional (`payment_term_days`, desde `delivered_at`). Al confirmar (tienda o admin),
+  `applyCreditCheck` corre con la cuenta bloqueada y recalculada: si falla, el pedido queda retenido
+  (`credit_hold_at` + motivos en `credit_hold_reasons`); nada bloquea al cliente ni se le muestra. Un
+  retenido solo se puede cancelar (`applySaleStateChange`) hasta que el admin lo aprueba
+  (`releaseCreditHold`: quién, cuándo y comentario). Aviso en el dashboard y filtro `held=1` en Todos.
 - `sales.number` es el número correlativo que ve la gente (`/orders/[number]`). "Mis pedidos" muestra
   los de **toda la empresa** (filtro por `address.customerId`); uno ajeno da 404.
 - El cliente cancela un pedido Pendiente desde "Mis pedidos". Si el admin lo habilita

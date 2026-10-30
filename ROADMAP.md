@@ -3,8 +3,8 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 30/10/2026: fases 0 a 13 terminadas, en BETA (v1.43.0-beta). Siguen las funciones nuevas
-(fases 12 a 22); facturación electrónica y app del repartidor quedan al fondo.
+Estado al 30/10/2026: fases 0 a 14 terminadas, en BETA (v1.44.0-beta). Siguen las funciones nuevas
+(fases 15 a 22); facturación electrónica y app del repartidor quedan al fondo.
 
 | Fase | Contenido                                                        | Estado      |
 | ---- | ---------------------------------------------------------------- | ----------- |
@@ -22,15 +22,15 @@ Estado al 30/10/2026: fases 0 a 13 terminadas, en BETA (v1.43.0-beta). Siguen la
 | 11   | Puesta a punto para BETA                                         | ✅          |
 | 12   | Pedido cargado por el admin en nombre del cliente                | ✅          |
 | 13   | Listas de precios y descuentos                                   | ✅          |
-| 14   | Reportes de ventas y margen                                      | 🟡          |
-| 15   | Avisos al cliente (mail y WhatsApp)                              | ⏳          |
-| 16   | Límite de crédito y bloqueo por deuda                            | ⏳          |
-| 17   | Días de entrega por zona y pedido mínimo                         | ⏳          |
-| 18   | Devoluciones y notas de crédito a clientes                       | ⏳          |
-| 19   | Repetir pedido y favoritos                                       | ⏳          |
-| 20   | Transferencia en el checkout                                     | ⏳          |
-| 21   | Lotes y vencimientos                                             | ⏳          |
-| 22   | Toma de inventario desde el celular                              | ⏳          |
+| 14   | Reportes de ventas y margen                                      | ✅          |
+| 15   | Días de entrega por zona y pedido mínimo                         | ❌          |
+| 16   | Límite de crédito y bloqueo por deuda                            | 🟡          |
+| 17   | Devoluciones y notas de crédito a clientes                       | ⏳          |
+| 18   | Repetir pedido y favoritos                                       | ⏳          |
+| 19   | Transferencia en el checkout                                     | ⏳          |
+| 20   | Lotes y vencimientos                                             | ⏳          |
+| 21   | Toma de inventario desde el celular                              | ⏳          |
+| 22   | Avisos al cliente (mail y WhatsApp)                              | ⏳          |
 | 23   | Facturación electrónica (ARCA)                                   | 💤 al fondo |
 | 24   | App instalable del repartidor (sin señal)                        | 💤 al fondo |
 
@@ -375,51 +375,60 @@ cliente ve su precio con el base tachado. Bonificaciones por cantidad: no por ah
 | ---- | ---------------------------------------------------------------------------------- | --------------- |
 | 13.1 | Listas de precios, descuento por cliente y precios del cliente en tienda y pedidos | ✅ v1.43.0-beta |
 
-## Fase 14 — Reportes de ventas y margen 🟡
+## Fase 14 — Reportes de ventas y margen ✅
 
 Definiciones: venta = entregados (por fecha de entrega) o confirmados sin cancelar (por fecha del
 pedido), con selector. El margen es contra la foto del último costo de compra al hacer el pedido (los
 pedidos anteriores se completaron con el costo actual). Cortes por producto, categoría, cliente, zona y
 productos sin movimiento; pantalla con totales, gráfico de los últimos 12 meses y CSV.
 
-| PR   | Contenido                                                                       | Estado      |
-| ---- | ------------------------------------------------------------------------------- | ----------- |
-| 14.1 | Reporte de ventas y margen (`/admin/reports`), fecha de entrega y costo vendido | 🟡 PR listo |
+| PR   | Contenido                                                                       | Estado          |
+| ---- | ------------------------------------------------------------------------------- | --------------- |
+| 14.1 | Reporte de ventas y margen (`/admin/reports`), fecha de entrega y costo vendido | ✅ v1.44.0-beta |
 
-## Fase 15 — Avisos al cliente ⏳
+## Fase 15 — Días de entrega por zona y pedido mínimo ❌ descartada
 
-- Mail al confirmar, preparar, salir a reparto y entregar el pedido; botón que abre WhatsApp con el
-  mensaje armado (sin API).
+- Descartada: las hojas de ruta las arma el admin a mano (pueden juntar varias zonas), no hay hora de
+  corte ni fecha estimada para el cliente, y sin pedido mínimo (si un pedido no conviene, el admin lo
+  cancela o lo entrega en otro momento).
 
-## Fase 16 — Límite de crédito y bloqueo por deuda ⏳
+## Fase 16 — Límite de crédito y bloqueo por deuda 🟡
 
-- Tope de deuda por cliente y aviso o bloqueo en el checkout si tiene deuda vencida.
+Definiciones: límite de crédito opcional por cliente contra lo que debe más sus pedidos abiertos, y plazo
+de pago opcional (días desde la entrega). Nada bloquea al cliente: si un pedido supera el límite o hay
+deuda vencida, se confirma igual y queda retenido; el admin lo aprueba (con comentario) o lo cancela, y
+hasta entonces no avanza de Pendiente.
 
-## Fase 17 — Días de entrega por zona y pedido mínimo ⏳
+| PR   | Contenido                                                                 | Estado      |
+| ---- | ------------------------------------------------------------------------- | ----------- |
+| 16.1 | Límite y plazo por cliente, pedidos retenidos por crédito y su aprobación | 🟡 PR listo |
 
-- Días de reparto por localidad, fecha estimada de entrega en el checkout y monto mínimo opcional por zona.
-
-## Fase 18 — Devoluciones y notas de crédito a clientes ⏳
+## Fase 17 — Devoluciones y notas de crédito a clientes ⏳
 
 - Devoluciones después de entregado (vencido, error): el stock vuelve y el crédito queda en la cuenta
   corriente del cliente.
 
-## Fase 19 — Repetir pedido y favoritos ⏳
+## Fase 18 — Repetir pedido y favoritos ⏳
 
 - "Repetir pedido" que carga el carrito con un pedido anterior y productos favoritos del cliente.
 
-## Fase 20 — Transferencia en el checkout ⏳
+## Fase 19 — Transferencia en el checkout ⏳
 
 - Pago por transferencia con comprobante adjunto; el admin lo valida y queda como cobro en la cuenta
   corriente.
 
-## Fase 21 — Lotes y vencimientos ⏳
+## Fase 20 — Lotes y vencimientos ⏳
 
 - Vencimiento por lote al recibir mercadería; el picking saca primero lo que vence antes.
 
-## Fase 22 — Toma de inventario desde el celular ⏳
+## Fase 21 — Toma de inventario desde el celular ⏳
 
 - Conteo por depósito con el escáner de código de barras y ajuste automático de las diferencias.
+
+## Fase 22 — Avisos al cliente ⏳
+
+- Mail al confirmar, preparar, salir a reparto y entregar el pedido; botón que abre WhatsApp con el
+  mensaje armado (sin API).
 
 ## Al fondo 💤
 

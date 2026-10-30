@@ -5,6 +5,7 @@ import { getActionDictionary } from "@/i18n/dictionary";
 import { lockAccount } from "@/lib/account-ledger";
 import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth";
+import { CREDIT_RELEASE_NOTE_MAX_LENGTH } from "@/lib/credit";
 import { db } from "@/lib/db";
 import { isCuid } from "@/lib/ids";
 import {
@@ -147,4 +148,54 @@ export async function changeSalesStateBulk(
 
   revalidatePath("/[lang]", "layout");
   return { results, savedAt: Date.now() };
+}
+
+/**
+ * Aprueba un pedido retenido por crédito (supera el límite o hay deuda
+ * vencida): desde ahí sigue el circuito normal. Queda quién y por qué.
+ */
+export async function releaseCreditHold(
+  saleId: string,
+  _prev: StateChangeFormState,
+  formData: FormData,
+): Promise<StateChangeFormState> {
+  const user = await requirePermission("sales:manage");
+  const t = getActionDictionary().adminOrders.creditHold.errors;
+  if (!isCuid(saleId)) return { error: t.notFound };
+  const raw = formData.get("note");
+  const note = typeof raw === "string" ? raw.trim() : "";
+  if (note.length > CREDIT_RELEASE_NOTE_MAX_LENGTH) {
+    return { error: t.noteTooLong };
+  }
+
+  const error = await db.$transaction(async (tx) => {
+    const [locked] = await tx.$queryRaw<
+      { held: boolean }[]
+    >`SELECT ("credit_hold_at" IS NOT NULL AND "credit_released_at" IS NULL) AS "held"
+      FROM "sales" WHERE "id" = ${saleId} FOR UPDATE`;
+    if (!locked) return t.notFound;
+    if (!locked.held) return t.notHeld;
+    const after = await tx.sale.update({
+      where: { id: saleId },
+      data: {
+        creditReleasedAt: new Date(),
+        creditReleasedById: user.id,
+        creditReleaseNote: note || null,
+      },
+      select: { creditReleasedAt: true, creditReleaseNote: true },
+    });
+    await audit(tx, {
+      action: "UPDATE",
+      actorUserId: user.id,
+      entityType: "SALE",
+      entityId: saleId,
+      after,
+      metadata: { creditRelease: true, comment: note || null },
+    });
+    return null;
+  });
+  if (error) return { error };
+
+  revalidatePath("/[lang]", "layout");
+  return { savedAt: Date.now() };
 }
