@@ -88,7 +88,8 @@ export function parseAdminOrder(
 
 /**
  * Foto del producto en el pedido: los cambios posteriores no lo tocan. `price`
- * es el neto que paga el cliente; el precio base queda como `unitListPrice`.
+ * es el neto que paga el cliente; el precio base queda como `unitListPrice` y
+ * el último costo de compra (si hay) como `unitCost`, para el margen.
  */
 export function saleItemSnapshot(
   product: {
@@ -100,6 +101,7 @@ export function saleItemSnapshot(
   },
   quantity: Numeric,
   price: Numeric,
+  cost: Numeric | undefined,
 ) {
   return {
     productId: product.id,
@@ -109,5 +111,6 @@ export function saleItemSnapshot(
     unitWeight: product.weight.toString(),
     unitVolume: product.volume?.toString() ?? null,
     unitTaxRate: product.taxRate.rate.toString(),
+    unitCost: cost?.toString() ?? null,
   };
 }

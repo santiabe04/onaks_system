@@ -10,6 +10,7 @@ import { requirePermission } from "@/lib/auth";
 import { cartTotals } from "@/lib/cart";
 import { VISIBLE_PRODUCT } from "@/lib/catalog";
 import { customerPrice, saleDiscount } from "@/lib/customer-price";
+import { latestCosts } from "@/lib/cost-queries";
 import { db } from "@/lib/db";
 import { isCuid } from "@/lib/ids";
 import { getPricing } from "@/lib/pricing-queries";
@@ -83,6 +84,10 @@ export async function createOrderForCustomer(
         const price = customerPrice(product.id, product.price, pricing);
         return { line, product, price };
       });
+      const costs = await latestCosts(
+        lines.map((line) => line.productId),
+        tx,
+      );
       const totals = cartTotals(
         items.map(({ line, product, price }) => ({
           price,
@@ -109,7 +114,12 @@ export async function createOrderForCustomer(
           notes,
           items: {
             create: items.map(({ line, product, price }) =>
-              saleItemSnapshot(product, line.quantity, price),
+              saleItemSnapshot(
+                product,
+                line.quantity,
+                price,
+                costs[product.id],
+              ),
             ),
           },
         },

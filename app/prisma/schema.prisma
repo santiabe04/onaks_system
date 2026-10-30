@@ -612,6 +612,8 @@ model SaleItem {
   unitWeight    Decimal  @map("unit_weight") @db.Decimal(10, 3)
   unitVolume    Decimal? @map("unit_volume") @db.Decimal(10, 3)
   unitTaxRate   Decimal  @map("unit_tax_rate") @db.Decimal(5, 4)
+  /// Último costo de compra (neto) al hacer el pedido; null si no tenía. Para el margen.
+  unitCost      Decimal? @map("unit_cost") @db.Decimal(12, 2)
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
   sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Restrict)
@@ -635,6 +637,8 @@ model Sale {
   state           SaleState         @default(PENDING)
   paymentState    SalePaymentState  @default(PENDING) @map("payment_state")
   paidAt          DateTime?         @map("paid_at") @db.Timestamptz(3)
+  /// Cuándo pasó a Entregado (vuelve a null si se vuelve atrás). Fecha de venta de los reportes.
+  deliveredAt     DateTime?         @map("delivered_at") @db.Timestamptz(3)
   /// El admin habilitó al cliente a modificar el pedido (se usa una vez).
   customerCanEdit Boolean           @default(false) @map("customer_can_edit")
   /// Persona que lo está modificando (los ítems volvieron a su carrito).
@@ -657,6 +661,7 @@ model Sale {
   @@index([addressId], map: "idx_sales_address_id")
   @@index([state], map: "idx_sales_state")
   @@index([createdAt], map: "idx_sales_created_at")
+  @@index([deliveredAt], map: "idx_sales_delivered_at")
   @@map("sales")
 }
 

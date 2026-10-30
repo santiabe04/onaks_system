@@ -226,6 +226,11 @@ const WAREHOUSES = [
   },
 ] as const;
 
+/** Costo de compra de la demo: 70 % del precio neto. */
+function demoCost(price: string | number): string {
+  return (Number(price) * 0.7).toFixed(2);
+}
+
 const SUPPLIERS = [
   {
     legalName: "Nutrición Animal del Sur SA",
@@ -524,7 +529,7 @@ export async function seedDemo(db: Db): Promise<boolean> {
                 return {
                   productId: product.id,
                   supplierCode: sku.replace(/-/g, ""),
-                  lastCost: (Number(product.price) * 0.7).toFixed(2),
+                  lastCost: demoCost(product.price),
                   lastCostAt: new Date(),
                 };
               }),
@@ -632,6 +637,8 @@ export async function seedDemo(db: Db): Promise<boolean> {
                 unitWeight: item.weight,
                 unitVolume: item.volume,
                 unitTaxRate: item.rate,
+                // Todos tienen proveedor: la foto del costo es el último.
+                unitCost: demoCost(item.price),
               })),
             },
           },
