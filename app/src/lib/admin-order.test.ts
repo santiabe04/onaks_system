@@ -117,6 +117,7 @@ describe("saleItemSnapshot", () => {
         },
         "3",
         "23400.00",
+        "17500",
       ),
     ).toEqual({
       productId: DOG_FOOD,
@@ -126,6 +127,24 @@ describe("saleItemSnapshot", () => {
       unitWeight: "15",
       unitVolume: null,
       unitTaxRate: "0.105",
+      unitCost: "17500",
     });
+  });
+
+  it("sin costo de compra queda null", () => {
+    expect(
+      saleItemSnapshot(
+        {
+          id: DOG_FOOD,
+          price: "26000",
+          weight: "15",
+          volume: null,
+          taxRate: { rate: "0.105" },
+        },
+        "1",
+        "26000",
+        undefined,
+      ).unitCost,
+    ).toBeNull();
   });
 });

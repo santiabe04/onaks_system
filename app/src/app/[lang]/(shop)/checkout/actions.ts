@@ -16,6 +16,7 @@ import {
 } from "@/lib/cart-queries";
 import { cartFingerprint } from "@/lib/cart-fingerprint";
 import { validateCheckoutForm, type CheckoutFormState } from "@/lib/checkout";
+import { latestCosts } from "@/lib/cost-queries";
 import { db } from "@/lib/db";
 
 /** Corta la transacción con un mensaje para el cliente. */
@@ -77,6 +78,10 @@ export async function placeOrder(
       }
 
       const totals = cartTotals(available.map(toCartLine));
+      const costs = await latestCosts(
+        available.map((item) => item.productId),
+        tx,
+      );
       const data = {
         addressId,
         subTotal: totals.net,
@@ -91,6 +96,7 @@ export async function placeOrder(
               { ...item.product, id: item.productId },
               item.quantity,
               item.price,
+              costs[item.productId],
             ),
           ),
         },

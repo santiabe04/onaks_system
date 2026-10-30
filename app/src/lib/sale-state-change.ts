@@ -2,6 +2,7 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import type { SaleState } from "@/generated/prisma/enums";
 import type { Dictionary } from "@/i18n/dictionaries/es";
+import { CHARGED_SALE_STATES } from "./account";
 import { lockAccount, recomputeAccount } from "./account-ledger";
 import { audit } from "./audit";
 import { fromMilli, toMilli } from "./quantity";
@@ -90,8 +91,17 @@ export async function applySaleStateChange(
 
   await tx.sale.update({
     where: { id: saleId },
-    // El permiso de modificar es solo para pedidos Pendientes.
-    data: { state: input.to, customerCanEdit: false },
+    data: {
+      state: input.to,
+      // El permiso de modificar es solo para pedidos Pendientes.
+      customerCanEdit: false,
+      // Fecha de venta de los reportes: al entregarse; se borra si vuelve atrás.
+      deliveredAt: CHARGED_SALE_STATES.includes(input.to)
+        ? CHARGED_SALE_STATES.includes(locked.state)
+          ? undefined
+          : new Date()
+        : null,
+    },
   });
   await audit(tx, {
     action: "UPDATE",

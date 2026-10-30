@@ -105,6 +105,17 @@ comentarios y textos de UI en español.
 - Stock reservado = cantidades de pedidos en `RESERVED_SALE_STATES` (`lib/checkout`, hoy solo PENDING);
   se muestra en `/admin/stock` como Reservado y Disponible = total − reservado.
 
+## Reportes
+
+- Ventas y margen (`/admin/reports`, permiso `reports:read`): período (por defecto el mes, hasta un año),
+  qué cuenta como venta (entregados por `sales.delivered_at` o confirmados sin cancelar por fecha del
+  pedido) y pestañas por producto, categoría, cliente, zona y sin movimiento; CSV en `reports/export`.
+  Las cuentas son puras en `lib/sales-report` (en enteros) y las consultas en `lib/sales-report-queries`;
+  el gráfico de 12 meses suma en SQL. `delivered_at` lo pone `applySaleStateChange` al pasar a
+  Entregado (null si vuelve atrás). El margen es contra `sale_items.unit_cost`: foto del último costo de
+  compra (`latestCosts` en `lib/cost-queries`, el más reciente entre proveedores) al crear el pedido;
+  lo que no tiene costo suma a la venta pero no al margen.
+
 ## Reparto
 
 - Repartidores (`/admin/drivers`: nombre, teléfono, usuario vinculado opcional) y vehículos

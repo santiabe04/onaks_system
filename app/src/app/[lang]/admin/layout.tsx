@@ -68,6 +68,10 @@ export default async function AdminLayout({
       ],
     },
     {
+      title: t.adminNav.reports,
+      items: [{ href: "/admin/reports", label: t.adminNav.salesReport }],
+    },
+    {
       title: t.adminNav.system,
       items: [
         { href: "/admin/users", label: t.adminNav.users },

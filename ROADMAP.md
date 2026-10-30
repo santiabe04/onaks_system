@@ -3,7 +3,7 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 30/10/2026: fases 0 a 12 terminadas, en BETA (v1.42.0-beta). Siguen las funciones nuevas
+Estado al 30/10/2026: fases 0 a 13 terminadas, en BETA (v1.43.0-beta). Siguen las funciones nuevas
 (fases 12 a 22); facturación electrónica y app del repartidor quedan al fondo.
 
 | Fase | Contenido                                                        | Estado      |
@@ -21,8 +21,8 @@ Estado al 30/10/2026: fases 0 a 12 terminadas, en BETA (v1.42.0-beta). Siguen la
 | 10   | Lista de picking                                                 | ✅          |
 | 11   | Puesta a punto para BETA                                         | ✅          |
 | 12   | Pedido cargado por el admin en nombre del cliente                | ✅          |
-| 13   | Listas de precios y descuentos                                   | 🟡          |
-| 14   | Reportes de ventas y margen                                      | ⏳          |
+| 13   | Listas de precios y descuentos                                   | ✅          |
+| 14   | Reportes de ventas y margen                                      | 🟡          |
 | 15   | Avisos al cliente (mail y WhatsApp)                              | ⏳          |
 | 16   | Límite de crédito y bloqueo por deuda                            | ⏳          |
 | 17   | Días de entrega por zona y pedido mínimo                         | ⏳          |
@@ -364,21 +364,27 @@ la distribuidora y lo cancela o pide cambiarlo como cualquier otro.
 | ---- | ------------------------------------------------------------- | --------------- |
 | 12.1 | Nuevo pedido para un cliente (`/admin/orders/new`) + test e2e | ✅ v1.42.0-beta |
 
-## Fase 13 — Listas de precios y descuentos 🟡
+## Fase 13 — Listas de precios y descuentos ✅
 
 Definiciones: cada lista es un % sobre el precio base (negativo = más barato) con precio fijo opcional
 por producto; cada cliente tiene una lista (o ninguna: precio base) y un descuento propio sobre ella. El
 cliente ve su precio con el base tachado. Bonificaciones por cantidad: no por ahora. Las tablas
 `discounts` y `used_discounts` siguen sin usarse.
 
-| PR   | Contenido                                                                          | Estado      |
-| ---- | ---------------------------------------------------------------------------------- | ----------- |
-| 13.1 | Listas de precios, descuento por cliente y precios del cliente en tienda y pedidos | 🟡 PR listo |
+| PR   | Contenido                                                                          | Estado          |
+| ---- | ---------------------------------------------------------------------------------- | --------------- |
+| 13.1 | Listas de precios, descuento por cliente y precios del cliente en tienda y pedidos | ✅ v1.43.0-beta |
 
-## Fase 14 — Reportes de ventas y margen ⏳
+## Fase 14 — Reportes de ventas y margen 🟡
 
-- Ventas por período, cliente, producto y zona; margen contra el último costo del proveedor; productos
-  que más rotan y sin movimiento; exportación a CSV.
+Definiciones: venta = entregados (por fecha de entrega) o confirmados sin cancelar (por fecha del
+pedido), con selector. El margen es contra la foto del último costo de compra al hacer el pedido (los
+pedidos anteriores se completaron con el costo actual). Cortes por producto, categoría, cliente, zona y
+productos sin movimiento; pantalla con totales, gráfico de los últimos 12 meses y CSV.
+
+| PR   | Contenido                                                                       | Estado      |
+| ---- | ------------------------------------------------------------------------------- | ----------- |
+| 14.1 | Reporte de ventas y margen (`/admin/reports`), fecha de entrega y costo vendido | 🟡 PR listo |
 
 ## Fase 15 — Avisos al cliente ⏳
 
