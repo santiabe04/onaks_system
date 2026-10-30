@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.45.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.44.0-beta...v1.45.0-beta) (2026-10-30)
+
+
+### Features
+
+* **credit:** hold orders over the customer's credit limit or with overdue debt ([#113](https://github.com/santiabe04/onaks_system/issues/113)) ([bee337e](https://github.com/santiabe04/onaks_system/commit/bee337e64e88991b2870d186fa16bb396137b1a5))
+
 ## [1.44.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.43.0-beta...v1.44.0-beta) (2026-10-30)
 
 
