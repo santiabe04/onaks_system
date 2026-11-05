@@ -3,15 +3,20 @@
 Recorren la app como lo haría una persona, con Chromium, contra la app compilada y una base con la
 **demo del seed** (`SEED_DEMO=true`):
 
-| Archivo               | Circuito                                                                                    |
-| --------------------- | ------------------------------------------------------------------------------------------- |
-| `shop.spec.ts`        | El cliente arma el carrito, confirma el pedido y lo ve en Mis pedidos                       |
-| `delivery.spec.ts`    | Picking (con faltante), hoja de ruta, parada desde el celular con entrega parcial, y cierre |
-| `purchases.spec.ts`   | Orden de compra, recepción de menos, factura sin diferencias y orden de pago                |
-| `permissions.spec.ts` | Cliente y repartidor no entran al admin; un cliente no ve pedidos de otra empresa           |
+| Archivo               | Circuito                                                                                             |
+| --------------------- | ---------------------------------------------------------------------------------------------------- |
+| `admin-order.spec.ts` | El admin carga un pedido por un cliente y el cliente lo ve como "La distribuidora"                   |
+| `credit.spec.ts`      | Un pedido que supera el límite de crédito queda retenido, no avanza y el admin lo aprueba            |
+| `delivery.spec.ts`    | Picking (con faltante), hoja de ruta, parada desde el celular con entrega parcial, y cierre          |
+| `permissions.spec.ts` | Cliente y repartidor no entran al admin; un cliente no ve pedidos de otra empresa                    |
+| `price-lists.spec.ts` | El admin arma una lista de precios con un precio fijo, se la asigna a un cliente y éste ve su precio |
+| `purchases.spec.ts`   | Orden de compra, recepción de menos, factura sin diferencias y orden de pago                         |
+| `reports.spec.ts`     | Reporte de ventas y margen del mes, por cliente y sin movimiento, y su CSV                           |
+| `shop.spec.ts`        | El cliente arma el carrito, confirma el pedido y lo ve en Mis pedidos                                |
 
 Corren de a uno y sobre una base **nueva**: dependen de los números de pedido de la demo (#1 a #4) y
-cada circuito deja datos. En el CI los corre el job `e2e`.
+cada circuito deja datos. Se ejecutan en orden alfabético y alguno depende del anterior (`reports` usa el
+pedido #3 que entrega `delivery`). En el CI los corre el job `e2e`.
 
 ## Correrlos localmente
 

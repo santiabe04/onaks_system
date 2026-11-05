@@ -37,6 +37,8 @@ comentarios y textos de UI en español.
 
 - `app/`: **todo el código** (Next, Prisma, Dockerfile, tooling, husky). Los comandos de npm se corren acá.
 - Raíz: solo docs y configuración no funcional (`.github/`, `release-please-*.json`, README, `docs/`).
+  El manual técnico (para quien programa) está en `docs/manual-tecnico/` (7 capítulos): si cambia algo de lo
+  que explica, actualizarlo en el mismo PR.
 - Producción: `app/docker-compose.prod.yml` se suma al compose base (imágenes de GHCR por `APP_VERSION`,
   sin puertos de base ni app publicados, Caddy y backups). Caddy en `app/deploy/caddy/` (un Caddyfile por
   `TLS_MODE`: `auto`, `custom`, `proxy`, más `app.caddy` común); backups diarios con
