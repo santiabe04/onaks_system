@@ -6,9 +6,9 @@ import { db } from "./db";
 
 type Client = Prisma.TransactionClient | typeof db;
 
-/** Pedidos y cobros de un cliente, con el resumen de la cuenta. */
+/** Pedidos, cobros y notas de crédito de un cliente, con el resumen de la cuenta. */
 export async function loadAccount(client: Client, customerId: string) {
-  const [sales, payments] = await Promise.all([
+  const [sales, payments, creditNotes] = await Promise.all([
     client.sale.findMany({
       where: { address: { customerId } },
       orderBy: { number: "asc" },
@@ -36,6 +36,29 @@ export async function loadAccount(client: Client, customerId: string) {
         sale: { select: { number: true } },
       },
     }),
+    client.customerCreditNote.findMany({
+      where: { customerId },
+      orderBy: { number: "asc" },
+      include: {
+        sale: { select: { number: true } },
+        createdBy: {
+          select: { person: { select: { name: true, surname: true } } },
+        },
+        voidedBy: {
+          select: { person: { select: { name: true, surname: true } } },
+        },
+        items: {
+          include: {
+            product: {
+              select: {
+                name: true,
+                measurementUnit: { select: { name: true } },
+              },
+            },
+          },
+        },
+      },
+    }),
   ]);
   const summary = summarizeAccount(
     sales,
@@ -44,8 +67,12 @@ export async function loadAccount(client: Client, customerId: string) {
       amount: payment.amount,
       voided: payment.voidedAt !== null,
     })),
+    creditNotes.map((note) => ({
+      amount: note.amount,
+      voided: note.voidedAt !== null,
+    })),
   );
-  return { sales, payments, summary };
+  return { sales, payments, creditNotes, summary };
 }
 
 /**

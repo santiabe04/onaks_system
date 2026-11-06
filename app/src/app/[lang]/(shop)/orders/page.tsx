@@ -95,6 +95,7 @@ async function Orders({
           customerId={user.customerId}
           t={t.myAccount}
           methods={t.orders.paymentMethods}
+          creditNoteLabels={t.customerCreditNotes}
           format={format}
         />
       )}

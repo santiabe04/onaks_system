@@ -60,6 +60,10 @@ enum StockMovementType {
   PURCHASE_RECEIPT
   /// Reversión del ingreso al anular el informe de recepción.
   PURCHASE_RECEIPT_REVERSAL
+  /// Ingreso por una devolución de un cliente (nota de crédito).
+  CUSTOMER_RETURN
+  /// Reversión del ingreso al anular la devolución.
+  CUSTOMER_RETURN_REVERSAL
 }
 
 enum AuditAction {
@@ -107,6 +111,23 @@ enum AuditEntity {
   PICKING_LIST
   PRODUCT_LOCATION
   PRICE_LIST
+  CUSTOMER_CREDIT_NOTE
+}
+
+/// Qué documenta una nota de crédito al cliente.
+enum CustomerCreditNoteKind {
+  /// Devolución de mercadería de un pedido entregado (con productos y stock).
+  RETURN
+  /// Bonificación o ajuste por importe, sin mercadería.
+  ADJUSTMENT
+}
+
+/// Qué se hace con lo que el cliente devuelve.
+enum ReturnDestination {
+  /// Vuelve al depósito para venderse otra vez.
+  RESTOCK
+  /// Ingresa y se da de baja (vencido, roto).
+  WRITE_OFF
 }
 
 // --- TABLES ---
@@ -153,24 +174,25 @@ model Category {
 // Depósitos de mercadería, con stock propio (ProductStock). Inactivo: no recibe
 // movimientos nuevos, pero se conserva para el historial. Solo se desactiva sin stock.
 model Warehouse {
-  id             String          @id @default(cuid(2))
-  name           String          @unique
+  id             String               @id @default(cuid(2))
+  name           String               @unique
   address        String
-  cityId         Int             @map("city_id")
+  cityId         Int                  @map("city_id")
   phone          String?
-  contactName    String?         @map("contact_name")
-  isActive       Boolean         @default(true) @map("is_active")
-  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
-  createdById    String?         @map("created_by")
-  updatedById    String?         @map("updated_by")
-  city           City            @relation(fields: [cityId], references: [id], onDelete: Restrict)
-  createdBy      User?           @relation("WarehouseCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy      User?           @relation("WarehouseUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  contactName    String?              @map("contact_name")
+  isActive       Boolean              @default(true) @map("is_active")
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById    String?              @map("created_by")
+  updatedById    String?              @map("updated_by")
+  city           City                 @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  createdBy      User?                @relation("WarehouseCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy      User?                @relation("WarehouseUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   stocks         ProductStock[]
   stockMovements StockMovement[]
   goodsReceipts  GoodsReceipt[]
   pickingLists   PickingList[]
+  creditNotes    CustomerCreditNote[]
 
   @@index([cityId], map: "idx_warehouses_city_id")
   @@map("warehouses")
@@ -196,37 +218,37 @@ model TaxRate {
 }
 
 model Product {
-  id                String                @id @default(cuid(2))
-  name              String                @unique
+  id                String                   @id @default(cuid(2))
+  name              String                   @unique
   // Código interno, obligatorio. El de barras es opcional (no todo tiene EAN).
-  sku               String                @unique
-  barcode           String?               @unique
+  sku               String                   @unique
+  barcode           String?                  @unique
   description       String?
   // Solo categorías finales (sin hijas): lo controla la app.
-  categoryId        Int                   @map("category_id")
+  categoryId        Int                      @map("category_id")
   // Precio neto, sin IVA. El final se calcula con la alícuota.
-  price             Decimal               @db.Decimal(12, 2)
-  taxRateId         Int                   @map("tax_rate_id")
-  measurementUnitId Int                   @map("measurement_unit_id")
+  price             Decimal                  @db.Decimal(12, 2)
+  taxRateId         Int                      @map("tax_rate_id")
+  measurementUnitId Int                      @map("measurement_unit_id")
   // Peso en kg y volumen en litros, por unidad de venta.
-  weight            Decimal               @db.Decimal(10, 3)
-  volume            Decimal?              @db.Decimal(10, 3)
+  weight            Decimal                  @db.Decimal(10, 3)
+  volume            Decimal?                 @db.Decimal(10, 3)
   /// Stock mínimo: debajo de esto se alerta y se sugiere comprar.
-  minStock          Decimal?              @map("min_stock") @db.Decimal(12, 3)
+  minStock          Decimal?                 @map("min_stock") @db.Decimal(12, 3)
   // Archivo WebP en UPLOADS_DIR/products (ver lib/product-image).
-  imageFile         String?               @map("image_file")
+  imageFile         String?                  @map("image_file")
   // Pausado: no se ve en el catálogo, pero conserva historial y stock.
-  isActive          Boolean               @default(true) @map("is_active")
-  createdAt         DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
-  deletedAt         DateTime?             @map("deleted_at") @db.Timestamptz(3)
-  createdById       String?               @map("created_by")
-  updatedById       String?               @map("updated_by")
-  category          Category              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  measurementUnit   MeasurementUnit       @relation(fields: [measurementUnitId], references: [id], onDelete: Restrict)
-  taxRate           TaxRate               @relation(fields: [taxRateId], references: [id], onDelete: Restrict)
-  createdBy         User?                 @relation("ProductCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy         User?                 @relation("ProductUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  isActive          Boolean                  @default(true) @map("is_active")
+  createdAt         DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt         DateTime?                @map("deleted_at") @db.Timestamptz(3)
+  createdById       String?                  @map("created_by")
+  updatedById       String?                  @map("updated_by")
+  category          Category                 @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  measurementUnit   MeasurementUnit          @relation(fields: [measurementUnitId], references: [id], onDelete: Restrict)
+  taxRate           TaxRate                  @relation(fields: [taxRateId], references: [id], onDelete: Restrict)
+  createdBy         User?                    @relation("ProductCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy         User?                    @relation("ProductUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
   saleItems         SaleItem[]
   stocks            ProductStock[]
   suppliers         SupplierProduct[]
@@ -237,6 +259,7 @@ model Product {
   pickingItems      PickingListItem[]
   invoiceItems      SupplierInvoiceItem[]
   priceListItems    PriceListItem[]
+  creditNoteItems   CustomerCreditNoteItem[]
 
   @@index([categoryId], map: "idx_products_category_id")
   @@index([measurementUnitId], map: "idx_products_measurement_unit_id")
@@ -265,30 +288,34 @@ model ProductStock {
 // Libro de movimientos: solo se inserta (trigger en la DB). quantity es la
 // variación con signo y alanceAfter el saldo que quedó en ese depósito.
 model StockMovement {
-  id             String            @id @default(cuid(2))
-  productId      String            @map("product_id")
-  warehouseId    String            @map("warehouse_id")
-  type           StockMovementType
-  quantity       Decimal           @db.Decimal(12, 3)
-  balanceAfter   Decimal           @map("balance_after") @db.Decimal(12, 3)
-  comment        String?
+  id                   String              @id @default(cuid(2))
+  productId            String              @map("product_id")
+  warehouseId          String              @map("warehouse_id")
+  type                 StockMovementType
+  quantity             Decimal             @db.Decimal(12, 3)
+  balanceAfter         Decimal             @map("balance_after") @db.Decimal(12, 3)
+  comment              String?
   // Agrupa las dos patas de una transferencia.
-  transferId     String?           @map("transfer_id")
+  transferId           String?             @map("transfer_id")
   /// Pedido que descontó o devolvió el stock (SALE / SALE_RETURN).
-  saleId         String?           @map("sale_id")
+  saleId               String?             @map("sale_id")
   /// Informe de recepción que ingresó o revirtió el stock.
-  goodsReceiptId String?           @map("goods_receipt_id")
-  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
-  createdById    String?           @map("created_by")
-  product        Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
-  warehouse      Warehouse         @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
-  createdBy      User?             @relation(fields: [createdById], references: [id], onDelete: Restrict)
-  sale           Sale?             @relation(fields: [saleId], references: [id], onDelete: Restrict)
-  goodsReceipt   GoodsReceipt?     @relation(fields: [goodsReceiptId], references: [id], onDelete: Restrict)
+  goodsReceiptId       String?             @map("goods_receipt_id")
+  /// Nota de crédito (devolución de un cliente) que movió el stock.
+  customerCreditNoteId String?             @map("customer_credit_note_id")
+  createdAt            DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdById          String?             @map("created_by")
+  product              Product             @relation(fields: [productId], references: [id], onDelete: Restrict)
+  warehouse            Warehouse           @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  createdBy            User?               @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  sale                 Sale?               @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  goodsReceipt         GoodsReceipt?       @relation(fields: [goodsReceiptId], references: [id], onDelete: Restrict)
+  customerCreditNote   CustomerCreditNote? @relation(fields: [customerCreditNoteId], references: [id], onDelete: Restrict)
 
   @@index([productId, createdAt], map: "idx_stock_movements_product_id_created_at")
   @@index([saleId], map: "idx_stock_movements_sale_id")
   @@index([goodsReceiptId], map: "idx_stock_movements_goods_receipt_id")
+  @@index([customerCreditNoteId], map: "idx_stock_movements_customer_credit_note_id")
   @@index([warehouseId, createdAt], map: "idx_stock_movements_warehouse_id_created_at")
   @@index([transferId], map: "idx_stock_movements_transfer_id")
   @@map("stock_movements")
@@ -365,31 +392,32 @@ model CartItem {
 }
 
 model Customer {
-  id              String            @id @default(cuid(2))
-  tradeName       String            @map("trade_name")
-  legalName       String            @map("legal_name")
-  cuit            String            @unique @db.VarChar(11)
-  taxCondition    TaxCondition      @map("tax_condition")
+  id              String               @id @default(cuid(2))
+  tradeName       String               @map("trade_name")
+  legalName       String               @map("legal_name")
+  cuit            String               @unique @db.VarChar(11)
+  taxCondition    TaxCondition         @map("tax_condition")
   /// Lista de precios; sin lista paga el precio base.
-  priceListId     String?           @map("price_list_id")
+  priceListId     String?              @map("price_list_id")
   /// Descuento propio sobre el precio de su lista, como fracción (0.05 = 5 %).
-  discountRate    Decimal           @default(0) @map("discount_rate") @db.Decimal(5, 4)
+  discountRate    Decimal              @default(0) @map("discount_rate") @db.Decimal(5, 4)
   /// Límite de crédito (deuda + pedidos abiertos); null = sin límite.
-  creditLimit     Decimal?          @map("credit_limit") @db.Decimal(12, 2)
+  creditLimit     Decimal?             @map("credit_limit") @db.Decimal(12, 2)
   /// Plazo de pago en días desde la entrega; null = sin control de deuda vencida.
-  paymentTermDays Int?              @map("payment_term_days")
-  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
-  deletedAt       DateTime?         @map("deleted_at") @db.Timestamptz(3)
-  createdById     String?           @map("created_by")
-  updatedById     String?           @map("updated_by")
-  createdBy       User?             @relation("CustomerCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  updatedBy       User?             @relation("CustomerUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
-  priceList       PriceList?        @relation(fields: [priceListId], references: [id], onDelete: Restrict)
+  paymentTermDays Int?                 @map("payment_term_days")
+  createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt       DateTime?            @map("deleted_at") @db.Timestamptz(3)
+  createdById     String?              @map("created_by")
+  updatedById     String?              @map("updated_by")
+  createdBy       User?                @relation("CustomerCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy       User?                @relation("CustomerUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  priceList       PriceList?           @relation(fields: [priceListId], references: [id], onDelete: Restrict)
   persons         Person[]
   // Las direcciones de entrega son del cliente: cualquier persona del cliente las usa.
   addresses       CustomerAddress[]
   payments        CustomerPayment[]
+  creditNotes     CustomerCreditNote[]
 
   @@index([deletedAt], map: "idx_customers_deleted_at")
   @@index([priceListId], map: "idx_customers_price_list_id")
@@ -517,73 +545,75 @@ model CustomerAddress {
 }
 
 model User {
-  id                       String               @id @default(cuid(2))
-  personId                 String               @unique @map("person_id")
-  userType                 UserType             @map("user_type")
-  passwordHash             String               @map("password_hash")
-  passwordMustChange       Boolean              @default(true) @map("password_must_change")
-  isActive                 Boolean              @default(true) @map("is_active")
+  id                         String               @id @default(cuid(2))
+  personId                   String               @unique @map("person_id")
+  userType                   UserType             @map("user_type")
+  passwordHash               String               @map("password_hash")
+  passwordMustChange         Boolean              @default(true) @map("password_must_change")
+  isActive                   Boolean              @default(true) @map("is_active")
   // Va en el token: incrementarlo invalida las sesiones emitidas antes.
-  sessionVersion           Int                  @default(0) @map("session_version")
-  createdAt                DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt                DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
-  deletedAt                DateTime?            @map("deleted_at") @db.Timestamptz(3)
-  person                   Person               @relation(fields: [personId], references: [id], onDelete: Restrict)
-  sales                    Sale[]
-  creditReleasedSales      Sale[]               @relation("SaleCreditReleasedBy")
-  auditLogs                AuditLog[]
-  measurementUnitsCreated  MeasurementUnit[]    @relation("MeasurementUnitCreatedBy")
-  measurementUnitsUpdated  MeasurementUnit[]    @relation("MeasurementUnitUpdatedBy")
-  categoriesCreated        Category[]           @relation("CategoryCreatedBy")
-  categoriesUpdated        Category[]           @relation("CategoryUpdatedBy")
-  warehousesCreated        Warehouse[]          @relation("WarehouseCreatedBy")
-  warehousesUpdated        Warehouse[]          @relation("WarehouseUpdatedBy")
-  taxRatesCreated          TaxRate[]            @relation("TaxRateCreatedBy")
-  taxRatesUpdated          TaxRate[]            @relation("TaxRateUpdatedBy")
-  priceListsCreated        PriceList[]          @relation("PriceListCreatedBy")
-  priceListsUpdated        PriceList[]          @relation("PriceListUpdatedBy")
-  productsCreated          Product[]            @relation("ProductCreatedBy")
-  productsUpdated          Product[]            @relation("ProductUpdatedBy")
-  stockMovements           StockMovement[]
-  statesCreated            State[]              @relation("StateCreatedBy")
-  statesUpdated            State[]              @relation("StateUpdatedBy")
-  citiesCreated            City[]               @relation("CityCreatedBy")
-  citiesUpdated            City[]               @relation("CityUpdatedBy")
-  suppliersCreated         Supplier[]           @relation("SupplierCreatedBy")
-  suppliersUpdated         Supplier[]           @relation("SupplierUpdatedBy")
-  supplierProductsCreated  SupplierProduct[]    @relation("SupplierProductCreatedBy")
-  supplierProductsUpdated  SupplierProduct[]    @relation("SupplierProductUpdatedBy")
-  customersCreated         Customer[]           @relation("CustomerCreatedBy")
-  customersUpdated         Customer[]           @relation("CustomerUpdatedBy")
-  personsCreated           Person[]             @relation("PersonCreatedBy")
-  personsUpdated           Person[]             @relation("PersonUpdatedBy")
-  customerAddressesCreated CustomerAddress[]    @relation("CustomerAddressCreatedBy")
-  customerAddressesUpdated CustomerAddress[]    @relation("CustomerAddressUpdatedBy")
-  paymentsCreated          CustomerPayment[]    @relation("CustomerPaymentCreatedBy")
-  paymentsVoided           CustomerPayment[]    @relation("CustomerPaymentVoidedBy")
-  driver                   Driver?              @relation("DriverUser")
-  driversCreated           Driver[]             @relation("DriverCreatedBy")
-  driversUpdated           Driver[]             @relation("DriverUpdatedBy")
-  vehiclesCreated          Vehicle[]            @relation("VehicleCreatedBy")
-  vehiclesUpdated          Vehicle[]            @relation("VehicleUpdatedBy")
-  routeSheetsCreated       RouteSheet[]         @relation("RouteSheetCreatedBy")
-  routeSheetsUpdated       RouteSheet[]         @relation("RouteSheetUpdatedBy")
-  routeStopsRecorded       RouteStop[]          @relation("RouteStopRecordedBy")
-  routeSheetsClosed        RouteSheet[]         @relation("RouteSheetClosedBy")
-  purchaseOrdersCreated    PurchaseOrder[]      @relation("PurchaseOrderCreatedBy")
-  purchaseOrdersUpdated    PurchaseOrder[]      @relation("PurchaseOrderUpdatedBy")
-  goodsReceiptsCreated     GoodsReceipt[]       @relation("GoodsReceiptCreatedBy")
-  goodsReceiptsAnnulled    GoodsReceipt[]       @relation("GoodsReceiptAnnulledBy")
-  supplierInvoicesCreated  SupplierInvoice[]    @relation("SupplierInvoiceCreatedBy")
-  supplierInvoicesApproved SupplierInvoice[]    @relation("SupplierInvoiceApprovedBy")
-  supplierInvoicesAnnulled SupplierInvoice[]    @relation("SupplierInvoiceAnnulledBy")
-  supplierPaymentsCreated  SupplierPayment[]    @relation("SupplierPaymentCreatedBy")
-  supplierPaymentsAnnulled SupplierPayment[]    @relation("SupplierPaymentAnnulledBy")
-  creditNotesCreated       SupplierCreditNote[] @relation("SupplierCreditNoteCreatedBy")
-  creditNotesAnnulled      SupplierCreditNote[] @relation("SupplierCreditNoteAnnulledBy")
-  pickingListsCreated      PickingList[]        @relation("PickingListCreatedBy")
-  pickingListsConfirmed    PickingList[]        @relation("PickingListConfirmedBy")
-  supplierAllocations      SupplierAllocation[]
+  sessionVersion             Int                  @default(0) @map("session_version")
+  createdAt                  DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                  DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt                  DateTime?            @map("deleted_at") @db.Timestamptz(3)
+  person                     Person               @relation(fields: [personId], references: [id], onDelete: Restrict)
+  sales                      Sale[]
+  creditReleasedSales        Sale[]               @relation("SaleCreditReleasedBy")
+  auditLogs                  AuditLog[]
+  measurementUnitsCreated    MeasurementUnit[]    @relation("MeasurementUnitCreatedBy")
+  measurementUnitsUpdated    MeasurementUnit[]    @relation("MeasurementUnitUpdatedBy")
+  categoriesCreated          Category[]           @relation("CategoryCreatedBy")
+  categoriesUpdated          Category[]           @relation("CategoryUpdatedBy")
+  warehousesCreated          Warehouse[]          @relation("WarehouseCreatedBy")
+  warehousesUpdated          Warehouse[]          @relation("WarehouseUpdatedBy")
+  taxRatesCreated            TaxRate[]            @relation("TaxRateCreatedBy")
+  taxRatesUpdated            TaxRate[]            @relation("TaxRateUpdatedBy")
+  priceListsCreated          PriceList[]          @relation("PriceListCreatedBy")
+  priceListsUpdated          PriceList[]          @relation("PriceListUpdatedBy")
+  productsCreated            Product[]            @relation("ProductCreatedBy")
+  productsUpdated            Product[]            @relation("ProductUpdatedBy")
+  stockMovements             StockMovement[]
+  statesCreated              State[]              @relation("StateCreatedBy")
+  statesUpdated              State[]              @relation("StateUpdatedBy")
+  citiesCreated              City[]               @relation("CityCreatedBy")
+  citiesUpdated              City[]               @relation("CityUpdatedBy")
+  suppliersCreated           Supplier[]           @relation("SupplierCreatedBy")
+  suppliersUpdated           Supplier[]           @relation("SupplierUpdatedBy")
+  supplierProductsCreated    SupplierProduct[]    @relation("SupplierProductCreatedBy")
+  supplierProductsUpdated    SupplierProduct[]    @relation("SupplierProductUpdatedBy")
+  customersCreated           Customer[]           @relation("CustomerCreatedBy")
+  customersUpdated           Customer[]           @relation("CustomerUpdatedBy")
+  personsCreated             Person[]             @relation("PersonCreatedBy")
+  personsUpdated             Person[]             @relation("PersonUpdatedBy")
+  customerAddressesCreated   CustomerAddress[]    @relation("CustomerAddressCreatedBy")
+  customerAddressesUpdated   CustomerAddress[]    @relation("CustomerAddressUpdatedBy")
+  paymentsCreated            CustomerPayment[]    @relation("CustomerPaymentCreatedBy")
+  paymentsVoided             CustomerPayment[]    @relation("CustomerPaymentVoidedBy")
+  customerCreditNotesCreated CustomerCreditNote[] @relation("CustomerCreditNoteCreatedBy")
+  customerCreditNotesVoided  CustomerCreditNote[] @relation("CustomerCreditNoteVoidedBy")
+  driver                     Driver?              @relation("DriverUser")
+  driversCreated             Driver[]             @relation("DriverCreatedBy")
+  driversUpdated             Driver[]             @relation("DriverUpdatedBy")
+  vehiclesCreated            Vehicle[]            @relation("VehicleCreatedBy")
+  vehiclesUpdated            Vehicle[]            @relation("VehicleUpdatedBy")
+  routeSheetsCreated         RouteSheet[]         @relation("RouteSheetCreatedBy")
+  routeSheetsUpdated         RouteSheet[]         @relation("RouteSheetUpdatedBy")
+  routeStopsRecorded         RouteStop[]          @relation("RouteStopRecordedBy")
+  routeSheetsClosed          RouteSheet[]         @relation("RouteSheetClosedBy")
+  purchaseOrdersCreated      PurchaseOrder[]      @relation("PurchaseOrderCreatedBy")
+  purchaseOrdersUpdated      PurchaseOrder[]      @relation("PurchaseOrderUpdatedBy")
+  goodsReceiptsCreated       GoodsReceipt[]       @relation("GoodsReceiptCreatedBy")
+  goodsReceiptsAnnulled      GoodsReceipt[]       @relation("GoodsReceiptAnnulledBy")
+  supplierInvoicesCreated    SupplierInvoice[]    @relation("SupplierInvoiceCreatedBy")
+  supplierInvoicesApproved   SupplierInvoice[]    @relation("SupplierInvoiceApprovedBy")
+  supplierInvoicesAnnulled   SupplierInvoice[]    @relation("SupplierInvoiceAnnulledBy")
+  supplierPaymentsCreated    SupplierPayment[]    @relation("SupplierPaymentCreatedBy")
+  supplierPaymentsAnnulled   SupplierPayment[]    @relation("SupplierPaymentAnnulledBy")
+  creditNotesCreated         SupplierCreditNote[] @relation("SupplierCreditNoteCreatedBy")
+  creditNotesAnnulled        SupplierCreditNote[] @relation("SupplierCreditNoteAnnulledBy")
+  pickingListsCreated        PickingList[]        @relation("PickingListCreatedBy")
+  pickingListsConfirmed      PickingList[]        @relation("PickingListConfirmedBy")
+  supplierAllocations        SupplierAllocation[]
 
   @@index([userType], map: "idx_users_user_type")
   @@index([deletedAt], map: "idx_users_deleted_at")
@@ -629,45 +659,46 @@ model SaleItem {
 }
 
 model Sale {
-  id                 String            @id @default(cuid(2))
+  id                 String               @id @default(cuid(2))
   /// Número correlativo para el cliente y el admin ("Pedido #12").
-  number             Int               @unique @default(autoincrement())
-  userId             String            @map("user_id")
-  addressId          String            @map("address_id")
-  subTotal           Decimal           @map("sub_total") @db.Decimal(12, 2)
-  tax                Decimal           @db.Decimal(12, 2)
-  discount           Decimal           @db.Decimal(12, 2)
-  total              Decimal           @db.Decimal(12, 2)
-  paymentMethod      PaymentMethod     @map("payment_method")
-  state              SaleState         @default(PENDING)
-  paymentState       SalePaymentState  @default(PENDING) @map("payment_state")
-  paidAt             DateTime?         @map("paid_at") @db.Timestamptz(3)
+  number             Int                  @unique @default(autoincrement())
+  userId             String               @map("user_id")
+  addressId          String               @map("address_id")
+  subTotal           Decimal              @map("sub_total") @db.Decimal(12, 2)
+  tax                Decimal              @db.Decimal(12, 2)
+  discount           Decimal              @db.Decimal(12, 2)
+  total              Decimal              @db.Decimal(12, 2)
+  paymentMethod      PaymentMethod        @map("payment_method")
+  state              SaleState            @default(PENDING)
+  paymentState       SalePaymentState     @default(PENDING) @map("payment_state")
+  paidAt             DateTime?            @map("paid_at") @db.Timestamptz(3)
   /// Cuándo pasó a Entregado (vuelve a null si se vuelve atrás). Fecha de venta de los reportes.
-  deliveredAt        DateTime?         @map("delivered_at") @db.Timestamptz(3)
+  deliveredAt        DateTime?            @map("delivered_at") @db.Timestamptz(3)
   /// El admin habilitó al cliente a modificar el pedido (se usa una vez).
-  customerCanEdit    Boolean           @default(false) @map("customer_can_edit")
+  customerCanEdit    Boolean              @default(false) @map("customer_can_edit")
   /// Persona que lo está modificando (los ítems volvieron a su carrito).
-  editingPersonId    String?           @map("editing_person_id")
+  editingPersonId    String?              @map("editing_person_id")
   /// Comentario del cliente al confirmar (horario de entrega, etc.).
-  notes              String?           @db.VarChar(500)
+  notes              String?              @db.VarChar(500)
   /// Retenido por crédito al confirmar (supera el límite o tiene deuda vencida); null = no.
-  creditHoldAt       DateTime?         @map("credit_hold_at") @db.Timestamptz(3)
+  creditHoldAt       DateTime?            @map("credit_hold_at") @db.Timestamptz(3)
   /// Por qué: { limit, exposure } y/o { overdueSince, termDays }.
-  creditHoldReasons  Json?             @map("credit_hold_reasons")
+  creditHoldReasons  Json?                @map("credit_hold_reasons")
   /// El admin lo aprobó: sigue el circuito normal.
-  creditReleasedAt   DateTime?         @map("credit_released_at") @db.Timestamptz(3)
-  creditReleasedById String?           @map("credit_released_by")
-  creditReleaseNote  String?           @map("credit_release_note") @db.VarChar(300)
-  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt          DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
-  user               User              @relation(fields: [userId], references: [id], onDelete: Restrict)
-  editingPerson      Person?           @relation("SaleEditingPerson", fields: [editingPersonId], references: [id], onDelete: SetNull)
-  creditReleasedBy   User?             @relation("SaleCreditReleasedBy", fields: [creditReleasedById], references: [id], onDelete: Restrict)
-  address            CustomerAddress   @relation(fields: [addressId], references: [id], onDelete: Restrict)
+  creditReleasedAt   DateTime?            @map("credit_released_at") @db.Timestamptz(3)
+  creditReleasedById String?              @map("credit_released_by")
+  creditReleaseNote  String?              @map("credit_release_note") @db.VarChar(300)
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
+  editingPerson      Person?              @relation("SaleEditingPerson", fields: [editingPersonId], references: [id], onDelete: SetNull)
+  creditReleasedBy   User?                @relation("SaleCreditReleasedBy", fields: [creditReleasedById], references: [id], onDelete: Restrict)
+  address            CustomerAddress      @relation(fields: [addressId], references: [id], onDelete: Restrict)
   items              SaleItem[]
   usedDiscounts      UsedDiscount[]
   stockMovements     StockMovement[]
   payments           CustomerPayment[]
+  creditNotes        CustomerCreditNote[]
   routeStops         RouteStop[]
   pickingItems       PickingListItem[]
 
@@ -764,6 +795,59 @@ model CustomerPayment {
   @@index([customerId, paidOn], map: "idx_customer_payments_customer_id_paid_on")
   @@index([saleId], map: "idx_customer_payments_sale_id")
   @@map("customer_payments")
+}
+
+/// Nota de crédito al cliente: baja lo que debe (se imputa en la cuenta como un
+/// cobro). Una devolución (RETURN) sale de un pedido entregado y mueve stock;
+/// un ajuste (ADJUSTMENT) es solo un importe. No se borra: se anula con motivo.
+model CustomerCreditNote {
+  id             String                   @id @default(cuid(2))
+  /// Número correlativo que ve la gente ("NC #3").
+  number         Int                      @unique @default(autoincrement())
+  customerId     String                   @map("customer_id")
+  /// Pedido del que se devuelve (solo en las devoluciones).
+  saleId         String?                  @map("sale_id")
+  kind           CustomerCreditNoteKind
+  /// Total acreditado, con IVA.
+  amount         Decimal                  @db.Decimal(12, 2)
+  reason         String                   @db.VarChar(300)
+  /// Depósito donde ingresó lo devuelto (solo en las devoluciones).
+  warehouseId    String?                  @map("warehouse_id")
+  createdAt      DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdById    String                   @map("created_by")
+  voidedAt       DateTime?                @map("voided_at") @db.Timestamptz(3)
+  voidedById     String?                  @map("voided_by")
+  voidReason     String?                  @map("void_reason") @db.VarChar(200)
+  customer       Customer                 @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  sale           Sale?                    @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  warehouse      Warehouse?               @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  createdBy      User                     @relation("CustomerCreditNoteCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  voidedBy       User?                    @relation("CustomerCreditNoteVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict)
+  items          CustomerCreditNoteItem[]
+  stockMovements StockMovement[]
+
+  @@index([customerId, createdAt], map: "idx_customer_credit_notes_customer_id_created_at")
+  @@index([saleId], map: "idx_customer_credit_notes_sale_id")
+  @@map("customer_credit_notes")
+}
+
+/// Línea de una devolución: foto del precio y la alícuota del pedido.
+model CustomerCreditNoteItem {
+  creditNoteId String             @map("credit_note_id")
+  productId    String             @map("product_id")
+  quantity     Decimal            @db.Decimal(12, 3)
+  /// Neto unitario y alícuota del pedido (lo que pagó el cliente).
+  unitPrice    Decimal            @map("unit_price") @db.Decimal(12, 2)
+  unitTaxRate  Decimal            @map("unit_tax_rate") @db.Decimal(5, 4)
+  /// Costo de compra del pedido, para descontarlo del margen.
+  unitCost     Decimal?           @map("unit_cost") @db.Decimal(12, 2)
+  destination  ReturnDestination
+  creditNote   CustomerCreditNote @relation(fields: [creditNoteId], references: [id], onDelete: Cascade)
+  product      Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@id([creditNoteId, productId])
+  @@index([productId], map: "idx_customer_credit_note_items_product_id")
+  @@map("customer_credit_note_items")
 }
 
 /// Repartidor de las hojas de ruta. Puede estar vinculado a un usuario (rol

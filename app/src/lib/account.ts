@@ -35,6 +35,12 @@ export type AccountPayment = {
   voided: boolean;
 };
 
+export type AccountCreditNote = {
+  amount: Numeric;
+  /** Las anuladas no cuentan. */
+  voided: boolean;
+};
+
 export type SaleAllocation = {
   /** Lo imputado a este pedido ("1234.50"). */
   paid: string;
@@ -50,6 +56,8 @@ export type AccountSummary = {
   charged: string;
   /** Cobros − reintegros. */
   paid: string;
+  /** Notas de crédito vigentes: bajan la deuda igual que un cobro. */
+  credited: string;
   /** Por pedido (los cancelados no reciben imputación). */
   sales: Record<string, SaleAllocation>;
 };
@@ -83,6 +91,7 @@ function min(a: bigint, b: bigint): bigint {
 export function summarizeAccount(
   sales: AccountSale[],
   payments: AccountPayment[],
+  creditNotes: AccountCreditNote[] = [],
 ): AccountSummary {
   let paid = ZERO;
   for (const payment of payments) {
@@ -91,13 +100,20 @@ export function summarizeAccount(
     paid += payment.kind === "PAYMENT" ? amount : -amount;
   }
 
+  let credited = ZERO;
+  for (const note of creditNotes) {
+    if (!note.voided) credited += toCents(note.amount);
+  }
+
   const ordered = [...sales]
     .filter((sale) => sale.state !== "CANCELED")
     .sort((a, b) => a.number - b.number);
   const charged = ordered.filter((sale) => isCharged(sale.state));
   const upcoming = ordered.filter((sale) => !isCharged(sale.state));
 
-  let available = paid > ZERO ? paid : ZERO;
+  // Un cobro y una nota de crédito bajan la deuda igual: se imputan al más viejo.
+  const settled = paid + credited;
+  let available = settled > ZERO ? settled : ZERO;
   const result: Record<string, SaleAllocation> = {};
   for (const sale of [...charged, ...upcoming]) {
     const total = toCents(sale.total);
@@ -120,9 +136,10 @@ export function summarizeAccount(
     ZERO,
   );
   return {
-    balance: fromCents(chargedTotal - paid),
+    balance: fromCents(chargedTotal - settled),
     charged: fromCents(chargedTotal),
     paid: fromCents(paid),
+    credited: fromCents(credited),
     sales: result,
   };
 }

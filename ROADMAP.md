@@ -3,8 +3,8 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 30/10/2026: fases 0 a 14 terminadas, en BETA (v1.44.0-beta). Siguen las funciones nuevas
-(fases 15 a 22); facturación electrónica y app del repartidor quedan al fondo.
+Estado al 05/11/2026: fases 0 a 16 resueltas (la 15 se descartó), en BETA (v1.45.0-beta). Siguen las
+funciones nuevas (fases 17 a 22); facturación electrónica y app del repartidor quedan al fondo.
 
 | Fase | Contenido                                                        | Estado      |
 | ---- | ---------------------------------------------------------------- | ----------- |
@@ -24,8 +24,8 @@ Estado al 30/10/2026: fases 0 a 14 terminadas, en BETA (v1.44.0-beta). Siguen la
 | 13   | Listas de precios y descuentos                                   | ✅          |
 | 14   | Reportes de ventas y margen                                      | ✅          |
 | 15   | Días de entrega por zona y pedido mínimo                         | ❌          |
-| 16   | Límite de crédito y bloqueo por deuda                            | 🟡          |
-| 17   | Devoluciones y notas de crédito a clientes                       | ⏳          |
+| 16   | Límite de crédito y bloqueo por deuda                            | ✅          |
+| 17   | Devoluciones y notas de crédito a clientes                       | 🟡          |
 | 18   | Repetir pedido y favoritos                                       | ⏳          |
 | 19   | Transferencia en el checkout                                     | ⏳          |
 | 20   | Lotes y vencimientos                                             | ⏳          |
@@ -392,21 +392,32 @@ productos sin movimiento; pantalla con totales, gráfico de los últimos 12 mese
   corte ni fecha estimada para el cliente, y sin pedido mínimo (si un pedido no conviene, el admin lo
   cancela o lo entrega en otro momento).
 
-## Fase 16 — Límite de crédito y bloqueo por deuda 🟡
+## Fase 16 — Límite de crédito y bloqueo por deuda ✅
 
 Definiciones: límite de crédito opcional por cliente contra lo que debe más sus pedidos abiertos, y plazo
 de pago opcional (días desde la entrega). Nada bloquea al cliente: si un pedido supera el límite o hay
 deuda vencida, se confirma igual y queda retenido; el admin lo aprueba (con comentario) o lo cancela, y
 hasta entonces no avanza de Pendiente.
 
-| PR   | Contenido                                                                 | Estado      |
-| ---- | ------------------------------------------------------------------------- | ----------- |
-| 16.1 | Límite y plazo por cliente, pedidos retenidos por crédito y su aprobación | 🟡 PR listo |
+| PR   | Contenido                                                                 | Estado          |
+| ---- | ------------------------------------------------------------------------- | --------------- |
+| 16.1 | Límite y plazo por cliente, pedidos retenidos por crédito y su aprobación | ✅ v1.45.0-beta |
 
-## Fase 17 — Devoluciones y notas de crédito a clientes ⏳
+## Fase 17 — Devoluciones y notas de crédito a clientes 🟡
 
-- Devoluciones después de entregado (vencido, error): el stock vuelve y el crédito queda en la cuenta
-  corriente del cliente.
+Definiciones: dos formas de cargar una nota de crédito, siempre el admin (`sales:manage`). La
+**devolución** sale del pedido entregado: productos y cantidades (hasta lo entregado menos lo ya
+devuelto), un depósito y un motivo; el importe es lo que el cliente pagó en ese pedido (precio y alícuota
+de la línea). Por línea se elige si vuelve al stock o se da de baja (entra y sale del depósito, queda en el
+libro). El **ajuste** es una nota por importe, sin mercadería. Las dos bajan la deuda como un cobro (se
+imputan al pedido más viejo) y pueden dejar saldo a favor, que se descuenta o se reintegra con el
+reintegro existente. Se anulan con motivo (la devolución saca del depósito lo que había repuesto). El
+cliente ve las notas en "Mi cuenta" y las devoluciones en el detalle del pedido, sin motivo ni destino.
+
+| PR   | Contenido                                                                         | Estado      |
+| ---- | --------------------------------------------------------------------------------- | ----------- |
+| 17.1 | Notas de crédito al cliente: devolución con stock, ajuste por importe y anulación | 🟡 PR listo |
+| 17.2 | Los reportes de ventas y margen descuentan lo devuelto                            | ⏳          |
 
 ## Fase 18 — Repetir pedido y favoritos ⏳
 

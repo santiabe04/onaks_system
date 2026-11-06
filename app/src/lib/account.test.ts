@@ -88,6 +88,64 @@ describe("summarizeAccount", () => {
   });
 });
 
+describe("summarizeAccount con notas de crédito", () => {
+  it("una nota de crédito baja la deuda igual que un cobro, al pedido más viejo", () => {
+    const summary = summarizeAccount(
+      [sale(1, "30000"), sale(2, "20000")],
+      [payment("10000")],
+      [{ amount: "25000", voided: false }],
+    );
+    expect(summary).toMatchObject({
+      balance: "15000.00",
+      charged: "50000.00",
+      paid: "10000.00",
+      credited: "25000.00",
+    });
+    expect(summary.sales.sale1.paymentState).toBe("PAID");
+    expect(summary.sales.sale2).toEqual({
+      paid: "5000.00",
+      pending: "15000.00",
+      paymentState: "PARTIALLY_PAID",
+    });
+  });
+
+  it("una anulada no cuenta", () => {
+    const summary = summarizeAccount(
+      [sale(1, "30000")],
+      [],
+      [{ amount: "5000", voided: true }],
+    );
+    expect(summary.balance).toBe("30000.00");
+    expect(summary.credited).toBe("0.00");
+  });
+
+  it("si supera la deuda, queda saldo a favor y se puede reintegrar", () => {
+    const summary = summarizeAccount(
+      [sale(1, "30000")],
+      [],
+      [{ amount: "45000", voided: false }],
+    );
+    expect(summary.balance).toBe("-15000.00");
+    expect(maxRefund(summary.balance)).toBe("15000.00");
+    expect(summary.sales.sale1.paymentState).toBe("PAID");
+  });
+
+  it("el reintegro de un saldo a favor por nota de crédito deja la cuenta en 0", () => {
+    const summary = summarizeAccount(
+      [sale(1, "30000")],
+      [payment("15000", "REFUND")],
+      [{ amount: "45000", voided: false }],
+    );
+    expect(summary.balance).toBe("0.00");
+  });
+
+  it("sin notas de crédito se comporta como siempre", () => {
+    expect(
+      summarizeAccount([sale(1, "30000")], [payment("10000")]).balance,
+    ).toBe("20000.00");
+  });
+});
+
 describe("maxRefund", () => {
   it("se puede reintegrar solo el saldo a favor", () => {
     expect(maxRefund("-20000.00")).toBe("20000.00");

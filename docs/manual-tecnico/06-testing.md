@@ -92,16 +92,17 @@ límite")`): se lee como una especificación.
 Recorren la app como una persona, con **Chromium**, contra la app **compilada** (`next start`) y una
 **base nueva con la demo del seed**. Cada archivo es un circuito:
 
-| Archivo               | Circuito                                                                                                      |
-| --------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `admin-order.spec.ts` | El admin carga un pedido por un cliente (con su lista de precios) y el cliente lo ve como "La distribuidora"  |
-| `credit.spec.ts`      | Un cliente supera el límite de crédito: el pedido queda retenido, no avanza y el admin lo aprueba             |
-| `delivery.spec.ts`    | Picking con faltante, hoja de ruta, parada desde el celular con entrega parcial y cobro, y cierre             |
-| `permissions.spec.ts` | Cliente y repartidor no entran al admin; un cliente no ve pedidos de otra empresa; sin sesión, al login       |
-| `price-lists.spec.ts` | El admin arma una lista con un precio fijo, se la asigna a un cliente con descuento y el cliente ve su precio |
-| `purchases.spec.ts`   | Orden de compra, recepción de menos, factura sin diferencias y orden de pago                                  |
-| `reports.spec.ts`     | Reporte de ventas y margen del mes, por cliente, "sin movimiento" y CSV                                       |
-| `shop.spec.ts`        | El cliente arma el carrito, confirma el pedido y lo ve en "Mis pedidos"                                       |
+| Archivo               | Circuito                                                                                                                    |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `admin-order.spec.ts` | El admin carga un pedido por un cliente (con su lista de precios) y el cliente lo ve como "La distribuidora"                |
+| `credit.spec.ts`      | Un cliente supera el límite de crédito: el pedido queda retenido, no avanza y el admin lo aprueba                           |
+| `delivery.spec.ts`    | Picking con faltante, hoja de ruta, parada desde el celular con entrega parcial y cobro, y cierre                           |
+| `permissions.spec.ts` | Cliente y repartidor no entran al admin; un cliente no ve pedidos de otra empresa; sin sesión, al login                     |
+| `price-lists.spec.ts` | El admin arma una lista con un precio fijo, se la asigna a un cliente con descuento y el cliente ve su precio               |
+| `purchases.spec.ts`   | Orden de compra, recepción de menos, factura sin diferencias y orden de pago                                                |
+| `reports.spec.ts`     | Reporte de ventas y margen del mes, por cliente, "sin movimiento" y CSV                                                     |
+| `returns.spec.ts`     | Devolución del pedido entregado (una bolsa al stock y otra de baja), ajuste por importe, anulaciones y lo que ve el cliente |
+| `shop.spec.ts`        | El cliente arma el carrito, confirma el pedido y lo ve en "Mis pedidos"                                                     |
 
 ### Reglas del juego
 
@@ -109,8 +110,8 @@ Recorren la app como una persona, con **Chromium**, contra la app **compilada** 
   cada circuito deja datos. Dependen de los pedidos de la demo (**#1 a #4**) y de los usuarios
   `admin`, `reparto`, `patitas`, `sanroque`, `varela` (`demo1234`).
 - **El orden importa**: Playwright corre los archivos en orden alfabético. `reports.spec.ts` espera que
-  `delivery.spec.ts` ya haya entregado el pedido #3 (la venta del mes sale de ahí), y `credit.spec.ts` le
-  pone un límite a Mascotas Varela. Si agregás un spec, pensá qué datos deja y qué datos necesita.
+  `delivery.spec.ts` ya haya entregado el pedido #3 (la venta del mes sale de ahí), `returns.spec.ts` también
+  parte del #3 ya entregado y con su cobro, y `credit.spec.ts` le pone un límite a Mascotas Varela. Si agregás un spec, pensá qué datos deja y qué datos necesita.
 - **Un spec que modifica algo de la demo** (un límite, una lista) no lo deshace: asume una base nueva por
   corrida.
 

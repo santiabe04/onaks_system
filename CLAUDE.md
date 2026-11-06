@@ -105,6 +105,16 @@ comentarios y textos de UI en español.
   (`credit_hold_at` + motivos en `credit_hold_reasons`); nada bloquea al cliente ni se le muestra. Un
   retenido solo se puede cancelar (`applySaleStateChange`) hasta que el admin lo aprueba
   (`releaseCreditHold`: quién, cuándo y comentario). Aviso en el dashboard y filtro `held=1` en Todos.
+- Notas de crédito al cliente (`customer_credit_notes` + `_items`, `lib/customer-credit` puro y
+  `lib/customer-credit-ledger`; permiso `sales:manage`). Una **devolución** (`RETURN`) sale de un pedido
+  entregado (`/admin/orders/[number]/return`): cantidades hasta lo entregado menos lo ya devuelto en notas
+  vigentes, un depósito y un motivo; el monto es lo que pagó el cliente (`unit_price` y `unit_tax_rate` del
+  pedido, `returnAmount`). Por línea, `RESTOCK` ingresa al depósito (`CUSTOMER_RETURN`) y `WRITE_OFF`
+  ingresa y se da de baja (`CUSTOMER_RETURN` + `WRITE_OFF`, net 0). Un **ajuste** (`ADJUSTMENT`) es solo un
+  importe (desde la cuenta del cliente). Cuentan en `summarizeAccount` como un cobro (tercer parámetro; el
+  saldo a favor se reintegra con el reintegro de siempre) y en `lib/debtors`. Se anulan con motivo
+  (`voidCreditNote`: saca del depósito solo lo repuesto, `CUSTOMER_RETURN_REVERSAL`). Orden de bloqueo:
+  cuenta del cliente y después el pedido. El cliente las ve en "Mi cuenta" y en su pedido, sin motivo ni destino.
 - `sales.number` es el número correlativo que ve la gente (`/orders/[number]`). "Mis pedidos" muestra
   los de **toda la empresa** (filtro por `address.customerId`); uno ajeno da 404.
 - El cliente cancela un pedido Pendiente desde "Mis pedidos". Si el admin lo habilita

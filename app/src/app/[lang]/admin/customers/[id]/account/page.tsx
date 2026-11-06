@@ -8,6 +8,10 @@ import {
   VoidPaymentForm,
 } from "@/components/account/payment-forms";
 import { BalanceLine } from "@/components/account/balance-line";
+import {
+  AdjustmentForm,
+  VoidCreditNoteForm,
+} from "@/components/account/credit-note-forms";
 import { interpolate } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
@@ -51,6 +55,7 @@ type Movement = {
   detail?: string;
   voided?: string;
   paymentId?: string;
+  creditNoteId?: string;
 };
 
 async function Account({ params }: { params: Promise<{ id: string }> }) {
@@ -69,7 +74,10 @@ async function Account({ params }: { params: Promise<{ id: string }> }) {
   // La fecha de hoy para el form es la del request.
   await connection();
   const today = isoDay(new Date());
-  const { sales, payments, summary } = await loadAccount(db, customer.id);
+  const { sales, payments, creditNotes, summary } = await loadAccount(
+    db,
+    customer.id,
+  );
   const balance = toCents(summary.balance);
   const canManage = can(user.role, "sales:manage");
   const day = (value: string) =>
@@ -112,6 +120,33 @@ async function Account({ params }: { params: Promise<{ id: string }> }) {
             } · ${format.money(fromCents(cents))}`
           : undefined,
         paymentId: payment.voidedAt ? undefined : payment.id,
+      };
+    }),
+    ...creditNotes.map((note) => {
+      const cents = toCents(note.amount);
+      const voidedBy = note.voidedBy?.person;
+      return {
+        key: `credit-note-${note.id}`,
+        day: isoDay(note.createdAt),
+        concept: interpolate(t.account.creditNoteConcept, {
+          number: note.number,
+          kind: t.customerCreditNotes.kinds[note.kind],
+        }),
+        href: note.sale ? `/admin/orders/${note.sale.number}` : undefined,
+        amount: note.voidedAt ? BigInt(0) : -cents,
+        detail: [
+          note.reason,
+          note.sale && `#${note.sale.number}`,
+          `${note.createdBy.person.name} ${note.createdBy.person.surname}`,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        voided: note.voidedAt
+          ? `${interpolate(t.customerCreditNotes.voided, { reason: note.voidReason ?? "" })}${
+              voidedBy ? ` (${voidedBy.name} ${voidedBy.surname})` : ""
+            } · ${format.money(fromCents(cents))}`
+          : undefined,
+        creditNoteId: note.voidedAt ? undefined : note.id,
       };
     }),
   ].sort((a, b) => a.day.localeCompare(b.day));
@@ -158,6 +193,13 @@ async function Account({ params }: { params: Promise<{ id: string }> }) {
               amount: format.money(summary.paid),
             })}
           </span>
+          {Number(summary.credited) > 0 && (
+            <span>
+              {interpolate(t.account.credited, {
+                amount: format.money(summary.credited),
+              })}
+            </span>
+          )}
         </p>
         <p className="mt-1 text-xs opacity-70">{t.account.howItWorks}</p>
       </section>
@@ -179,6 +221,15 @@ async function Account({ params }: { params: Promise<{ id: string }> }) {
             t={t.account}
             methods={t.orders.paymentMethods}
           />
+        </section>
+      )}
+
+      {canManage && (
+        <section className="mt-6 print:hidden">
+          <h2 className="mb-3 text-lg font-medium">
+            {t.customerCreditNotes.adjustmentTitle}
+          </h2>
+          <AdjustmentForm customerId={customer.id} t={t.customerCreditNotes} />
         </section>
       )}
 
@@ -241,6 +292,12 @@ async function Account({ params }: { params: Promise<{ id: string }> }) {
                         <VoidPaymentForm
                           paymentId={row.paymentId}
                           t={t.account}
+                        />
+                      )}
+                      {canManage && row.creditNoteId && (
+                        <VoidCreditNoteForm
+                          noteId={row.creditNoteId}
+                          t={t.customerCreditNotes}
                         />
                       )}
                     </td>

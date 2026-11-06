@@ -165,12 +165,17 @@ export type LinkedStockLine = {
   quantity: string;
 };
 
-/** El documento que mueve el stock: un pedido o un informe de recepción. */
+/** El documento que mueve el stock: un pedido, un informe de recepción o una devolución. */
 type MovementLink =
   | { type: "SALE" | "SALE_RETURN"; saleId: string; comment: string }
   | {
       type: "PURCHASE_RECEIPT" | "PURCHASE_RECEIPT_REVERSAL";
       goodsReceiptId: string;
+      comment: string;
+    }
+  | {
+      type: "CUSTOMER_RETURN" | "CUSTOMER_RETURN_REVERSAL" | "WRITE_OFF";
+      customerCreditNoteId: string;
       comment: string;
     };
 
@@ -225,6 +230,8 @@ async function recordLinkedMovements(
         balanceAfter,
         saleId: "saleId" in link ? link.saleId : null,
         goodsReceiptId: "goodsReceiptId" in link ? link.goodsReceiptId : null,
+        customerCreditNoteId:
+          "customerCreditNoteId" in link ? link.customerCreditNoteId : null,
         comment: link.comment,
         createdById: userId,
       },
@@ -273,6 +280,26 @@ export async function recordReceiptMovements(
       goodsReceiptId: receipt.id,
       comment: `IR #${receipt.number} · OC #${receipt.orderNumber}`,
     },
+    lines,
+    userId,
+  );
+}
+
+/**
+ * Mueve el stock de una devolución de un cliente: ingresa lo devuelto
+ * (CUSTOMER_RETURN, positivas), lo da de baja (WRITE_OFF, negativas) o revierte
+ * el ingreso al anularla (CUSTOMER_RETURN_REVERSAL, negativas).
+ */
+export async function recordCreditNoteMovements(
+  tx: Prisma.TransactionClient,
+  note: { id: string; number: number },
+  type: "CUSTOMER_RETURN" | "CUSTOMER_RETURN_REVERSAL" | "WRITE_OFF",
+  lines: LinkedStockLine[],
+  userId: string,
+): Promise<void> {
+  await recordLinkedMovements(
+    tx,
+    { type, customerCreditNoteId: note.id, comment: `NC #${note.number}` },
     lines,
     userId,
   );

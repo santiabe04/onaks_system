@@ -22,6 +22,10 @@ import { can } from "@/lib/permissions";
 import { groupOrdersByZone } from "@/lib/orders-by-zone";
 import { allowedTransitions, isStepBack, stockEffect } from "@/lib/sale-state";
 import { isOnCreditHold, type CreditHoldReasons } from "@/lib/credit";
+import { CreditNoteList } from "@/components/account/credit-note-list";
+import { VoidCreditNoteForm } from "@/components/account/credit-note-forms";
+import { buttonClass } from "@/components/ui/button";
+import { isReturnable } from "@/lib/customer-credit";
 import { CreditHoldControl } from "./credit-hold-control";
 import { CustomerEditControl } from "./customer-edit-control";
 import { StateChangeForm } from "./state-change-form";
@@ -121,6 +125,11 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
       ? toCents(allocation.pending)
       : BigInt(0));
   const canManage = can(user.role, "sales:manage");
+  // Devoluciones de este pedido (las anuladas también, para el historial).
+  const orderNotes = account.creditNotes.filter(
+    (note) => note.saleId === sale.id,
+  );
+  const canReturn = canManage && isReturnable(sale.state);
   const person = sale.user.person;
   // Mismo cálculo que en la pantalla por zona.
   const { totals } = groupOrdersByZone([
@@ -220,6 +229,38 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
         })}
         {totals.missingVolume && ` · ${t.adminOrders.missingVolume}`}
       </p>
+
+      {(orderNotes.length > 0 || canReturn) && (
+        <section className="mt-8 rounded border border-current/20 p-4 print:hidden">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-medium">
+              {t.customerCreditNotes.ordersSection}
+            </h2>
+            {canReturn && (
+              <Link
+                href={`/admin/orders/${sale.number}/return`}
+                className={buttonClass("secondary")}
+              >
+                {t.customerCreditNotes.returnButton}
+              </Link>
+            )}
+          </div>
+          <CreditNoteList
+            notes={orderNotes}
+            internal
+            format={format}
+            t={t.customerCreditNotes}
+            actions={(note) =>
+              canManage && !note.voidedAt ? (
+                <VoidCreditNoteForm
+                  noteId={note.id}
+                  t={t.customerCreditNotes}
+                />
+              ) : null
+            }
+          />
+        </section>
+      )}
 
       <section className="mt-8 rounded border border-current/20 p-4 print:hidden">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
