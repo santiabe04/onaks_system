@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.46.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.45.0-beta...v1.46.0-beta) (2026-11-06)
+
+
+### Features
+
+* **orders:** add customer credit notes and returns ([#116](https://github.com/santiabe04/onaks_system/issues/116)) ([3f2b49e](https://github.com/santiabe04/onaks_system/commit/3f2b49e751c668f47479ef8b1edc7acb3fc9d603))
+
 ## [1.45.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.44.0-beta...v1.45.0-beta) (2026-10-30)
 
 
