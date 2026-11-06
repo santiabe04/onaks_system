@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { CreditNoteList } from "@/components/account/credit-note-list";
 import { OrderDetail, OrderItems } from "@/components/orders/order-items";
 import { interpolate } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
@@ -82,6 +83,21 @@ async function Order({
   });
   if (!sale) notFound();
 
+  // Devoluciones vigentes de este pedido (el cliente no ve las anuladas).
+  const creditNotes = await db.customerCreditNote.findMany({
+    where: { saleId: sale.id, voidedAt: null },
+    orderBy: { number: "asc" },
+    include: {
+      items: {
+        include: {
+          product: {
+            select: { name: true, measurementUnit: { select: { name: true } } },
+          },
+        },
+      },
+    },
+  });
+
   return (
     <>
       {created && (
@@ -147,6 +163,20 @@ async function Order({
         format={format}
         t={t.cart}
       />
+
+      {creditNotes.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-lg font-medium">
+            {t.customerCreditNotes.ordersSection}
+          </h2>
+          <CreditNoteList
+            notes={creditNotes}
+            internal={false}
+            format={format}
+            t={t.customerCreditNotes}
+          />
+        </section>
+      )}
     </>
   );
 }

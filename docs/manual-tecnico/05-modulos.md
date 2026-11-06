@@ -180,14 +180,17 @@ retenciones y aprobaciones de crédito.
 ### Cuenta corriente
 
 **Qué es.** La deuda de un cliente **no se guarda: se calcula**. `lib/account.ts` (`summarizeAccount`, puro,
-en centavos) recibe los pedidos y los cobros y devuelve el saldo y la imputación por pedido:
+en centavos) recibe los pedidos, los cobros y las notas de crédito y devuelve el saldo y la imputación por
+pedido:
 
 - Un pedido es **deuda cuando se entrega** (`CHARGED_SALE_STATES`: `DELIVERED`, `FINISHED`).
 - Lo cobrado (`customer_payments` no anulados: `PAYMENT` suma, `REFUND` resta) se imputa **al pedido más
   viejo primero**: primero a los entregados (la deuda) y, con lo que sobra, a los que todavía no se
   entregaron (pago adelantado). Los cancelados no reciben imputación.
-- Saldo = entregado − cobrado. Positivo, debe; negativo, saldo a favor. Un **reintegro** solo puede ser
-  hasta el saldo a favor (`maxRefund`).
+- Las **notas de crédito** vigentes (ver abajo) bajan la deuda igual que un cobro: se suman a lo cobrado y
+  se imputan de la misma manera.
+- Saldo = entregado − cobrado − acreditado. Positivo, debe; negativo, saldo a favor. Un **reintegro** solo
+  puede ser hasta el saldo a favor (`maxRefund`), venga de un pago de más o de una nota de crédito.
 
 **Escritura.** `lib/account-ledger.ts`: `loadAccount` (lee pedidos y cobros y resume), `lockAccount`,
 `recomputeAccount` (guarda en `sales.payment_state` y `sales.paid_at` el resultado, **en la misma
@@ -198,6 +201,43 @@ auditoría; lo usan la cuenta corriente, el detalle del pedido y la parada del r
 **Pantallas.** `/admin/customers/[id]/account`, `/admin/debtors` (la misma cuenta, pero en SQL para todos
 los clientes: `lib/debtors.ts`) y "Mis pedidos" para el cliente (ve su saldo y últimos pagos, sin
 anulados ni quién los cargó).
+
+### Notas de crédito y devoluciones
+
+**Qué hace.** Cuando un cliente devuelve mercadería de un pedido entregado, o hay que bonificarle un
+importe, el admin carga una **nota de crédito**. Baja lo que el cliente debe (o le deja saldo a favor).
+
+**Dónde.** `lib/customer-credit.ts` (puro: `parseReturn`, `parseAdjustment`, `returnAmount`,
+`remainingQuantity`), `lib/customer-credit-ledger.ts` (`createReturn`, `createAdjustment`,
+`voidCreditNote`), `lib/customer-credit-queries.ts` (`returnableLines`),
+`app/[lang]/admin/orders/[number]/return/` (la pantalla de devolución), las acciones de ajuste y anulación
+en `app/[lang]/admin/customers/[id]/account/credit-note-actions.ts` y los componentes de
+`components/account/credit-note-*.tsx`.
+
+**Dos tipos** (`CustomerCreditNoteKind`):
+
+- **Devolución** (`RETURN`): sale de un pedido **entregado** (desde su detalle, "Registrar devolución").
+  Se eligen cantidades por producto (hasta lo entregado menos lo ya devuelto en notas vigentes), un depósito
+  y un motivo. El importe es **lo que el cliente pagó en ese pedido**: `unit_price` y `unit_tax_rate` de la
+  línea, con IVA (`returnAmount`), no el precio de hoy. Cada línea tiene un destino (`ReturnDestination`):
+  `RESTOCK` ingresa al depósito y puede venderse otra vez; `WRITE_OFF` ingresa y se da de baja enseguida
+  (vencido, roto), así el libro de stock muestra las dos patas y el saldo no cambia.
+- **Ajuste** (`ADJUSTMENT`): un importe con IVA y un motivo, sin productos ni stock (desde la cuenta
+  corriente del cliente).
+
+**Reglas.**
+
+- `createReturn` bloquea **primero la cuenta del cliente y después el pedido** y recalcula lo ya devuelto
+  con esos bloqueos puestos: dos devoluciones simultáneas no pueden pasar lo entregado.
+- Anular (`voidCreditNote`, con motivo) deja la nota en el historial y la saca de la cuenta. Una devolución
+  **saca del depósito solo lo que había repuesto** (`CUSTOMER_RETURN_REVERSAL`); lo dado de baja no se toca,
+  porque ya no estaba. El stock puede quedar negativo si lo repuesto ya se vendió: es un saldo a revisar.
+- Una nota de crédito **no** cambia el pedido ni su total: el pedido sigue valiendo lo que valía y la nota
+  aparece aparte, tanto en el detalle del pedido como en la cuenta corriente.
+- El cliente ve sus notas vigentes en "Mi cuenta" y las devoluciones en el detalle de su pedido, **sin el
+  motivo ni el destino** (son datos internos) y sin las anuladas.
+- **Pendiente** (fase 17.2): los reportes de ventas y margen todavía no descuentan lo devuelto. Los ítems de
+  una nota ya guardan `unit_cost` para poder hacerlo.
 
 ### Crédito
 

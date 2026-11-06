@@ -12,6 +12,7 @@ Recorren la app como lo haría una persona, con Chromium, contra la app compilad
 | `price-lists.spec.ts` | El admin arma una lista de precios con un precio fijo, se la asigna a un cliente y éste ve su precio |
 | `purchases.spec.ts`   | Orden de compra, recepción de menos, factura sin diferencias y orden de pago                         |
 | `reports.spec.ts`     | Reporte de ventas y margen del mes, por cliente y sin movimiento, y su CSV                           |
+| `returns.spec.ts`     | Devolución del pedido entregado, ajuste por importe, anulaciones y lo que ve el cliente              |
 | `shop.spec.ts`        | El cliente arma el carrito, confirma el pedido y lo ve en Mis pedidos                                |
 
 Corren de a uno y sobre una base **nueva**: dependen de los números de pedido de la demo (#1 a #4) y

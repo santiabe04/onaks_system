@@ -15,17 +15,23 @@ export async function MyAccount({
   customerId,
   t,
   methods,
+  creditNoteLabels,
   format,
 }: {
   customerId: string;
   t: Dictionary["myAccount"];
   methods: Dictionary["orders"]["paymentMethods"];
+  creditNoteLabels: Pick<Dictionary["customerCreditNotes"], "kinds" | "short">;
   format: ReturnType<typeof formatters>;
 }) {
-  const { summary, payments } = await loadAccount(db, customerId);
+  const { summary, payments, creditNotes } = await loadAccount(db, customerId);
   const cents = toCents(summary.balance);
   const recent = payments
     .filter((payment) => !payment.voidedAt)
+    .slice(-RECENT_PAYMENTS)
+    .reverse();
+  const recentNotes = creditNotes
+    .filter((note) => !note.voidedAt)
     .slice(-RECENT_PAYMENTS)
     .reverse();
 
@@ -66,6 +72,27 @@ export async function MyAccount({
             </li>
           ))}
         </ul>
+      )}
+
+      {recentNotes.length > 0 && (
+        <>
+          <h3 className="mt-3 text-sm font-medium">{t.creditNotes}</h3>
+          <ul className="mt-1 text-sm">
+            {recentNotes.map((note) => (
+              <li key={note.id} className="flex justify-between gap-4">
+                <span>
+                  {format.date(note.createdAt)} ·{" "}
+                  {interpolate(creditNoteLabels.short, { number: note.number })}{" "}
+                  · {creditNoteLabels.kinds[note.kind]}
+                  {note.sale && ` · #${note.sale.number}`}
+                </span>
+                <span className="whitespace-nowrap">
+                  −{format.money(note.amount)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </section>
   );

@@ -34,17 +34,17 @@ Cambiar una alícuota o un precio afecta a lo que se vende **desde ese momento**
 
 ## Mapa de tablas por dominio
 
-| Dominio             | Tablas                                                                                                                      |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Catálogo base       | `measurement_units`, `categories` (árbol de hasta 3 niveles), `tax_rates`, `products`, `warehouses`                         |
-| Stock               | `product_stocks` (saldo por producto y depósito, con `location`), `stock_movements` (libro)                                 |
-| Personas y accesos  | `customers`, `persons`, `users`, `customer_addresses`, `states`, `cities`, `login_attempts`                                 |
-| Precios             | `price_lists`, `price_list_items` (y `discounts` / `used_discounts`, heredadas, sin uso)                                    |
-| Ventas              | `cart_items`, `sales`, `sale_items`, `customer_payments` (cuenta corriente del cliente)                                     |
-| Picking y reparto   | `picking_lists`, `picking_list_items`, `drivers`, `vehicles`, `route_sheets`, `route_stops`                                 |
-| Compras             | `suppliers`, `supplier_products`, `purchase_orders`(+`_items`), `goods_receipts`(+`_items`), `supplier_invoices`(+`_items`) |
-| Pagos a proveedores | `supplier_payments`(+`_lines`), `supplier_credit_notes`, `supplier_allocations`                                             |
-| Transversal         | `audit_logs` (solo inserción)                                                                                               |
+| Dominio             | Tablas                                                                                                                           |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Catálogo base       | `measurement_units`, `categories` (árbol de hasta 3 niveles), `tax_rates`, `products`, `warehouses`                              |
+| Stock               | `product_stocks` (saldo por producto y depósito, con `location`), `stock_movements` (libro)                                      |
+| Personas y accesos  | `customers`, `persons`, `users`, `customer_addresses`, `states`, `cities`, `login_attempts`                                      |
+| Precios             | `price_lists`, `price_list_items` (y `discounts` / `used_discounts`, heredadas, sin uso)                                         |
+| Ventas              | `cart_items`, `sales`, `sale_items`, `customer_payments` y `customer_credit_notes` (+ `_items`): la cuenta corriente del cliente |
+| Picking y reparto   | `picking_lists`, `picking_list_items`, `drivers`, `vehicles`, `route_sheets`, `route_stops`                                      |
+| Compras             | `suppliers`, `supplier_products`, `purchase_orders`(+`_items`), `goods_receipts`(+`_items`), `supplier_invoices`(+`_items`)      |
+| Pagos a proveedores | `supplier_payments`(+`_lines`), `supplier_credit_notes`, `supplier_allocations`                                                  |
+| Transversal         | `audit_logs` (solo inserción)                                                                                                    |
 
 Relaciones que conviene tener presentes:
 
@@ -160,8 +160,16 @@ transacción:
 4. escribe saldo + movimiento + auditoría.
 
 Tipos de movimiento (`StockMovementType`): `ENTRY`, `ADJUSTMENT`, `WRITE_OFF`, `TRANSFER_OUT/IN`, `SALE`,
-`SALE_RETURN`, `PURCHASE_RECEIPT`, `PURCHASE_RECEIPT_REVERSAL`. Los de pedido llevan `sale_id`; los de
-recepción, `goods_receipt_id`. Una transferencia son dos patas (salida y entrada). Corregir un error
+`SALE_RETURN`, `PURCHASE_RECEIPT`, `PURCHASE_RECEIPT_REVERSAL`, `CUSTOMER_RETURN`,
+`CUSTOMER_RETURN_REVERSAL`. Los de pedido llevan `sale_id`; los de recepción, `goods_receipt_id`; los de una
+devolución de cliente, `customer_credit_note_id`.
+
+**Cada tipo nuevo hay que sumarlo al CHECK `stock_movement_direction_chk`**, que fija el signo: los que
+ingresan (`ENTRY`, `TRANSFER_IN`, `SALE_RETURN`, `PURCHASE_RECEIPT`, `CUSTOMER_RETURN`) son positivos y los
+que sacan (`WRITE_OFF`, `TRANSFER_OUT`, `SALE`, `PURCHASE_RECEIPT_REVERSAL`, `CUSTOMER_RETURN_REVERSAL`)
+negativos. Se hace con `DROP CONSTRAINT` + `ADD CONSTRAINT` en la migración, comparando `"type"::text` (los
+valores nuevos de un enum no se pueden usar en la misma transacción que los crea). Si se olvida, el primer
+movimiento falla en runtime con `violates check constraint "stock_movement_direction_chk"`. Una transferencia son dos patas (salida y entrada). Corregir un error
 nunca edita un movimiento: se registra otro que lo compensa.
 
 ### `audit_logs`
@@ -169,10 +177,10 @@ nunca edita un movimiento: se registra otro que lo compensa.
 Ver el [capítulo 1](01-arquitectura.md#auditoría). Se escribe siempre en la misma transacción que el
 cambio. El historial del pedido, el visor `/admin/audit` y los avisos del dashboard salen de acá.
 
-### `customer_payments`
+### `customer_payments` y `customer_credit_notes`
 
-Cobros (`PAYMENT`) y reintegros (`REFUND`) del cliente. No se borran: se **anulan con motivo**
-(`voided_at`). La deuda no se guarda: se calcula (ver [capítulo 5](05-modulos.md#6-cuenta-corriente-y-crédito)).
+Cobros (`PAYMENT`) y reintegros (`REFUND`) del cliente, y sus notas de crédito (devoluciones y ajustes).
+No se borran: se **anulan con motivo** (`voided_at`). La deuda no se guarda: se calcula (ver [capítulo 5](05-modulos.md#6-cuenta-corriente-y-crédito)).
 
 ## Seed
 
