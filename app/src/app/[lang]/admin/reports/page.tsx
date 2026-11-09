@@ -175,6 +175,7 @@ function Totals({
 }) {
   const cards = [
     [t.net, format.money(totals.net)],
+    [t.returned, format.money(totals.returned)],
     [t.cost, format.money(totals.cost)],
     [t.margin, format.money(totals.margin)],
     [t.marginRate, rate(totals, format, t)],
@@ -182,7 +183,7 @@ function Totals({
   ];
   return (
     <section className="mt-6">
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {cards.map(([label, value]) => (
           <div key={label} className="rounded border border-current/20 p-3">
             <dt className="text-xs opacity-70">{label}</dt>

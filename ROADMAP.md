@@ -3,7 +3,7 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 09/11/2026: fases 0 a 16 resueltas (la 15 se descartó), en BETA (v1.46.0-beta). Siguen las
+Estado al 09/11/2026: fases 0 a 16 resueltas (la 15 se descartó), en BETA (v1.47.0-beta). Siguen las
 funciones nuevas (fases 17 a 22); facturación electrónica y app del repartidor quedan al fondo.
 
 | Fase | Contenido                                                        | Estado      |
@@ -26,7 +26,7 @@ funciones nuevas (fases 17 a 22); facturación electrónica y app del repartidor
 | 15   | Días de entrega por zona y pedido mínimo                         | ❌          |
 | 16   | Límite de crédito y bloqueo por deuda                            | ✅          |
 | 17   | Devoluciones y notas de crédito a clientes                       | 🟡          |
-| 18   | Repetir pedido y favoritos                                       | 🟡          |
+| 18   | Repetir pedido y favoritos                                       | ✅          |
 | 19   | Transferencia en el checkout                                     | ⏳          |
 | 20   | Lotes y vencimientos                                             | ⏳          |
 | 21   | Toma de inventario desde el celular                              | ⏳          |
@@ -413,13 +413,17 @@ libro). El **ajuste** es una nota por importe, sin mercadería. Las dos bajan la
 imputan al pedido más viejo) y pueden dejar saldo a favor, que se descuenta o se reintegra con el
 reintegro existente. Se anulan con motivo (la devolución saca del depósito lo que había repuesto). El
 cliente ve las notas en "Mi cuenta" y las devoluciones en el detalle del pedido, sin motivo ni destino.
+Los reportes de ventas y margen descuentan las devoluciones vigentes en la **fecha de la nota** (los meses
+cerrados no se mueven): lo que vuelve al stock revierte venta y costo; lo dado de baja revierte la venta
+pero no el costo (la pérdida queda en el margen). La pantalla muestra todo neto de devoluciones y una
+tarjeta "Devoluciones" con lo restado.
 
 | PR   | Contenido                                                                         | Estado          |
 | ---- | --------------------------------------------------------------------------------- | --------------- |
 | 17.1 | Notas de crédito al cliente: devolución con stock, ajuste por importe y anulación | ✅ v1.46.0-beta |
-| 17.2 | Los reportes de ventas y margen descuentan lo devuelto                            | ⏳              |
+| 17.2 | Los reportes de ventas y margen descuentan lo devuelto                            | 🟡 PR listo     |
 
-## Fase 18 — Repetir pedido y favoritos 🟡
+## Fase 18 — Repetir pedido y favoritos ✅
 
 Definiciones: **repetir pedido** (botón en la lista de Mis pedidos y en el detalle) suma los productos y
 cantidades de un pedido de la empresa al carrito, con los precios y la lista de hoy; lo que está pausado o
@@ -430,9 +434,9 @@ todavía no esté en el carrito. La portada del catálogo muestra "Lo que más p
 pedidos de la empresa, sin cancelados). Los favoritos son una preferencia, no un dato del negocio: sin
 auditoría, como el carrito.
 
-| PR   | Contenido                                                         | Estado      |
-| ---- | ----------------------------------------------------------------- | ----------- |
-| 18.1 | Repetir pedido, favoritos por empresa y los productos más pedidos | 🟡 PR listo |
+| PR   | Contenido                                                         | Estado          |
+| ---- | ----------------------------------------------------------------- | --------------- |
+| 18.1 | Repetir pedido, favoritos por empresa y los productos más pedidos | ✅ v1.47.0-beta |
 
 ## Fase 19 — Transferencia en el checkout ⏳
 

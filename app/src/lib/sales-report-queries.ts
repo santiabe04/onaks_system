@@ -23,12 +23,26 @@ function saleFilter(basis: ReportBasis, start: Date, end: Date): Prisma.Sql {
         AND s."created_at" >= ${start} AND s."created_at" < ${end}`;
 }
 
-/** Los ítems vendidos del período, con producto, categoría, cliente y zona. */
+/**
+ * Las devoluciones vigentes de un período: las notas de crédito de tipo
+ * devolución no anuladas, por la fecha de la nota (no la del pedido), así los
+ * meses ya cerrados no se mueven.
+ */
+function returnFilter(start: Date, end: Date): Prisma.Sql {
+  return Prisma.sql`n."kind" = 'RETURN' AND n."voided_at" IS NULL
+        AND n."created_at" >= ${start} AND n."created_at" < ${end}`;
+}
+
+/**
+ * Los ítems vendidos del período y los devueltos (con el precio y el costo del
+ * pedido original), con producto, categoría, cliente y zona.
+ */
 export async function getReportLines(
   params: ReportParams,
 ): Promise<ReportLine[]> {
   return db.$queryRaw<ReportLine[]>`
-    SELECT s."id" AS "saleId", i."product_id" AS "productId",
+    SELECT 'sale' AS "kind", NULL AS "destination",
+           s."id" AS "saleId", i."product_id" AS "productId",
            p."category_id" AS "categoryId", a."customer_id" AS "customerId",
            a."city_id" AS "cityId", i."quantity", i."unit_price" AS "unitPrice",
            i."unit_cost" AS "unitCost"
@@ -36,7 +50,17 @@ export async function getReportLines(
     JOIN "sales" s ON s."id" = i."sale_id"
     JOIN "products" p ON p."id" = i."product_id"
     JOIN "customer_addresses" a ON a."id" = s."address_id"
-    WHERE ${saleFilter(params.basis, params.start, params.end)}`;
+    WHERE ${saleFilter(params.basis, params.start, params.end)}
+    UNION ALL
+    SELECT 'return', ci."destination"::text,
+           n."sale_id", ci."product_id", p."category_id", a."customer_id",
+           a."city_id", ci."quantity", ci."unit_price", ci."unit_cost"
+    FROM "customer_credit_note_items" ci
+    JOIN "customer_credit_notes" n ON n."id" = ci."credit_note_id"
+    JOIN "sales" s ON s."id" = n."sale_id"
+    JOIN "products" p ON p."id" = ci."product_id"
+    JOIN "customer_addresses" a ON a."id" = s."address_id"
+    WHERE ${returnFilter(params.start, params.end)}`;
 }
 
 export type MonthlySales = {
@@ -47,7 +71,11 @@ export type MonthlySales = {
   margin: string;
 };
 
-/** Venta y margen por mes (Argentina) entre `start` y `end`, para el gráfico. */
+/**
+ * Venta y margen por mes (Argentina) entre `start` y `end`, para el gráfico,
+ * netos de devoluciones con la misma regla que el reporte: lo que vuelve al
+ * stock revierte venta y costo; lo dado de baja, solo la venta.
+ */
 export async function getMonthlySales(
   basis: ReportBasis,
   start: Date,
@@ -60,14 +88,30 @@ export async function getMonthlySales(
   const rows = await db.$queryRaw<
     { month: string; net: Prisma.Decimal; margin: Prisma.Decimal }[]
   >`
-    SELECT to_char(${date} AT TIME ZONE 'America/Argentina/Buenos_Aires', 'YYYY-MM') AS "month",
-           SUM(ROUND(i."unit_price" * i."quantity", 2)) AS "net",
-           COALESCE(SUM(ROUND(i."unit_price" * i."quantity", 2)
-                        - ROUND(i."unit_cost" * i."quantity", 2))
-                    FILTER (WHERE i."unit_cost" IS NOT NULL), 0) AS "margin"
-    FROM "sale_items" i
-    JOIN "sales" s ON s."id" = i."sale_id"
-    WHERE ${saleFilter(basis, start, end)}
+    WITH "movements" AS (
+      SELECT ${date} AS "at",
+             ROUND(i."unit_price" * i."quantity", 2) AS "net",
+             ROUND(i."unit_price" * i."quantity", 2)
+               - ROUND(i."unit_cost" * i."quantity", 2) AS "margin"
+      FROM "sale_items" i
+      JOIN "sales" s ON s."id" = i."sale_id"
+      WHERE ${saleFilter(basis, start, end)}
+      UNION ALL
+      SELECT n."created_at",
+             -ROUND(ci."unit_price" * ci."quantity", 2),
+             CASE WHEN ci."unit_cost" IS NULL THEN NULL
+                  WHEN ci."destination" = 'RESTOCK'
+                    THEN -(ROUND(ci."unit_price" * ci."quantity", 2)
+                           - ROUND(ci."unit_cost" * ci."quantity", 2))
+                  ELSE -ROUND(ci."unit_price" * ci."quantity", 2) END
+      FROM "customer_credit_note_items" ci
+      JOIN "customer_credit_notes" n ON n."id" = ci."credit_note_id"
+      WHERE ${returnFilter(start, end)}
+    )
+    SELECT to_char("at" AT TIME ZONE 'America/Argentina/Buenos_Aires', 'YYYY-MM') AS "month",
+           SUM("net") AS "net",
+           COALESCE(SUM("margin") FILTER (WHERE "margin" IS NOT NULL), 0) AS "margin"
+    FROM "movements"
     GROUP BY 1`;
   return rows.map((row) => ({
     month: row.month,
@@ -144,7 +188,14 @@ export async function getSalesReport(
 
   if (params.tab === "idle") {
     const [idle, paths] = await Promise.all([
-      getIdleProducts(new Set(lines.map((line) => line.productId))),
+      // Sin movimiento = no se vendió: una devolución sola no cuenta.
+      getIdleProducts(
+        new Set(
+          lines
+            .filter((line) => line.kind === "sale")
+            .map((line) => line.productId),
+        ),
+      ),
       categoryPaths(),
     ]);
     return {

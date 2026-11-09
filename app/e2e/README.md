@@ -13,7 +13,7 @@ Recorren la app como lo haría una persona, con Chromium, contra la app compilad
 | `purchases.spec.ts`   | Orden de compra, recepción de menos, factura sin diferencias y orden de pago                         |
 | `reports.spec.ts`     | Reporte de ventas y margen del mes, por cliente y sin movimiento, y su CSV                           |
 | `favorites.spec.ts`   | Favoritos de la empresa, lo que más pidió y repetir un pedido                                        |
-| `returns.spec.ts`     | Devolución del pedido entregado, ajuste por importe, anulaciones y lo que ve el cliente              |
+| `returns.spec.ts`     | Devolución del pedido entregado, ajuste por importe, reportes, anulaciones y lo que ve el cliente    |
 | `shop.spec.ts`        | El cliente arma el carrito, confirma el pedido y lo ve en Mis pedidos                                |
 
 Corren de a uno y sobre una base **nueva**: dependen de los números de pedido de la demo (#1 a #4) y

@@ -259,8 +259,7 @@ en `app/[lang]/admin/customers/[id]/account/credit-note-actions.ts` y los compon
   aparece aparte, tanto en el detalle del pedido como en la cuenta corriente.
 - El cliente ve sus notas vigentes en "Mi cuenta" y las devoluciones en el detalle de su pedido, **sin el
   motivo ni el destino** (son datos internos) y sin las anuladas.
-- **Pendiente** (fase 17.2): los reportes de ventas y margen todavía no descuentan lo devuelto. Los ítems de
-  una nota ya guardan `unit_cost` para poder hacerlo.
+- Los reportes de ventas y margen **descuentan las devoluciones** (ver [Reportes](#10-reportes)).
 
 ### Crédito
 
@@ -414,6 +413,14 @@ vencimiento, cuenta la fecha de la factura).
   (`latestCosts` en `lib/cost-queries.ts`, el más reciente entre los proveedores del producto). Así el
   margen de un mes no se mueve cuando sube un costo. Las líneas sin costo suman a la venta pero **no al
   margen** y se informan aparte ("sin costo").
+- **Devoluciones**: las notas de crédito de tipo devolución no anuladas restan como líneas `kind: "return"`
+  (`getReportLines`, por la **fecha de la nota**, no la del pedido, así los meses cerrados no se mueven),
+  con el precio y el costo del pedido original. `RESTOCK` revierte venta **y** costo (el margen baja solo
+  por la ganancia que se pierde); `WRITE_OFF` revierte la venta pero **no el costo**: la mercadería se
+  perdió y la pérdida queda en el margen (puede dar margen negativo). No suman pedidos, no cuentan como
+  venta en "sin movimiento" y una devolución de un pedido de otro período también resta. Las filas, los
+  totales, el gráfico y el CSV van **netos de devoluciones**; en los totales una tarjeta "Devoluciones"
+  muestra lo restado.
 - **CSV** en `reports/export` (mismo período y pestaña).
 - Las cuentas son enteros; el margen % es el único valor en punto flotante, y solo para mostrar.
 

@@ -122,8 +122,15 @@ export function chartMonths(params: ReportParams): {
   return { months, start: cursor, end };
 }
 
-/** Un ítem vendido, con lo que hace falta para agruparlo. */
+/**
+ * Un ítem vendido o devuelto, con lo que hace falta para agruparlo. Una
+ * devolución (`kind: "return"`, de una nota de crédito vigente) resta en la
+ * fecha de la nota, con el precio y el costo del pedido original.
+ */
 export type ReportLine = {
+  kind: "sale" | "return";
+  /** Solo en las devoluciones: lo que se hizo con la mercadería. */
+  destination: "RESTOCK" | "WRITE_OFF" | null;
   saleId: string;
   productId: string;
   categoryId: number;
@@ -141,8 +148,12 @@ export type ReportRow = {
   key: string;
   /** Suma de cantidades: solo tiene sentido por producto. */
   quantity: string;
+  /** Pedidos distintos con ventas (las devoluciones no suman pedidos). */
   orders: number;
+  /** Venta neta de devoluciones. */
   net: string;
+  /** Lo devuelto en el período (neto, positivo): ya está restado de `net`. */
+  returned: string;
   /** Costo de las líneas que tienen costo. */
   cost: string;
   /** Venta con costo − costo. */
@@ -154,6 +165,7 @@ export type ReportRow = {
 };
 
 const ZERO = BigInt(0);
+const ONE = BigInt(1);
 const HALF_MILLI = BigInt(500);
 const MILLI = BigInt(1000);
 const HUNDRED = BigInt(100);
@@ -178,6 +190,7 @@ type Accumulator = {
   quantity: bigint;
   orders: Set<string>;
   net: bigint;
+  returned: bigint;
   cost: bigint;
   uncosted: bigint;
 };
@@ -190,6 +203,7 @@ function toRow(key: string, acc: Accumulator): ReportRow {
     quantity: fromMilli(acc.quantity),
     orders: acc.orders.size,
     net: money(acc.net),
+    returned: money(acc.returned),
     cost: money(acc.cost),
     margin: money(margin),
     // Los dos en centavos: el cociente no depende de la unidad.
@@ -200,7 +214,10 @@ function toRow(key: string, acc: Accumulator): ReportRow {
 
 /**
  * Agrupa las líneas por `keyOf` y ordena de mayor a menor venta. Las líneas
- * sin costo suman a la venta pero no al margen (se informan aparte).
+ * sin costo suman a la venta pero no al margen (se informan aparte). Las
+ * devoluciones restan: lo que vuelve al stock revierte la venta y el costo; lo
+ * que se da de baja revierte la venta pero no el costo (la mercadería se
+ * perdió, así que la pérdida queda en el margen).
  */
 export function summarizeBy(
   lines: ReportLine[],
@@ -215,18 +232,25 @@ export function summarizeBy(
         quantity: ZERO,
         orders: new Set(),
         net: ZERO,
+        returned: ZERO,
         cost: ZERO,
         uncosted: ZERO,
       };
       groups.set(key, acc);
     }
+    const isReturn = line.kind === "return";
+    const sign = isReturn ? -ONE : ONE;
     const quantity = toMilli(line.quantity);
     const net = lineCents(line.unitPrice, quantity);
-    acc.quantity += quantity;
-    acc.orders.add(line.saleId);
-    acc.net += net;
-    if (line.unitCost === null) acc.uncosted += net;
-    else acc.cost += lineCents(line.unitCost, quantity);
+    acc.quantity += sign * quantity;
+    acc.net += sign * net;
+    if (isReturn) acc.returned += net;
+    else acc.orders.add(line.saleId);
+    if (line.unitCost === null) {
+      acc.uncosted += sign * net;
+    } else if (!isReturn || line.destination === "RESTOCK") {
+      acc.cost += sign * lineCents(line.unitCost, quantity);
+    }
   }
   return [...groups]
     .map(([key, acc]) => toRow(key, acc))
@@ -244,6 +268,7 @@ export function reportTotals(lines: ReportLine[]): ReportRow {
       quantity: ZERO,
       orders: new Set(),
       net: ZERO,
+      returned: ZERO,
       cost: ZERO,
       uncosted: ZERO,
     })

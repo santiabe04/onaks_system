@@ -1977,7 +1977,7 @@ export const es = {
   },
   salesReport: {
     title: "Ventas y margen",
-    hint: "Venta neta (sin IVA), costo y margen del período. El costo es el último de compra al momento del pedido; lo que no tiene costo cargado suma a la venta pero no al margen.",
+    hint: "Venta neta (sin IVA), costo y margen del período, ya restadas las devoluciones en la fecha en que se hicieron. El costo es el último de compra al momento del pedido; lo que no tiene costo cargado suma a la venta pero no al margen. Lo devuelto que se dio de baja resta la venta pero no el costo: queda como pérdida.",
     from: "Desde",
     to: "Hasta",
     basis: "Qué cuenta como venta",
@@ -1995,6 +1995,7 @@ export const es = {
       idle: "Sin movimiento",
     },
     net: "Venta neta",
+    returned: "Devoluciones",
     cost: "Costo",
     margin: "Margen",
     marginRate: "Margen %",
