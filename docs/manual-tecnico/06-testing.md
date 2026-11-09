@@ -169,8 +169,15 @@ Reglas que evitan los tests inestables:
 6. **Con una UI optimista** (el corazón de favoritos cambia al instante), esperar la respuesta del server
    antes de navegar o el request se cancela: `const saved = page.waitForResponse((r) => r.request().method()
 === "POST"); await boton.click(); await saved;`.
-7. Las verificaciones usan los números de la demo; si cambiás la demo, revisá los specs.
-8. Cada spec cuenta **un circuito**, con comentarios que explican qué dato de la demo usa y por qué.
+7. **Navegación entre pantallas.** Next deja montada, oculta, la pantalla anterior, y un clic que
+   Playwright resolvió sobre un link de la pantalla que se va **se queda con ese elemento**: si la
+   navegación se completa en medio del clic, reintenta hasta el timeout del test (60 s) con "element is
+   not visible". Pasa cuando el próximo paso busca algo que existe en las dos pantallas (por ejemplo "Ver
+   cuenta corriente", que está en el pedido y en el cliente). Para encadenar pantallas, navegá con
+   `page.goto(href)` (carga completa, sin pantallas ocultas) o esperá primero algo **único de la pantalla
+   nueva** (`toHaveURL` y un encabezado) antes del siguiente clic.
+8. Las verificaciones usan los números de la demo; si cambiás la demo, revisá los specs.
+9. Cada spec cuenta **un circuito**, con comentarios que explican qué dato de la demo usa y por qué.
 
 ## Integración continua
 

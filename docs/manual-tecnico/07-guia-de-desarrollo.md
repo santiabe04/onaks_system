@@ -200,23 +200,24 @@ los specs que corran después (orden alfabético).
 
 ## Errores frecuentes
 
-| Síntoma                                                                        | Causa y solución                                                                                                         |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| `tsc` no ve un campo nuevo de Prisma                                           | Falta `npx prisma generate` después de cambiar el schema.                                                                |
-| `PageProps<"/[lang]/admin/xxx">` "no satisface la restricción"                 | La ruta es nueva: correr `npm run typecheck` (corre `next typegen`).                                                     |
-| Next avisa que se lee la hora durante el prerender                             | Un `new Date()` en un Server Component: llamar `await connection()` antes.                                               |
-| "Uncached data was accessed outside of `<Suspense>`"                           | La lectura de sesión, `searchParams`, `params` o la base tiene que estar dentro de un `<Suspense>`.                      |
-| Un archivo `"use server"` rompe el build                                       | Solo puede exportar funciones async: constantes y tipos van a `lib/`.                                                    |
-| El form pierde lo tipeado o el select vuelve a la primera opción tras un error | Form con campos controlados sin `submitWithoutReset` (ver capítulo 1).                                                   |
-| El spec e2e escribe y el campo queda vacío                                     | Falta `await ready(page)`: la hidratación pisó lo tipeado.                                                               |
-| Un monto aparece como `1234.5` o con decimales de más                          | Pasó por `number`: usar `format.money(...)` con el string/`Decimal` original.                                            |
-| `Unique constraint failed` al crear algo                                       | Capturar `P2002` en la action y devolver el mensaje del campo (no dejar que sea un 500).                                 |
-| `violates check constraint "stock_movement_direction_chk"` al mover stock      | Un tipo de movimiento nuevo que no está en ese CHECK: ver el [capítulo 4](04-base-de-datos.md#libros-de-solo-inserción). |
-| Un spec e2e falla con "strict mode violation" en un label que parece único     | Next deja montada (oculta) la pantalla anterior: filtrar con `.filter({ visible: true })`.                               |
-| Deadlock entre dos operaciones                                                 | Orden de bloqueo distinto: seguir la tabla del capítulo 4.                                                               |
-| El seed falla en la imagen `migrator` pero anda local                          | Importa algo con el alias `@/` o algo fuera de `prisma/` y `src/lib/`.                                                   |
-| Un cambio de `revalidatePath` "no se ve" en inglés                             | Usar la ruta interna con `[lang]` (`"/[lang]/admin/xxx"`), no la URL pública.                                            |
-| El CI falla con "drift"                                                        | El schema y las migraciones no coinciden: correr el paso 5 de la [receta 3](#receta-3-una-migración).                    |
+| Síntoma                                                                        | Causa y solución                                                                                                                                        |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tsc` no ve un campo nuevo de Prisma                                           | Falta `npx prisma generate` después de cambiar el schema.                                                                                               |
+| `PageProps<"/[lang]/admin/xxx">` "no satisface la restricción"                 | La ruta es nueva: correr `npm run typecheck` (corre `next typegen`).                                                                                    |
+| Next avisa que se lee la hora durante el prerender                             | Un `new Date()` en un Server Component: llamar `await connection()` antes.                                                                              |
+| "Uncached data was accessed outside of `<Suspense>`"                           | La lectura de sesión, `searchParams`, `params` o la base tiene que estar dentro de un `<Suspense>`.                                                     |
+| Un archivo `"use server"` rompe el build                                       | Solo puede exportar funciones async: constantes y tipos van a `lib/`.                                                                                   |
+| El form pierde lo tipeado o el select vuelve a la primera opción tras un error | Form con campos controlados sin `submitWithoutReset` (ver capítulo 1).                                                                                  |
+| El spec e2e escribe y el campo queda vacío                                     | Falta `await ready(page)`: la hidratación pisó lo tipeado.                                                                                              |
+| Un monto aparece como `1234.5` o con decimales de más                          | Pasó por `number`: usar `format.money(...)` con el string/`Decimal` original.                                                                           |
+| `Unique constraint failed` al crear algo                                       | Capturar `P2002` en la action y devolver el mensaje del campo (no dejar que sea un 500).                                                                |
+| `violates check constraint "stock_movement_direction_chk"` al mover stock      | Un tipo de movimiento nuevo que no está en ese CHECK: ver el [capítulo 4](04-base-de-datos.md#libros-de-solo-inserción).                                |
+| Un spec e2e se cuelga 60 s en un clic ("element is not visible"), solo en CI   | Clic atado al link de la pantalla anterior, que Next deja oculta: navegar con `page.goto(href)` o esperar algo único de la pantalla nueva (capítulo 6). |
+| Un spec e2e falla con "strict mode violation" en un label que parece único     | Next deja montada (oculta) la pantalla anterior: filtrar con `.filter({ visible: true })`.                                                              |
+| Deadlock entre dos operaciones                                                 | Orden de bloqueo distinto: seguir la tabla del capítulo 4.                                                                                              |
+| El seed falla en la imagen `migrator` pero anda local                          | Importa algo con el alias `@/` o algo fuera de `prisma/` y `src/lib/`.                                                                                  |
+| Un cambio de `revalidatePath` "no se ve" en inglés                             | Usar la ruta interna con `[lang]` (`"/[lang]/admin/xxx"`), no la URL pública.                                                                           |
+| El CI falla con "drift"                                                        | El schema y las migraciones no coinciden: correr el paso 5 de la [receta 3](#receta-3-una-migración).                                                   |
 
 ## Dónde seguir leyendo
 
