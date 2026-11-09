@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.47.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.46.0-beta...v1.47.0-beta) (2026-11-09)
+
+
+### Features
+
+* **shop:** add repeat order, company favorites and most-ordered products ([#118](https://github.com/santiabe04/onaks_system/issues/118)) ([220cb29](https://github.com/santiabe04/onaks_system/commit/220cb295ab9a9604fd387e544d0da06be884831c))
+
+
+### Bug Fixes
+
+* **shop:** make the most-ordered ranking stable and scope the shop e2e ([#120](https://github.com/santiabe04/onaks_system/issues/120)) ([fe2e567](https://github.com/santiabe04/onaks_system/commit/fe2e567711cb0a9901c529a0d39be4c4c2091998))
+
 ## [1.46.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.45.0-beta...v1.46.0-beta) (2026-11-06)
 
 
