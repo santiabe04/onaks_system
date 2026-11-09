@@ -42,8 +42,14 @@ test("el admin registra una devolución y una nota por importe, y el cliente las
   });
 
   await test.step("la cuenta pasa a saldo a favor y se puede cargar un ajuste", async () => {
-    await page.getByRole("link", { name: "Veterinaria San Roque" }).click();
-    await page.getByRole("link", { name: "Ver cuenta corriente" }).click();
+    // El detalle del pedido ya enlaza a la cuenta: se va con carga completa. Con
+    // clics encadenados, Next deja montada (oculta) la pantalla anterior y el
+    // segundo clic puede quedar atado al link de la pantalla que se va, que
+    // nunca vuelve a verse (el clic reintenta hasta el timeout del test).
+    const accountHref = await page
+      .getByRole("link", { name: "Ver cuenta corriente" })
+      .getAttribute("href");
+    await page.goto(accountHref!);
     // Debía $ 25.250,50 y se acreditan $ 53.371,50.
     await expect(
       page.getByText("Saldo a favor $ 28.121,00").first(),
