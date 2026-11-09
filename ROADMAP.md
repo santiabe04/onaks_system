@@ -3,8 +3,8 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 09/11/2026: fases 0 a 16 resueltas (la 15 se descartó), en BETA (v1.47.0-beta). Siguen las
-funciones nuevas (fases 17 a 22); facturación electrónica y app del repartidor quedan al fondo.
+Estado al 09/11/2026: fases 0 a 16 resueltas (la 15 se descartó), en BETA (v1.48.0-beta). Siguen las
+funciones nuevas (fases 19 a 22); facturación electrónica y app del repartidor quedan al fondo.
 
 | Fase | Contenido                                                        | Estado      |
 | ---- | ---------------------------------------------------------------- | ----------- |
@@ -25,9 +25,9 @@ funciones nuevas (fases 17 a 22); facturación electrónica y app del repartidor
 | 14   | Reportes de ventas y margen                                      | ✅          |
 | 15   | Días de entrega por zona y pedido mínimo                         | ❌          |
 | 16   | Límite de crédito y bloqueo por deuda                            | ✅          |
-| 17   | Devoluciones y notas de crédito a clientes                       | 🟡          |
+| 17   | Devoluciones y notas de crédito a clientes                       | ✅          |
 | 18   | Repetir pedido y favoritos                                       | ✅          |
-| 19   | Transferencia en el checkout                                     | ⏳          |
+| 19   | Transferencia en el checkout                                     | 🟡          |
 | 20   | Lotes y vencimientos                                             | ⏳          |
 | 21   | Toma de inventario desde el celular                              | ⏳          |
 | 22   | Avisos al cliente (mail y WhatsApp)                              | ⏳          |
@@ -403,7 +403,7 @@ hasta entonces no avanza de Pendiente.
 | ---- | ------------------------------------------------------------------------- | --------------- |
 | 16.1 | Límite y plazo por cliente, pedidos retenidos por crédito y su aprobación | ✅ v1.45.0-beta |
 
-## Fase 17 — Devoluciones y notas de crédito a clientes 🟡
+## Fase 17 — Devoluciones y notas de crédito a clientes ✅
 
 Definiciones: dos formas de cargar una nota de crédito, siempre el admin (`sales:manage`). La
 **devolución** sale del pedido entregado: productos y cantidades (hasta lo entregado menos lo ya
@@ -421,7 +421,7 @@ tarjeta "Devoluciones" con lo restado.
 | PR   | Contenido                                                                         | Estado          |
 | ---- | --------------------------------------------------------------------------------- | --------------- |
 | 17.1 | Notas de crédito al cliente: devolución con stock, ajuste por importe y anulación | ✅ v1.46.0-beta |
-| 17.2 | Los reportes de ventas y margen descuentan lo devuelto                            | 🟡 PR listo     |
+| 17.2 | Los reportes de ventas y margen descuentan lo devuelto                            | ✅ v1.48.0-beta |
 
 ## Fase 18 — Repetir pedido y favoritos ✅
 
@@ -438,10 +438,20 @@ auditoría, como el carrito.
 | ---- | ----------------------------------------------------------------- | --------------- |
 | 18.1 | Repetir pedido, favoritos por empresa y los productos más pedidos | ✅ v1.47.0-beta |
 
-## Fase 19 — Transferencia en el checkout ⏳
+## Fase 19 — Transferencia en el checkout 🟡
 
-- Pago por transferencia con comprobante adjunto; el admin lo valida y queda como cobro en la cuenta
-  corriente.
+Definiciones: en el checkout el cliente elige **efectivo** o **transferencia**; esta última solo se ofrece
+si el admin cargó los **datos de cobro** (`/admin/payment-settings`: banco, titular, CUIT y CBU o alias,
+validados). El pedido sigue su curso normal; la transferencia se valida aparte. El cliente adjunta el
+**comprobante** (imagen o PDF de hasta 5 MB) al confirmar o después, desde su pedido, donde ve los datos
+para transferir mientras no esté pagado. El admin lo revisa en el detalle del pedido: **valida** (confirma
+monto y fecha y se asienta un cobro por transferencia en la cuenta corriente) o **rechaza** con un motivo
+que el cliente ve y le permite subir otro. Un comprobante en revisión a la vez; los comprobantes no se
+borran (historial). El dashboard avisa los pendientes y "Todos los pedidos" filtra por ellos.
+
+| PR   | Contenido                                                                          | Estado      |
+| ---- | ---------------------------------------------------------------------------------- | ----------- |
+| 19.1 | Pago por transferencia: datos de cobro, comprobante del cliente y validación admin | 🟡 PR listo |
 
 ## Fase 20 — Lotes y vencimientos ⏳
 

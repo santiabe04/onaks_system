@@ -14,7 +14,9 @@ import {
   toFingerprintLine,
 } from "@/lib/cart-queries";
 import { cartFingerprint } from "@/lib/cart-fingerprint";
+import { formatCuit } from "@/lib/cuit";
 import { db } from "@/lib/db";
+import { transferAvailable } from "@/lib/transfer";
 import { CheckoutForm } from "./checkout-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -43,21 +45,24 @@ async function Checkout() {
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
 
-  const [{ available, unavailable }, addresses] = await Promise.all([
-    getCart(user.personId, user.customerId),
-    db.customerAddress.findMany({
-      // Las direcciones son de la empresa: cualquier persona usa cualquiera.
-      where: { customerId: user.customerId ?? "", deletedAt: null },
-      orderBy: { name: "asc" },
-      select: {
-        id: true,
-        name: true,
-        address: true,
-        zipCode: true,
-        city: { select: { name: true } },
-      },
-    }),
-  ]);
+  const [{ available, unavailable }, addresses, transferSettings] =
+    await Promise.all([
+      getCart(user.personId, user.customerId),
+      db.customerAddress.findMany({
+        // Las direcciones son de la empresa: cualquier persona usa cualquiera.
+        where: { customerId: user.customerId ?? "", deletedAt: null },
+        orderBy: { name: "asc" },
+        select: {
+          id: true,
+          name: true,
+          address: true,
+          zipCode: true,
+          city: { select: { name: true } },
+        },
+      }),
+      // Con datos de cobro cargados se ofrece pagar por transferencia.
+      db.transferSettings.findUnique({ where: { id: 1 } }),
+    ]);
   // Sin nada para pedir no hay nada que confirmar.
   if (available.length === 0) redirect("/cart");
   // Modificando un pedido: se confirma sobre ese, con su dirección elegida.
@@ -161,7 +166,19 @@ async function Checkout() {
                   .join(", "),
               }))}
               fingerprint={cartFingerprint(available.map(toFingerprintLine))}
+              transfer={
+                transferAvailable(transferSettings) && transferSettings
+                  ? {
+                      bankName: transferSettings.bankName,
+                      holder: transferSettings.holder,
+                      cuit: formatCuit(transferSettings.cuit),
+                      cbu: transferSettings.cbu,
+                      alias: transferSettings.alias,
+                    }
+                  : null
+              }
               t={t.checkout}
+              tTransfer={t.transfer}
             />
           )}
         </section>

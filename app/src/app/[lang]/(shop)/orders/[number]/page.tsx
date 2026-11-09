@@ -5,13 +5,17 @@ import { Suspense } from "react";
 import { CreditNoteList } from "@/components/account/credit-note-list";
 import { RepeatOrderButton } from "@/components/orders/repeat-order-button";
 import { OrderDetail, OrderItems } from "@/components/orders/order-items";
+import { TransferProofList } from "@/components/orders/transfer-proof-list";
 import { interpolate } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { parseSaleNumber } from "@/lib/checkout";
+import { formatCuit } from "@/lib/cuit";
 import { db } from "@/lib/db";
+import { canUploadProof } from "@/lib/transfer";
 import { OrderActions } from "./order-actions";
+import { ProofUploadForm } from "./proof-upload-form";
 
 export async function generateMetadata({
   params,
@@ -99,6 +103,34 @@ async function Order({
     },
   });
 
+  // Pago por transferencia: datos de cobro (mientras se debe) y comprobantes.
+  const isTransfer = sale.paymentMethod === "TRANSFER";
+  const [settings, proofRows] = isTransfer
+    ? await Promise.all([
+        db.transferSettings.findUnique({ where: { id: 1 } }),
+        db.transferProof.findMany({
+          where: { saleId: sale.id },
+          orderBy: { createdAt: "desc" },
+          include: {
+            uploadedBy: {
+              select: { person: { select: { name: true, surname: true } } },
+            },
+          },
+        }),
+      ])
+    : [null, []];
+  const proofs = proofRows.map((proof) => ({
+    id: proof.id,
+    file: proof.file,
+    state: proof.state,
+    createdAt: proof.createdAt,
+    reviewedAt: proof.reviewedAt,
+    rejectReason: proof.rejectReason,
+    uploadedBy: `${proof.uploadedBy.person.name} ${proof.uploadedBy.person.surname}`,
+    reviewedBy: proof.reviewedAt ? t.orders.placedByDistributor : null,
+  }));
+  const unpaid = sale.state !== "CANCELED" && sale.paymentState !== "PAID";
+
   return (
     <>
       {created && (
@@ -172,6 +204,45 @@ async function Order({
         format={format}
         t={t.cart}
       />
+
+      {isTransfer && (
+        <section className="mt-8 rounded border border-current/20 p-4 text-sm">
+          <h2 className="text-lg font-medium">{t.transfer.proofTitle}</h2>
+          {unpaid && settings && (
+            <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+              <dt className="opacity-70">{t.transfer.bank}</dt>
+              <dd>{settings.bankName}</dd>
+              <dt className="opacity-70">{t.transfer.holder}</dt>
+              <dd>{settings.holder}</dd>
+              <dt className="opacity-70">{t.transfer.cuit}</dt>
+              <dd className="font-mono">{formatCuit(settings.cuit)}</dd>
+              {settings.cbu && (
+                <>
+                  <dt className="opacity-70">{t.transfer.cbu}</dt>
+                  <dd className="font-mono break-all">{settings.cbu}</dd>
+                </>
+              )}
+              {settings.alias && (
+                <>
+                  <dt className="opacity-70">{t.transfer.alias}</dt>
+                  <dd className="font-mono">{settings.alias}</dd>
+                </>
+              )}
+            </dl>
+          )}
+          <TransferProofList proofs={proofs} format={format} t={t.transfer} />
+          {proofs.some((proof) => proof.state === "REJECTED") &&
+            canUploadProof(sale, proofRows) && (
+              <p className="mt-3 opacity-70">{t.transfer.sendAnother}</p>
+            )}
+          {canUploadProof(sale, proofRows) && (
+            <ProofUploadForm saleId={sale.id} t={t.transfer} />
+          )}
+          {sale.paymentState === "PAID" && (
+            <p className="mt-3 opacity-70">{t.transfer.paidNote}</p>
+          )}
+        </section>
+      )}
 
       {creditNotes.length > 0 && (
         <section className="mt-8">

@@ -25,6 +25,8 @@ export type OrderFilters = {
   product?: string;
   /** Solo retenidos por crédito (sin aprobar ni cancelar). */
   held?: boolean;
+  /** Solo con un comprobante de transferencia esperando revisión. */
+  proof?: boolean;
   /** YYYY-MM-DD de Argentina, inclusive. */
   from?: string;
   to?: string;
@@ -76,6 +78,7 @@ export function parseOrderFilters(params: SearchParams): OrderFilters {
     city: positiveInt(first(params.city)),
     product: isCuid(product) ? product : undefined,
     held: first(params.held) === "1" || undefined,
+    proof: first(params.proof) === "1" || undefined,
     from: dayStart(from) ? from : undefined,
     to: dayStart(to) ? to : undefined,
     page: positiveInt(first(params.page)) ?? 1,
@@ -107,6 +110,12 @@ export function orderWhere(filters: OrderFilters): Prisma.SaleWhereInput {
           NOT: { state: "CANCELED" },
         }
       : {}),
+    ...(filters.proof
+      ? {
+          transferProofs: { some: { state: "PENDING" as const } },
+          NOT: { state: "CANCELED" as const },
+        }
+      : {}),
     createdAt:
       from || to
         ? {
@@ -136,6 +145,7 @@ export function orderQuery(filters: OrderFilters, page = filters.page): string {
   if (filters.city) params.set("city", String(filters.city));
   if (filters.product) params.set("product", filters.product);
   if (filters.held) params.set("held", "1");
+  if (filters.proof) params.set("proof", "1");
   if (filters.from) params.set("from", filters.from);
   if (filters.to) params.set("to", filters.to);
   if (page > 1) params.set("page", String(page));

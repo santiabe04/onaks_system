@@ -104,6 +104,7 @@ Recorren la app como una persona, con **Chromium**, contra la app **compilada** 
 | `favorites.spec.ts`   | Favoritos de la empresa con el corazón y el filtro, "agregar todos", lo que más pidió y repetir un pedido (de la lista y del detalle)                       |
 | `returns.spec.ts`     | Devolución del pedido entregado (una bolsa al stock y otra de baja), ajuste por importe, lo que descuentan los reportes, anulaciones y lo que ve el cliente |
 | `shop.spec.ts`        | El cliente arma el carrito, confirma el pedido y lo ve en "Mis pedidos"                                                                                     |
+| `transfer.spec.ts`    | Datos de cobro, pedido por transferencia con comprobante, rechazo con motivo, segundo comprobante y validación del cobro                                    |
 
 ### Reglas del juego
 

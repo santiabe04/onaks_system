@@ -89,10 +89,20 @@ comentarios y textos de UI en español.
   `sale_items.unit_list_price` guarda el base y `sales.discount` la bonificación neta (`saleDiscount`,
   también al ajustar una entrega parcial). ABM en `/admin/price-lists` (permiso `price-lists:manage`);
   la lista y el descuento se eligen en el form del cliente.
-- Pedido (4.2): `/checkout` (dirección de la empresa, comentario, solo efectivo) → `placeOrder`, que en
+- Pedido (4.2): `/checkout` (dirección de la empresa, comentario, efectivo o transferencia) → `placeOrder`, que en
   una transacción recalcula todo, compara la huella del carrito (`lib/cart-fingerprint`: productos,
   cantidades, precios, IVA) con la que vio el cliente y la rechaza si cambió; vacía el carrito **antes**
   de crear el pedido (así un doble envío no lo duplica) y guarda la foto en `sale_items` + auditoría.
+- Pago por transferencia (`lib/transfer` puro, `lib/transfer-proof-files`): el admin carga los **datos de
+  cobro** (`/admin/payment-settings`, permiso `payment-settings:manage`; `transfer_settings`, una sola fila:
+  banco, titular, CUIT y CBU o alias, validados) y sin ellos el checkout solo ofrece efectivo. Con
+  transferencia el pedido sigue su curso y el cliente adjunta el **comprobante** (imagen → WebP sin EXIF, o
+  PDF, hasta 5 MB) al confirmar o después desde su pedido (`uploadTransferProof`, `canUploadProof`: pedido
+  por transferencia, no cancelado ni pagado, sin otro en revisión). `transfer_proofs`: PENDING → VALIDATED
+  (el admin confirma monto y fecha y `validateTransferProof` asienta un `createCustomerPayment` por
+  transferencia imputado al pedido, con la cuenta bloqueada) o REJECTED con motivo que ve el cliente, que
+  puede subir otro. Los comprobantes no se borran. Archivos en `UPLOADS_DIR/transfers`, servidos con sesión
+  por `app/media/transfers/[file]` (el admin o la empresa dueña). Aviso en el dashboard y filtro `proof=1` en Todos.
 - Pedido cargado por el admin (`/admin/orders/new`, permiso `sales:manage`, también desde la ficha del
   cliente con `?customer=`): elige cliente y dirección y busca productos (`searchProducts` en
   `lib/admin-order`), sin tocar el carrito del cliente. `createOrderForCustomer` usa los precios del cliente y

@@ -26,8 +26,10 @@ import { CreditNoteList } from "@/components/account/credit-note-list";
 import { VoidCreditNoteForm } from "@/components/account/credit-note-forms";
 import { buttonClass } from "@/components/ui/button";
 import { isReturnable } from "@/lib/customer-credit";
+import { TransferProofList } from "@/components/orders/transfer-proof-list";
 import { CreditHoldControl } from "./credit-hold-control";
 import { CustomerEditControl } from "./customer-edit-control";
+import { ProofReviewForm } from "./proof-review-form";
 import { StateChangeForm } from "./state-change-form";
 
 export async function generateMetadata({
@@ -125,6 +127,36 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
       ? toCents(allocation.pending)
       : BigInt(0));
   const canManage = can(user.role, "sales:manage");
+  // Comprobantes de transferencia (con quién los subió y quién los revisó).
+  const proofRows = await db.transferProof.findMany({
+    where: { saleId: sale.id },
+    orderBy: { createdAt: "desc" },
+    include: {
+      uploadedBy: {
+        select: { person: { select: { name: true, surname: true } } },
+      },
+      reviewedBy: {
+        select: { person: { select: { name: true, surname: true } } },
+      },
+    },
+  });
+  const proofs = proofRows.map((proof) => ({
+    id: proof.id,
+    file: proof.file,
+    state: proof.state,
+    createdAt: proof.createdAt,
+    reviewedAt: proof.reviewedAt,
+    rejectReason: proof.rejectReason,
+    uploadedBy: `${proof.uploadedBy.person.name} ${proof.uploadedBy.person.surname}`,
+    reviewedBy: proof.reviewedBy
+      ? `${proof.reviewedBy.person.name} ${proof.reviewedBy.person.surname}`
+      : null,
+  }));
+  // Lo que falta cobrar de este pedido es lo que se espera de la transferencia.
+  const proofAmount =
+    allocation && toCents(allocation.pending) > BigInt(0)
+      ? format.input(allocation.pending)
+      : format.input(sale.total);
   // Devoluciones de este pedido (las anuladas también, para el historial).
   const orderNotes = account.creditNotes.filter(
     (note) => note.saleId === sale.id,
@@ -229,6 +261,27 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
         })}
         {totals.missingVolume && ` · ${t.adminOrders.missingVolume}`}
       </p>
+
+      {(proofs.length > 0 || sale.paymentMethod === "TRANSFER") && (
+        <section className="mt-8 rounded border border-current/20 p-4 print:hidden">
+          <h2 className="text-lg font-medium">{t.transfer.proofTitle}</h2>
+          <TransferProofList
+            proofs={proofs}
+            format={format}
+            t={t.transfer}
+            actions={(proof) =>
+              canManage && proof.state === "PENDING" ? (
+                <ProofReviewForm
+                  proofId={proof.id}
+                  suggestedAmount={proofAmount}
+                  today={today}
+                  t={t.transfer}
+                />
+              ) : null
+            }
+          />
+        </section>
+      )}
 
       {(orderNotes.length > 0 || canReturn) && (
         <section className="mt-8 rounded border border-current/20 p-4 print:hidden">

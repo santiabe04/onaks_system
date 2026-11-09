@@ -16,9 +16,15 @@ export const RESERVED_SALE_STATES: SaleState[] = ["PENDING"];
 
 type Messages = Dictionary["checkout"]["errors"];
 
+/** Cómo se paga el pedido: efectivo al recibir o transferencia con comprobante. */
+export const CHECKOUT_PAYMENT_METHODS = ["CASH", "TRANSFER"] as const;
+
 export function checkoutSchema(t: Messages) {
   return z.object({
     addressId: z.string().refine(isCuid, t.addressRequired),
+    paymentMethod: z.enum(CHECKOUT_PAYMENT_METHODS, {
+      message: t.paymentMethodInvalid,
+    }),
     // Vacío se guarda como null, no como "".
     notes: z
       .string()
@@ -35,10 +41,16 @@ export function checkoutSchema(t: Messages) {
 export type CheckoutInput = z.infer<ReturnType<typeof checkoutSchema>>;
 
 /** Lo que el usuario eligió, para volver a mostrarlo si hay errores. */
-export type CheckoutValues = { addressId: string; notes: string };
+export type CheckoutValues = {
+  addressId: string;
+  notes: string;
+  paymentMethod: string;
+};
 
 export type CheckoutFormState = {
-  errors?: Partial<Record<"addressId" | "notes" | "form", string[]>>;
+  errors?: Partial<
+    Record<"addressId" | "notes" | "paymentMethod" | "form", string[]>
+  >;
   values?: CheckoutValues;
 };
 
@@ -52,7 +64,12 @@ export function validateCheckoutForm(
     const value = formData.get(key);
     return typeof value === "string" ? value : "";
   };
-  const values = { addressId: get("addressId"), notes: get("notes") };
+  const values = {
+    addressId: get("addressId"),
+    notes: get("notes"),
+    // Sin elegir (un form viejo) es efectivo, como antes.
+    paymentMethod: get("paymentMethod") || "CASH",
+  };
   const parsed = checkoutSchema(t).safeParse({
     ...values,
     fingerprint: get("fingerprint"),
@@ -66,6 +83,7 @@ export function validateCheckoutForm(
       errors: {
         addressId: fieldErrors.addressId,
         notes: fieldErrors.notes,
+        paymentMethod: fieldErrors.paymentMethod,
         form: fieldErrors.fingerprint,
       },
       values,
