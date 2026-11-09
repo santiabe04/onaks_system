@@ -113,6 +113,19 @@ test("el admin registra una devolución y una nota por importe, y el cliente las
     await client.context().close();
   });
 
+  await test.step("los reportes descuentan lo devuelto", async () => {
+    await page.goto("/admin/reports");
+    // Se entregó $ 68.100 (1 cachorro + 2 de gato) y se devolvió $ 48.300: el
+    // cachorro vuelve al stock (revierte venta y costo) y el gato se da de baja
+    // (revierte la venta pero el costo queda: $ 27.720 y margen negativo).
+    const totals = page.locator("dl").first();
+    await expect(totals).toContainText("$ 19.800,00");
+    await expect(totals).toContainText("$ 48.300,00");
+    await expect(totals).toContainText("$ 27.720,00");
+    await expect(totals).toContainText(/[-−]\s?\$\s7\.920,00/);
+    await expect(totals).toContainText(/[-−]40\s?%/);
+  });
+
   await test.step("anular la devolución saca del depósito lo que había vuelto", async () => {
     await page.goto("/admin/orders/3");
     const section = page

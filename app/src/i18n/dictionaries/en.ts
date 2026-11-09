@@ -1970,7 +1970,7 @@ export const en: Dictionary = {
   },
   salesReport: {
     title: "Sales and margin",
-    hint: "Net sales (before VAT), cost and margin for the period. Cost is the last purchase cost when the order was placed; sales without a cost count toward sales but not toward margin.",
+    hint: "Net sales (before VAT), cost and margin for the period, with returns already subtracted on the date they were made. Cost is the last purchase cost when the order was placed; sales without a cost count toward sales but not toward margin. Returned goods that are written off reverse the sale but not the cost: the loss stays in the margin.",
     from: "From",
     to: "To",
     basis: "What counts as a sale",
@@ -1988,6 +1988,7 @@ export const en: Dictionary = {
       idle: "No movement",
     },
     net: "Net sales",
+    returned: "Returns",
     cost: "Cost",
     margin: "Margin",
     marginRate: "Margin %",

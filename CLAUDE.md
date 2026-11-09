@@ -143,7 +143,11 @@ comentarios y textos de UI en español.
   el gráfico de 12 meses suma en SQL. `delivered_at` lo pone `applySaleStateChange` al pasar a
   Entregado (null si vuelve atrás). El margen es contra `sale_items.unit_cost`: foto del último costo de
   compra (`latestCosts` en `lib/cost-queries`, el más reciente entre proveedores) al crear el pedido;
-  lo que no tiene costo suma a la venta pero no al margen.
+  lo que no tiene costo suma a la venta pero no al margen. Las devoluciones (`customer_credit_note_items`
+  de notas `RETURN` no anuladas) entran como líneas `kind: "return"` por la **fecha de la nota** y restan
+  con el precio y el costo del pedido: `RESTOCK` revierte venta y costo, `WRITE_OFF` solo la venta (la
+  pérdida queda en el margen). Las devoluciones no suman pedidos ni cuentan como venta en "sin movimiento";
+  el total `returned` se muestra aparte y el gráfico y el CSV van netos.
 
 ## Reparto
 

@@ -68,6 +68,8 @@ describe("chartMonths", () => {
 
 function line(overrides: Partial<ReportLine>): ReportLine {
   return {
+    kind: "sale",
+    destination: null,
     saleId: "s1",
     productId: "dogfood15kg",
     categoryId: 1,
@@ -120,6 +122,7 @@ describe("summarizeBy", () => {
       quantity: "3",
       orders: 2,
       net: "75400.00",
+      returned: "0.00",
       cost: "54600.00",
       margin: "20800.00",
       marginRate: 20800 / 75400,
@@ -162,6 +165,135 @@ describe("summarizeBy", () => {
       orders: 0,
       net: "0.00",
       marginRate: null,
+    });
+  });
+});
+
+describe("devoluciones", () => {
+  // Pedido s1: 4 bolsas de cachorro y 2 de gato adulto.
+  const sold = [
+    line({
+      saleId: "s1",
+      productId: "puppy",
+      quantity: "4",
+      unitPrice: "28500",
+      unitCost: "19950",
+    }),
+    line({
+      saleId: "s1",
+      productId: "catadult",
+      quantity: "2",
+      unitPrice: "19800",
+      unitCost: "13860",
+    }),
+  ];
+  const giveBack = (overrides: Partial<ReportLine>) =>
+    line({ kind: "return", saleId: "s1", ...overrides });
+
+  it("lo que vuelve al stock revierte la venta y el costo", () => {
+    const [puppy] = summarizeBy(
+      [
+        ...sold,
+        giveBack({
+          productId: "puppy",
+          destination: "RESTOCK",
+          quantity: "1",
+          unitPrice: "28500",
+          unitCost: "19950",
+        }),
+      ],
+      (row) => row.productId,
+    ).filter((row) => row.key === "puppy");
+    expect(puppy).toMatchObject({
+      quantity: "3",
+      net: "85500.00",
+      returned: "28500.00",
+      cost: "59850.00",
+      margin: "25650.00",
+    });
+    expect(puppy.marginRate).toBeCloseTo(0.3);
+  });
+
+  it("lo dado de baja revierte la venta pero no el costo: queda la pérdida", () => {
+    const [cat] = summarizeBy(
+      [
+        ...sold,
+        giveBack({
+          productId: "catadult",
+          destination: "WRITE_OFF",
+          quantity: "1",
+          unitPrice: "19800",
+          unitCost: "13860",
+        }),
+      ],
+      (row) => row.productId,
+    ).filter((row) => row.key === "catadult");
+    // Vendió 2 (39.600, costo 27.720) y devolvió 1 que se tiró: 19.800 de venta
+    // contra 27.720 de costo.
+    expect(cat).toMatchObject({
+      quantity: "1",
+      net: "19800.00",
+      returned: "19800.00",
+      cost: "27720.00",
+      margin: "-7920.00",
+    });
+    expect(cat.marginRate).toBeCloseTo(-0.4);
+  });
+
+  it("una devolución sin costo no entra al margen", () => {
+    const totals = reportTotals([
+      line({ quantity: "3", unitPrice: "1800", unitCost: null }),
+      giveBack({
+        destination: "RESTOCK",
+        quantity: "1",
+        unitPrice: "1800",
+        unitCost: null,
+      }),
+    ]);
+    expect(totals).toMatchObject({
+      net: "3600.00",
+      returned: "1800.00",
+      cost: "0.00",
+      margin: "0.00",
+      uncostedNet: "3600.00",
+      marginRate: null,
+    });
+  });
+
+  it("no suma pedidos, aunque el pedido original sea de otro período", () => {
+    const totals = reportTotals([
+      ...sold,
+      giveBack({
+        saleId: "viejo",
+        productId: "puppy",
+        destination: "RESTOCK",
+        quantity: "1",
+        unitPrice: "28500",
+        unitCost: "19950",
+      }),
+    ]);
+    expect(totals.orders).toBe(1);
+    expect(totals.net).toBe("125100.00"); // 153.600 − 28.500
+  });
+
+  it("solo devoluciones en el período: venta y cantidad negativas", () => {
+    const [row] = summarizeBy(
+      [
+        giveBack({
+          productId: "puppy",
+          destination: "RESTOCK",
+          quantity: "2",
+          unitPrice: "28500",
+          unitCost: "19950",
+        }),
+      ],
+      (line) => line.productId,
+    );
+    expect(row).toMatchObject({
+      quantity: "-2",
+      net: "-57000.00",
+      returned: "57000.00",
+      orders: 0,
     });
   });
 });
