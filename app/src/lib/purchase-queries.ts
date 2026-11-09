@@ -148,6 +148,7 @@ export async function getPurchaseOrder(number: number) {
             select: {
               name: true,
               sku: true,
+              tracksExpiry: true,
               measurementUnit: { select: { name: true, allowsDecimals: true } },
               suppliers: { select: { supplierId: true, supplierCode: true } },
             },
@@ -256,6 +257,7 @@ export async function getGoodsReceipt(number: number) {
           },
         },
       },
+      lots: { orderBy: [{ expiresOn: "asc" }, { lotCode: "asc" }] },
     },
   });
 }

@@ -80,6 +80,7 @@ async function Receive({ params }: { params: Promise<{ number: string }> }) {
               sku: item.product.sku,
               unit: item.product.measurementUnit.name,
               allowsDecimals: item.product.measurementUnit.allowsDecimals,
+              tracksExpiry: item.product.tracksExpiry,
               ordered: format.number(item.quantity),
               receivedBefore: format.number(item.receivedQuantity),
               pendingLabel: format.number(pending),

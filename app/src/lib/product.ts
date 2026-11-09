@@ -36,6 +36,7 @@ export type ProductValues = {
   weight: string;
   volume: string;
   minStock: string;
+  tracksExpiry: boolean;
   isActive: boolean;
 };
 
@@ -59,6 +60,8 @@ export type ProductInput = {
   volume: string | null;
   /** Stock mínimo (opcional): debajo se alerta y se sugiere comprar. */
   minStock: string | null;
+  /** Controla lote y vencimiento: las salidas toman primero lo que vence antes. */
+  tracksExpiry: boolean;
   isActive: boolean;
 };
 
@@ -125,6 +128,7 @@ function productSchema(t: Messages) {
       ctx.addIssue({ code: "custom", message: t.minStockInvalid });
       return z.NEVER;
     }),
+    tracksExpiry: z.boolean(),
     isActive: z.boolean(),
   });
 }
@@ -148,6 +152,7 @@ export function readProductForm(formData: FormData): ProductValues {
     minStock: get("minStock"),
     // Checkbox: solo viene en el form si está tildado.
     isActive: formData.get("isActive") === "on",
+    tracksExpiry: formData.get("tracksExpiry") === "on",
   };
 }
 

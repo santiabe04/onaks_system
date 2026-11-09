@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   createGoodsReceipt,
   type ReceiptActionState,
@@ -15,6 +15,8 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { formatters } from "@/i18n/format";
 import { parseDecimalInput } from "@/lib/decimal-input";
+import { MAX_LOTS_PER_LINE } from "@/lib/goods-receipt";
+import { LOT_CODE_MAX_LENGTH } from "@/lib/lots";
 import {
   DELIVERY_NOTE_MAX_LENGTH,
   RECEIPT_NOTES_MAX_LENGTH,
@@ -38,6 +40,8 @@ export type ReceiptFormLine = {
   pending: string;
   /** Valor inicial del input (separador decimal del idioma). */
   initial: string;
+  /** Controla vencimiento: al recibir se cargan lote y fecha. */
+  tracksExpiry: boolean;
 };
 
 /** Lo tipeado ("2,5") como decimal, solo para mostrar la diferencia; el server valida. */
@@ -90,7 +94,19 @@ export function ReceiptForm({
     ...Object.fromEntries(
       lines.map((line) => [`rcv_${line.productId}`, line.initial]),
     ),
+    ...Object.fromEntries(
+      lines.flatMap((line) =>
+        Array.from({ length: MAX_LOTS_PER_LINE }, (_, n) => [
+          [`lot_${line.productId}_${n}`, ""],
+          [`exp_${line.productId}_${n}`, ""],
+          [`lq_${line.productId}_${n}`, ""],
+        ]).flat(),
+      ),
+    ),
   });
+  // Cuántas filas de lote muestra cada producto (empieza con una).
+  const [lotRows, setLotRows] = useState<Record<string, number>>({});
+  const rowsOf = (productId: string) => lotRows[productId] ?? 1;
   const format = formatters(locale);
   const c = t.columns;
   const over = lines.some((line) => {
@@ -177,6 +193,67 @@ export function ReceiptForm({
                     />
                     <span className="text-xs opacity-70">{line.unit}</span>
                   </span>
+                  {line.tracksExpiry && (
+                    <div className="mt-2 flex flex-col gap-2">
+                      {Array.from(
+                        { length: rowsOf(line.productId) },
+                        (_, n) => {
+                          const suffix =
+                            rowsOf(line.productId) > 1 ? ` ${n + 1}` : "";
+                          return (
+                            <span
+                              key={n}
+                              className="flex flex-wrap items-center gap-2"
+                            >
+                              <input
+                                {...bind(`lot_${line.productId}_${n}`)}
+                                maxLength={LOT_CODE_MAX_LENGTH}
+                                placeholder={t.lotLabel}
+                                aria-label={`${t.lotLabel}${suffix} ${line.name}`}
+                                className={`${CONTROL} w-28`}
+                              />
+                              <input
+                                {...bind(`exp_${line.productId}_${n}`)}
+                                type="date"
+                                aria-label={`${t.expiryLabel}${suffix} ${line.name}`}
+                                className={CONTROL}
+                              />
+                              {rowsOf(line.productId) > 1 && (
+                                <input
+                                  {...bind(`lq_${line.productId}_${n}`)}
+                                  inputMode={
+                                    line.allowsDecimals ? "decimal" : "numeric"
+                                  }
+                                  placeholder={t.lotQuantityLabel}
+                                  aria-label={`${t.lotQuantityLabel}${suffix} ${line.name}`}
+                                  className={`${CONTROL} w-24`}
+                                />
+                              )}
+                            </span>
+                          );
+                        },
+                      )}
+                      <span className="flex items-center gap-3 text-xs">
+                        {rowsOf(line.productId) < MAX_LOTS_PER_LINE && (
+                          <button
+                            type="button"
+                            className="underline"
+                            onClick={() =>
+                              setLotRows((rows) => ({
+                                ...rows,
+                                [line.productId]: rowsOf(line.productId) + 1,
+                              }))
+                            }
+                          >
+                            {t.addLot}
+                          </button>
+                        )}
+                        {rowsOf(line.productId) > 1 && (
+                          <span className="opacity-70">{t.lotsHint}</span>
+                        )}
+                      </span>
+                    </div>
+                  )}
                 </td>
                 <td className="py-2 whitespace-nowrap">
                   <LineDifference

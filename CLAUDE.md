@@ -287,6 +287,20 @@ action>` después de cada action: los no controlados pierden lo tipeado con un e
   los saldos (`FOR UPDATE`, en orden), calcula las patas (`lib/stock`, en milésimas con BigInt) y escribe
   saldo + movimiento + auditoría en la misma transacción. Cantidades con 3 decimales. Un depósito se
   desactiva solo sin stock.
+- Lotes y vencimientos (`lib/lots` puro, `lib/lots-queries`): `products.tracks_expiry` activa el control y
+  `stock_lots` guarda lo que queda de cada lote por producto y depósito (código + vencimiento, único, con
+  `quantity >= 0`); el saldo de `product_stocks` sigue siendo el total (lo "sin lote" es la diferencia).
+  El libro lo mueve todo: `recordLinkedMovements`/`recordMovement`/`recordStockCorrection` parten cada
+  salida de un producto con control en tramos (`takeParts`, FEFO: `allocateFefo`), uno por lote más un resto
+  sin lote, y cada tramo es un `stock_movements` con `lot_id`. `SALE_RETURN` vuelve a los lotes de donde
+  salió el pedido (`saleReturnParts`); las recepciones traen `lot` (código + fecha) y se revierten contra
+  ese lote (`goods_receipt_lots`: un informe puede repartir un producto en hasta 5 lotes); una transferencia
+  lleva los lotes al destino; un ingreso a mano de un producto con control exige lote y fecha
+  (`LedgerError lotRequired`); una devolución de cliente vuelve a los lotes del pedido (`noteReturnParts`) y
+  su baja o anulación saca de donde quedó (`noteHeldParts`). En el picking, `reassignSaleLot` cambia de qué
+  lote sale lo de un pedido con dos movimientos (`SALE_RETURN` + `SALE`) y `getSaleLots` lo muestra.
+  Listado en `/admin/stock/lots` y alerta en el dashboard (vencidos y por vencer en 30 días). Las fechas de
+  lote son `date` (YYYY-MM-DD): usar `dayOf`/`format.day`, nunca `format.date` (corre un día por el huso).
 - Carrito en la DB (`cart_items`, uno por persona, PK persona+producto), sin auditoría: no es dato del
   negocio hasta confirmar el pedido. Solo compra quien tiene `sales:create` (CLIENT). Los totales salen
   de `lib/cart` (en centavos/milésimas con BigInt); productos pausados o borrados quedan fuera del total.

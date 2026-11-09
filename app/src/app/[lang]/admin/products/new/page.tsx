@@ -51,6 +51,7 @@ async function NewForm() {
         weight: "",
         volume: "",
         minStock: "",
+        tracksExpiry: false,
         isActive: true,
       }}
       options={options}

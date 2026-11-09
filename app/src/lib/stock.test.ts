@@ -25,6 +25,45 @@ const base = {
 };
 
 describe("validateMovementForm", () => {
+  it("un ingreso con lote lo normaliza y exige la fecha junto con el código", () => {
+    expect(
+      validateMovementForm(
+        form({
+          ...base,
+          type: "ENTRY",
+          quantity: "2",
+          lotCode: " l-77 ",
+          expiresOn: "2027-06-30",
+        }),
+        t,
+      ),
+    ).toMatchObject({
+      ok: true,
+      data: { lot: { code: "L-77", expiresOn: "2027-06-30" } },
+    });
+    const noDate = validateMovementForm(
+      form({ ...base, type: "ENTRY", quantity: "2", lotCode: "L-77" }),
+      t,
+    );
+    expect(noDate.ok).toBe(false);
+    if (!noDate.ok) {
+      expect(noDate.state.errors?.expiresOn).toEqual([t.expiryInvalid]);
+    }
+    // En una baja el lote no cuenta: se toma el que vence antes.
+    expect(
+      validateMovementForm(
+        form({
+          ...base,
+          type: "WRITE_OFF",
+          quantity: "2",
+          comment: "Roto",
+          lotCode: "L-77",
+        }),
+        t,
+      ),
+    ).toMatchObject({ ok: true, data: { lot: null } });
+  });
+
   it("un ingreso acepta decimales con coma y comentario opcional", () => {
     expect(
       validateMovementForm(

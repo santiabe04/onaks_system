@@ -34,7 +34,9 @@ export async function createMovement(
         ? "productId"
         : error.code === "warehouseInactive"
           ? "warehouseId"
-          : "quantity";
+          : error.code === "lotRequired"
+            ? "lotCode"
+            : "quantity";
     return { errors: { [field]: [t[error.code]] }, values: result.values };
   }
 

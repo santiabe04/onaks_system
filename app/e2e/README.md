@@ -15,6 +15,7 @@ Recorren la app como lo haría una persona, con Chromium, contra la app compilad
 | `favorites.spec.ts`   | Favoritos de la empresa, lo que más pidió y repetir un pedido                                        |
 | `returns.spec.ts`     | Devolución del pedido entregado, ajuste por importe, reportes, anulaciones y lo que ve el cliente    |
 | `shop.spec.ts`        | El cliente arma el carrito, confirma el pedido y lo ve en Mis pedidos                                |
+| `lots.spec.ts`        | Producto con vencimiento: recepción en dos lotes, salida FEFO, cambio de lote en el picking y avisos |
 | `transfer.spec.ts`    | Pedido por transferencia con comprobante: el admin rechaza el primero y valida el segundo            |
 
 Corren de a uno y sobre una base **nueva**: dependen de los números de pedido de la demo (#1 a #4) y

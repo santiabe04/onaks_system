@@ -252,6 +252,20 @@ export function ProductForm({
 
       <label className="flex items-start gap-2 text-sm">
         <input
+          key={String(values.tracksExpiry)}
+          type="checkbox"
+          name="tracksExpiry"
+          defaultChecked={values.tracksExpiry}
+          className="mt-0.5"
+        />
+        <span>
+          <span className="font-medium">{t.tracksExpiry}</span>
+          <span className="block text-xs opacity-60">{t.tracksExpiryHint}</span>
+        </span>
+      </label>
+
+      <label className="flex items-start gap-2 text-sm">
+        <input
           key={String(values.isActive)}
           type="checkbox"
           name="isActive"

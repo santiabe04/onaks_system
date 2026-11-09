@@ -95,6 +95,113 @@ describe("parseReceiptLines", () => {
     });
   });
 
+  it("pide lote y vencimiento de lo que llegó de un producto que controla vencimiento", () => {
+    const tracked = [
+      { productId: DOG_FOOD, allowsDecimals: false, tracksExpiry: true },
+    ];
+    const base = { [`rcv_${DOG_FOOD}`]: "12" };
+    expect(
+      parseReceiptLines(
+        form({
+          ...base,
+          [`lot_${DOG_FOOD}_0`]: " l-2301 ",
+          [`exp_${DOG_FOOD}_0`]: "2027-03-31",
+        }),
+        tracked,
+        t,
+      ),
+    ).toEqual({
+      ok: true,
+      lines: [
+        {
+          productId: DOG_FOOD,
+          quantity: "12",
+          lots: [{ code: "L-2301", expiresOn: "2027-03-31", quantity: "12" }],
+        },
+      ],
+    });
+    expect(parseReceiptLines(form(base), tracked, t)).toEqual({
+      ok: false,
+      error: t.lotRequired,
+    });
+    expect(
+      parseReceiptLines(
+        form({
+          ...base,
+          [`lot_${DOG_FOOD}_0`]: "L1",
+          [`exp_${DOG_FOOD}_0`]: "2027-02-30",
+        }),
+        tracked,
+        t,
+      ),
+    ).toEqual({ ok: false, error: t.expiryInvalid });
+  });
+
+  it("reparte lo que llegó en varios lotes que tienen que sumar el total", () => {
+    const tracked = [
+      { productId: DOG_FOOD, allowsDecimals: false, tracksExpiry: true },
+    ];
+    const row = (n: number, lot: string, exp: string, qty: string) => ({
+      [`lot_${DOG_FOOD}_${n}`]: lot,
+      [`exp_${DOG_FOOD}_${n}`]: exp,
+      [`lq_${DOG_FOOD}_${n}`]: qty,
+    });
+    const base = { [`rcv_${DOG_FOOD}`]: "10" };
+    expect(
+      parseReceiptLines(
+        form({
+          ...base,
+          ...row(0, "a1", "2027-01-10", "4"),
+          ...row(1, "b2", "2027-05-20", "6"),
+        }),
+        tracked,
+        t,
+      ),
+    ).toEqual({
+      ok: true,
+      lines: [
+        {
+          productId: DOG_FOOD,
+          quantity: "10",
+          lots: [
+            { code: "A1", expiresOn: "2027-01-10", quantity: "4" },
+            { code: "B2", expiresOn: "2027-05-20", quantity: "6" },
+          ],
+        },
+      ],
+    });
+    // No suman, una fila sin cantidad entre varias, o un lote repetido.
+    for (const fields of [
+      {
+        ...row(0, "a1", "2027-01-10", "4"),
+        ...row(1, "b2", "2027-05-20", "5"),
+      },
+      { ...row(0, "a1", "2027-01-10", ""), ...row(1, "b2", "2027-05-20", "6") },
+      {
+        ...row(0, "a1", "2027-01-10", "4"),
+        ...row(1, "a1", "2027-01-10", "6"),
+      },
+    ]) {
+      expect(
+        parseReceiptLines(form({ ...base, ...fields }), tracked, t).ok,
+      ).toBe(false);
+    }
+  });
+
+  it("no pide lote de lo que no llegó ni de productos sin vencimiento", () => {
+    const mixed = [
+      { productId: DOG_FOOD, allowsDecimals: false, tracksExpiry: true },
+      { productId: CAT_LITTER, allowsDecimals: false },
+    ];
+    expect(
+      parseReceiptLines(
+        form({ [`rcv_${DOG_FOOD}`]: "0", [`rcv_${CAT_LITTER}`]: "4" }),
+        mixed,
+        t,
+      ),
+    ).toEqual({ ok: true, lines: [{ productId: CAT_LITTER, quantity: "4" }] });
+  });
+
   it("ignora productos que no son de la orden", () => {
     const result = parseReceiptLines(
       form({ [`rcv_${DOG_FOOD}`]: "3", rcv_otherproduct: "9" }),
