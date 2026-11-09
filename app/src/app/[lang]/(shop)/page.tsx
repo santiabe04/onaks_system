@@ -18,11 +18,15 @@ import {
 import {
   CATALOG_PRODUCT_SELECT,
   getCatalogCategories,
+  getMostOrderedProducts,
+  MOST_ORDERED_COUNT,
   toCatalogItem,
 } from "@/lib/catalog-queries";
 import { descendantIds, type CategoryNode } from "@/lib/category";
 import { db } from "@/lib/db";
 import { can } from "@/lib/permissions";
+import { AddFavoritesButton } from "@/components/catalog/add-favorites-button";
+import { getFavoriteIds } from "@/lib/favorites-queries";
 import { getPricing } from "@/lib/pricing-queries";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -64,9 +68,18 @@ async function Catalog({
   const categoryIds = filters.category
     ? [filters.category, ...descendantIds(rows, filters.category)]
     : undefined;
-  const where = catalogWhere(filters, categoryIds);
+  const where = catalogWhere(filters, categoryIds, user.customerId);
+  const canBuy = can(user.role, "sales:create");
+  // "Lo que más pedís": solo en la portada del catálogo, sin búsqueda ni filtros.
+  const showMostOrdered =
+    canBuy &&
+    user.customerId !== null &&
+    !filters.q &&
+    !filters.category &&
+    !filters.favorites &&
+    filters.page === 1;
 
-  const [total, products] = await Promise.all([
+  const [total, products, favoriteIds, mostOrdered] = await Promise.all([
     db.product.count({ where }),
     db.product.findMany({
       where,
@@ -75,15 +88,20 @@ async function Catalog({
       take: CATALOG_PAGE_SIZE,
       select: CATALOG_PRODUCT_SELECT,
     }),
+    getFavoriteIds(user.customerId),
+    showMostOrdered && user.customerId
+      ? getMostOrderedProducts(user.customerId, MOST_ORDERED_COUNT)
+      : [],
   ]);
   const pages = Math.max(1, Math.ceil(total / CATALOG_PAGE_SIZE));
-  const pricing = await getPricing(
-    user.customerId,
-    products.map((p) => p.id),
-  );
-  const items = products.map((p) =>
-    toCatalogItem(p, locale, t.catalog, pricing),
-  );
+  const pricing = await getPricing(user.customerId, [
+    ...products.map((p) => p.id),
+    ...mostOrdered.map((p) => p.id),
+  ]);
+  const toItem = (p: (typeof products)[number]) =>
+    toCatalogItem(p, locale, t.catalog, pricing, favoriteIds.has(p.id));
+  const items = products.map(toItem);
+  const mostOrderedItems = mostOrdered.map(toItem);
   const current = categories.find((c) => c.id === filters.category);
 
   return (
@@ -94,6 +112,9 @@ async function Catalog({
         <form action="/" className="flex gap-3 text-sm">
           {filters.category && (
             <input type="hidden" name="category" value={filters.category} />
+          )}
+          {filters.favorites && (
+            <input type="hidden" name="favorites" value="1" />
           )}
           <input
             type="search"
@@ -125,18 +146,61 @@ async function Catalog({
               </p>
             )}
           </div>
-          <ViewToggle t={t.catalog} />
+          <div className="flex flex-wrap items-center gap-3">
+            {canBuy && (
+              <Link
+                href={`/${catalogQuery(filters, {
+                  favorites: filters.favorites ? undefined : true,
+                  page: 1,
+                })}`}
+                aria-current={filters.favorites ? "page" : undefined}
+                className={`rounded border px-3 py-1 text-xs ${
+                  filters.favorites
+                    ? "border-red-600 text-red-600"
+                    : "border-current/20 opacity-80 hover:opacity-100"
+                }`}
+              >
+                <span aria-hidden="true">{filters.favorites ? "♥" : "♡"}</span>{" "}
+                {t.favorites.filter}
+              </Link>
+            )}
+            <ViewToggle t={t.catalog} />
+          </div>
         </div>
+
+        {mostOrderedItems.length > 0 && (
+          <section className="mt-6">
+            <h2 className="mb-3 text-lg font-semibold">
+              {t.favorites.mostOrdered}
+            </h2>
+            <CatalogView
+              items={mostOrderedItems}
+              canBuy={canBuy}
+              t={t.catalog}
+              cart={t.cart}
+              favorites={t.favorites}
+            />
+          </section>
+        )}
+
+        {filters.favorites && items.length > 0 && (
+          <div className="mt-4">
+            <AddFavoritesButton t={t.favorites} />
+          </div>
+        )}
 
         <div className="mt-4">
           {items.length === 0 ? (
-            <p className="text-sm opacity-70">{t.catalog.empty}</p>
+            <p className="text-sm opacity-70">
+              {filters.favorites ? t.favorites.empty : t.catalog.empty}
+            </p>
           ) : (
             <CatalogView
               items={items}
-              canBuy={can(user.role, "sales:create")}
+              canBuy={canBuy}
               t={t.catalog}
               cart={t.cart}
+              favorites={t.favorites}
             />
           )}
         </div>

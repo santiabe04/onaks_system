@@ -34,17 +34,17 @@ Cambiar una alícuota o un precio afecta a lo que se vende **desde ese momento**
 
 ## Mapa de tablas por dominio
 
-| Dominio             | Tablas                                                                                                                           |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Catálogo base       | `measurement_units`, `categories` (árbol de hasta 3 niveles), `tax_rates`, `products`, `warehouses`                              |
-| Stock               | `product_stocks` (saldo por producto y depósito, con `location`), `stock_movements` (libro)                                      |
-| Personas y accesos  | `customers`, `persons`, `users`, `customer_addresses`, `states`, `cities`, `login_attempts`                                      |
-| Precios             | `price_lists`, `price_list_items` (y `discounts` / `used_discounts`, heredadas, sin uso)                                         |
-| Ventas              | `cart_items`, `sales`, `sale_items`, `customer_payments` y `customer_credit_notes` (+ `_items`): la cuenta corriente del cliente |
-| Picking y reparto   | `picking_lists`, `picking_list_items`, `drivers`, `vehicles`, `route_sheets`, `route_stops`                                      |
-| Compras             | `suppliers`, `supplier_products`, `purchase_orders`(+`_items`), `goods_receipts`(+`_items`), `supplier_invoices`(+`_items`)      |
-| Pagos a proveedores | `supplier_payments`(+`_lines`), `supplier_credit_notes`, `supplier_allocations`                                                  |
-| Transversal         | `audit_logs` (solo inserción)                                                                                                    |
+| Dominio             | Tablas                                                                                                                                                                         |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catálogo base       | `measurement_units`, `categories` (árbol de hasta 3 niveles), `tax_rates`, `products`, `warehouses`                                                                            |
+| Stock               | `product_stocks` (saldo por producto y depósito, con `location`), `stock_movements` (libro)                                                                                    |
+| Personas y accesos  | `customers`, `persons`, `users`, `customer_addresses`, `states`, `cities`, `login_attempts`                                                                                    |
+| Precios             | `price_lists`, `price_list_items` (y `discounts` / `used_discounts`, heredadas, sin uso)                                                                                       |
+| Ventas              | `cart_items`, `customer_favorites` (favoritos por empresa), `sales`, `sale_items`, `customer_payments` y `customer_credit_notes` (+ `_items`): la cuenta corriente del cliente |
+| Picking y reparto   | `picking_lists`, `picking_list_items`, `drivers`, `vehicles`, `route_sheets`, `route_stops`                                                                                    |
+| Compras             | `suppliers`, `supplier_products`, `purchase_orders`(+`_items`), `goods_receipts`(+`_items`), `supplier_invoices`(+`_items`)                                                    |
+| Pagos a proveedores | `supplier_payments`(+`_lines`), `supplier_credit_notes`, `supplier_allocations`                                                                                                |
+| Transversal         | `audit_logs` (solo inserción)                                                                                                                                                  |
 
 Relaciones que conviene tener presentes:
 

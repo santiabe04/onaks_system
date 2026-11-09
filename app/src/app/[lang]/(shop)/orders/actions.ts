@@ -10,6 +10,7 @@ import { audit } from "@/lib/audit";
 import { requirePermission, type SessionUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isCuid } from "@/lib/ids";
+import { planRepeat } from "@/lib/repeat-order";
 import { STATE_COMMENT_MAX_LENGTH } from "@/lib/sale-state-form";
 
 // Lo que el cliente puede hacer con un pedido de su empresa mientras está
@@ -212,4 +213,78 @@ export async function discardOrderEdit(
 
   revalidatePath("/[lang]", "layout");
   return {};
+}
+
+/**
+ * Repite un pedido de la empresa: suma sus productos y cantidades al carrito
+ * con los precios y la lista de hoy (no se copia nada del precio viejo). Lo
+ * que hoy no se puede comprar se omite y se avisa en el carrito. El cliente
+ * revisa y confirma en el checkout, como siempre.
+ */
+export async function repeatOrder(saleId: string): Promise<OrderActionState> {
+  const user = await requirePermission("sales:create");
+  const t = messages();
+  const customerId = user.customerId;
+  if (!customerId || !isCuid(saleId)) return { error: t.notFound };
+
+  // De la empresa del usuario: uno ajeno se ve igual que uno que no existe.
+  const sale = await db.sale.findFirst({
+    where: { id: saleId, address: { customerId } },
+    select: {
+      number: true,
+      items: {
+        select: {
+          productId: true,
+          quantity: true,
+          product: {
+            select: {
+              isActive: true,
+              deletedAt: true,
+              measurementUnit: { select: { allowsDecimals: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+  if (!sale) return { error: t.notFound };
+
+  const plan = planRepeat(
+    sale.items.map((item) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+      available: item.product.isActive && !item.product.deletedAt,
+      allowsDecimals: item.product.measurementUnit.allowsDecimals,
+    })),
+  );
+  if (plan.adds.length === 0) return { error: t.repeatNothing };
+
+  await db.$transaction(
+    plan.adds.map((add) =>
+      db.cartItem.upsert({
+        where: {
+          personId_productId: {
+            personId: user.personId,
+            productId: add.productId,
+          },
+        },
+        create: {
+          personId: user.personId,
+          productId: add.productId,
+          quantity: add.quantity,
+        },
+        update: { quantity: { increment: add.quantity } },
+      }),
+    ),
+  );
+
+  // El header muestra la cantidad del carrito.
+  revalidatePath("/[lang]", "layout");
+  redirect(
+    `/cart?${new URLSearchParams({
+      repeated: String(plan.adds.length),
+      omitted: String(plan.omitted),
+      from: String(sale.number),
+    })}`,
+  );
 }

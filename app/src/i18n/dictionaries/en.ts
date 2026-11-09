@@ -1528,6 +1528,9 @@ export const en: Dictionary = {
     weight: "Total weight: {weight} kg",
     discountIncluded: "Includes {amount} in discounts (net)",
     pricesHint: "Prices are confirmed when placing the order.",
+    repeated:
+      "Products added to the cart from order #{number}: {count}, at today's prices. Check the quantities and place the order.",
+    repeatedOmitted: "Not added because they are unavailable today: {count}.",
     checkout: "Continue to checkout",
     errors: {
       unavailable: "The product is no longer available",
@@ -1561,7 +1564,22 @@ export const en: Dictionary = {
         "Your cart changed (prices, products or quantities). Review the order and place it again.",
     },
   },
+  favorites: {
+    add: "Mark as favorite",
+    remove: "Remove from favorites",
+    filter: "My favorites",
+    all: "All products",
+    empty:
+      "You haven't marked any favorites yet. Tap the heart on a product to save it: favorites belong to your whole company.",
+    addAll: "Add all to cart",
+    adding: "Adding…",
+    added: "Products added to the cart: {count}",
+    nothingNew: "All your favorites are already in the cart.",
+    mostOrdered: "What you order most",
+  },
   orders: {
+    repeat: "Repeat order",
+    repeating: "Loading…",
     placedByDistributor: "The distributor",
     cancel: "Cancel order",
     cancelHint: "You can cancel it while it is Pending. This is final.",
@@ -1582,6 +1600,7 @@ export const en: Dictionary = {
       editedByOther: "Someone else in your company is changing this order",
       alreadyEditing:
         "You are already changing order #{number}: place it or discard the changes first",
+      repeatNothing: "None of the products in this order are available today",
     },
     title: "My orders",
     empty: "No orders yet.",

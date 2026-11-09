@@ -1530,6 +1530,9 @@ export const es = {
     weight: "Peso total: {weight} kg",
     discountIncluded: "Incluye {amount} de bonificación (neto)",
     pricesHint: "Los precios se confirman al hacer el pedido.",
+    repeated:
+      "Productos sumados al carrito desde el pedido #{number}: {count}, con los precios de hoy. Revisá las cantidades y confirmá.",
+    repeatedOmitted: "Sin sumar porque hoy no están disponibles: {count}.",
     checkout: "Continuar con el pedido",
     errors: {
       unavailable: "El producto ya no está disponible",
@@ -1563,7 +1566,22 @@ export const es = {
         "El carrito cambió (precios, productos o cantidades). Revisá el pedido y volvé a confirmar.",
     },
   },
+  favorites: {
+    add: "Marcar como favorito",
+    remove: "Quitar de favoritos",
+    filter: "Mis favoritos",
+    all: "Todos los productos",
+    empty:
+      "Todavía no marcaste favoritos. Tocá el corazón de un producto para guardarlo: los favoritos son de toda tu empresa.",
+    addAll: "Agregar todos al carrito",
+    adding: "Agregando…",
+    added: "Productos sumados al carrito: {count}",
+    nothingNew: "Todos tus favoritos ya están en el carrito.",
+    mostOrdered: "Lo que más pedís",
+  },
   orders: {
+    repeat: "Repetir pedido",
+    repeating: "Cargando…",
     placedByDistributor: "La distribuidora",
     cancel: "Cancelar pedido",
     cancelHint: "Podés cancelarlo mientras esté Pendiente. Es definitivo.",
@@ -1585,6 +1603,8 @@ export const es = {
       editedByOther: "Otra persona de tu empresa está modificando este pedido",
       alreadyEditing:
         "Ya estás modificando el pedido #{number}: confirmalo o descartá los cambios primero",
+      repeatNothing:
+        "Ninguno de los productos de este pedido está disponible hoy",
     },
     title: "Mis pedidos",
     empty: "Todavía no hay pedidos.",

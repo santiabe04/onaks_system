@@ -120,6 +120,29 @@ de crear otro. Mientras se modifica, el admin no puede cambiarle el estado.
 
 "Mis pedidos" muestra los de **toda la empresa** (`address.customerId`); uno ajeno devuelve 404.
 
+### Repetir pedido y favoritos
+
+**Repetir pedido** (`repeatOrder` en `app/[lang]/(shop)/orders/actions.ts`, botón `RepeatOrderButton` en la
+lista y el detalle de "Mis pedidos"): suma al carrito los productos y cantidades de un pedido de la empresa
+**con los precios y la lista de hoy**: no copia nada del precio viejo. La decisión es pura
+(`lib/repeat-order.ts`, `planRepeat`): lo pausado o borrado se omite y se cuenta, una cantidad fraccionaria
+de un producto cuya unidad ya no admite fracciones se redondea hacia arriba, y las cantidades se
+**acumulan** con lo que ya hubiera en el carrito (igual que "Agregar" en el catálogo). Redirige a
+`/cart?repeated=&omitted=&from=` y el carrito muestra qué se sumó y qué no. El cliente revisa y confirma en el
+checkout de siempre; un pedido ajeno devuelve "no existe".
+
+**Favoritos** son **de la empresa**, no de la persona (`customer_favorites`, PK empresa + producto): todas
+las personas del cliente ven los mismos. Como el carrito, son una preferencia y **no van a la auditoría**.
+
+- `setFavorite` (corazón, `components/catalog/favorite-button.tsx`, actualización optimista) y
+  `addFavoritesToCart` (suma **una unidad de cada favorito que no esté ya en el carrito**; lo que ya estaba
+  conserva su cantidad) viven en `app/[lang]/(shop)/favorites/actions.ts`.
+- El filtro `?favorites=1` es parte de `CatalogFilters` (`lib/catalog.ts`): `catalogWhere` recibe la empresa
+  del usuario y, sin empresa (un admin mirando la tienda), el filtro no devuelve nada.
+- **"Lo que más pedís"** (`getMostOrderedIds` en `lib/favorites-queries.ts`): los 4 productos con más pedidos
+  de la empresa (`COUNT(DISTINCT pedido)`, sin cancelados ni productos no vendibles; a igualdad, el pedido
+  más reciente). Solo en la portada del catálogo, sin búsqueda, categoría ni filtro de favoritos.
+
 ## 4. Pedido cargado por el admin
 
 **Qué hace.** Pedidos que llegan por teléfono o WhatsApp: en `/admin/orders/new` (o desde la ficha del

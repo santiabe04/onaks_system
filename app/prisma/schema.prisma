@@ -260,6 +260,7 @@ model Product {
   invoiceItems      SupplierInvoiceItem[]
   priceListItems    PriceListItem[]
   creditNoteItems   CustomerCreditNoteItem[]
+  favorites         CustomerFavorite[]
 
   @@index([categoryId], map: "idx_products_category_id")
   @@index([measurementUnitId], map: "idx_products_measurement_unit_id")
@@ -377,6 +378,20 @@ model SupplierProduct {
 
 // Carrito: uno por persona, en la DB (se arma en un dispositivo y se termina en
 // otro). Guarda solo producto y cantidad: los precios se toman al confirmar.
+/// Producto favorito de una empresa: lo comparten todas sus personas. Como el
+/// carrito, es una preferencia y no un dato del negocio: no va a la auditoría.
+model CustomerFavorite {
+  customerId String   @map("customer_id")
+  productId  String   @map("product_id")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([customerId, productId])
+  @@index([productId], map: "idx_customer_favorites_product_id")
+  @@map("customer_favorites")
+}
+
 model CartItem {
   personId  String   @map("person_id")
   productId String   @map("product_id")
@@ -418,6 +433,7 @@ model Customer {
   addresses       CustomerAddress[]
   payments        CustomerPayment[]
   creditNotes     CustomerCreditNote[]
+  favorites       CustomerFavorite[]
 
   @@index([deletedAt], map: "idx_customers_deleted_at")
   @@index([priceListId], map: "idx_customers_price_list_id")

@@ -6,6 +6,7 @@ import { formatters } from "@/i18n/format";
 import { VISIBLE_PRODUCT, visibleCategoryTree } from "./catalog";
 import type { CategoryNode } from "./category";
 import { db } from "./db";
+import { getMostOrderedIds } from "./favorites-queries";
 import { customerPrice, type Pricing } from "./customer-price";
 import { finalPrice } from "./price";
 import { productImageUrl } from "./product";
@@ -28,6 +29,8 @@ export type CatalogItem = {
   unitName: string;
   /** La unidad admite cantidades con decimales (kg, litros). */
   allowsDecimals: boolean;
+  /** Es favorito de la empresa del cliente. */
+  favorite: boolean;
 };
 
 /** Árbol de categorías del menú: solo las que tienen productos visibles. */
@@ -52,6 +55,23 @@ export const CATALOG_PRODUCT_SELECT = {
   measurementUnit: { select: { name: true, allowsDecimals: true } },
 } as const;
 
+/** Cuántos productos muestra "Lo que más pedís". */
+export const MOST_ORDERED_COUNT = 4;
+
+/** Los más pedidos de la empresa, listos para `toCatalogItem` y en ese orden. */
+export async function getMostOrderedProducts(
+  customerId: string,
+  limit: number,
+) {
+  const ids = await getMostOrderedIds(customerId, limit);
+  if (ids.length === 0) return [];
+  const products = await db.product.findMany({
+    where: { id: { in: ids }, ...VISIBLE_PRODUCT },
+    select: CATALOG_PRODUCT_SELECT,
+  });
+  return ids.flatMap((id) => products.find((p) => p.id === id) ?? []);
+}
+
 type CatalogProduct = {
   id: string;
   name: string;
@@ -69,6 +89,7 @@ export function toCatalogItem(
   locale: Locale,
   t: Dictionary["catalog"],
   pricing: Pricing,
+  favorite = false,
 ): CatalogItem {
   const format = formatters(locale);
   const rate = product.taxRate.rate;
@@ -89,6 +110,7 @@ export function toCatalogItem(
     }),
     unitName: product.measurementUnit.name,
     allowsDecimals: product.measurementUnit.allowsDecimals,
+    favorite,
     unitLine: `${product.measurementUnit.name} · ${interpolate(t.weight, {
       weight: format.number(product.weight),
     })}`,

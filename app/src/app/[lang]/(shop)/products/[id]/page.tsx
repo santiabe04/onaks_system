@@ -14,6 +14,8 @@ import { flattenCategoryTree } from "@/lib/category";
 import { db } from "@/lib/db";
 import { can } from "@/lib/permissions";
 import { AddToCart } from "@/components/catalog/add-to-cart";
+import { FavoriteButton } from "@/components/catalog/favorite-button";
+import { getFavoriteIds } from "@/lib/favorites-queries";
 import { isProductId } from "@/lib/product";
 
 export async function generateMetadata({
@@ -72,8 +74,17 @@ async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
     db.category.findMany({ select: { id: true, name: true, parentId: true } }),
   ]);
   const format = formatters(locale);
-  const pricing = await getPricing(user.customerId, [product.id]);
-  const item = toCatalogItem(product, locale, t.catalog, pricing);
+  const [pricing, favoriteIds] = await Promise.all([
+    getPricing(user.customerId, [product.id]),
+    getFavoriteIds(user.customerId),
+  ]);
+  const item = toCatalogItem(
+    product,
+    locale,
+    t.catalog,
+    pricing,
+    favoriteIds.has(product.id),
+  );
   const path = flattenCategoryTree(categories).find(
     (node) => node.id === product.categoryId,
   )?.path;
@@ -133,12 +144,19 @@ async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
             })}`}
         </p>
         {can(user.role, "sales:create") && (
-          <AddToCart
-            productId={item.id}
-            unitName={item.unitName}
-            allowsDecimals={item.allowsDecimals}
-            t={t.cart}
-          />
+          <div className="flex items-start gap-2">
+            <FavoriteButton
+              productId={item.id}
+              favorite={item.favorite}
+              t={t.favorites}
+            />
+            <AddToCart
+              productId={item.id}
+              unitName={item.unitName}
+              allowsDecimals={item.allowsDecimals}
+              t={t.cart}
+            />
+          </div>
         )}
         {item.description && (
           <p className="text-sm whitespace-pre-line">{item.description}</p>

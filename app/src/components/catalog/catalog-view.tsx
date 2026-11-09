@@ -6,6 +6,7 @@ import { useSyncExternalStore } from "react";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import type { CatalogItem } from "@/lib/catalog-queries";
 import { AddToCart } from "./add-to-cart";
+import { FavoriteButton } from "./favorite-button";
 
 type View = "cards" | "list";
 
@@ -75,24 +76,33 @@ export function CatalogView({
   canBuy,
   t,
   cart,
+  favorites,
 }: {
   items: CatalogItem[];
   /** Solo los clientes compran: el admin ve el catálogo sin "Agregar". */
   canBuy: boolean;
   t: Dictionary["catalog"];
   cart: Dictionary["cart"];
+  favorites: Dictionary["favorites"];
 }) {
   const view = useSyncExternalStore(subscribe, readView, () => "cards");
   // El form queda fuera del link: un form dentro de un <a> no es HTML válido.
   const add = (item: CatalogItem, compact?: boolean) =>
     canBuy && (
-      <AddToCart
-        productId={item.id}
-        unitName={item.unitName}
-        allowsDecimals={item.allowsDecimals}
-        t={cart}
-        compact={compact}
-      />
+      <div className="flex items-start gap-2">
+        <FavoriteButton
+          productId={item.id}
+          favorite={item.favorite}
+          t={favorites}
+        />
+        <AddToCart
+          productId={item.id}
+          unitName={item.unitName}
+          allowsDecimals={item.allowsDecimals}
+          t={cart}
+          compact={compact}
+        />
+      </div>
     );
 
   if (view === "list") {
