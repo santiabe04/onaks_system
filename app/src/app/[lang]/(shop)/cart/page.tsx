@@ -17,7 +17,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.cart.title };
 }
 
-export default async function CartPage() {
+export default async function CartPage({
+  searchParams,
+}: PageProps<"/[lang]/cart">) {
   const t = await getT();
 
   return (
@@ -27,14 +29,33 @@ export default async function CartPage() {
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
-        <Cart />
+        <Cart searchParams={searchParams} />
       </Suspense>
     </main>
   );
 }
 
-async function Cart() {
+/** "?repeated=3&omitted=1&from=12": lo que dejó "Repetir pedido". */
+function parseRepeatNotice(
+  params: Record<string, string | string[] | undefined>,
+) {
+  const count = (key: string) => {
+    const raw = Array.isArray(params[key]) ? params[key][0] : params[key];
+    return raw && /^\d{1,6}$/.test(raw) ? Number(raw) : null;
+  };
+  const repeated = count("repeated");
+  const from = count("from");
+  if (repeated === null || from === null) return null;
+  return { repeated, omitted: count("omitted") ?? 0, from };
+}
+
+async function Cart({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const user = await getUserWithPermission("sales:create");
+  const notice = parseRepeatNotice(await searchParams);
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
 
@@ -71,6 +92,24 @@ async function Cart() {
 
   return (
     <>
+      {notice && (
+        <div
+          role="status"
+          className="mt-4 rounded border border-green-700/40 bg-green-700/10 p-3 text-sm"
+        >
+          <p>
+            {interpolate(t.cart.repeated, {
+              number: notice.from,
+              count: notice.repeated,
+            })}
+          </p>
+          {notice.omitted > 0 && (
+            <p className="mt-1 opacity-80">
+              {interpolate(t.cart.repeatedOmitted, { count: notice.omitted })}
+            </p>
+          )}
+        </div>
+      )}
       {editing && (
         <p
           role="status"

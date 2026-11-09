@@ -115,6 +115,16 @@ comentarios y textos de UI en español.
   saldo a favor se reintegra con el reintegro de siempre) y en `lib/debtors`. Se anulan con motivo
   (`voidCreditNote`: saca del depósito solo lo repuesto, `CUSTOMER_RETURN_REVERSAL`). Orden de bloqueo:
   cuenta del cliente y después el pedido. El cliente las ve en "Mi cuenta" y en su pedido, sin motivo ni destino.
+- Repetir pedido y favoritos: `repeatOrder` (`orders/actions.ts`, `lib/repeat-order` puro) suma al carrito
+  los productos y cantidades de un pedido de la empresa con los precios de hoy (`planRepeat`: omite lo
+  pausado o borrado, redondea hacia arriba si la unidad ya no admite fracciones, acumula con lo que hubiera
+  en el carrito) y redirige a `/cart?repeated=&omitted=&from=` para el aviso. Favoritos por **empresa**
+  (`customer_favorites`, PK empresa+producto, sin auditoría como el carrito): `setFavorite` y
+  `addFavoritesToCart` (una unidad de cada favorito que no esté ya en el carrito) en
+  `(shop)/favorites/actions.ts`; el filtro `?favorites=1` va en `lib/catalog` (`catalogWhere` con la
+  empresa). "Lo que más pedís" (`getMostOrderedIds` en `lib/favorites-queries`, por cantidad de pedidos no
+  cancelados) solo en la portada sin búsqueda ni filtros. El corazón (`FavoriteButton`) es optimista: un
+  test e2e tiene que esperar la respuesta POST antes de navegar.
 - `sales.number` es el número correlativo que ve la gente (`/orders/[number]`). "Mis pedidos" muestra
   los de **toda la empresa** (filtro por `address.customerId`); uno ajeno da 404.
 - El cliente cancela un pedido Pendiente desde "Mis pedidos". Si el admin lo habilita

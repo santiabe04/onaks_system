@@ -92,17 +92,18 @@ límite")`): se lee como una especificación.
 Recorren la app como una persona, con **Chromium**, contra la app **compilada** (`next start`) y una
 **base nueva con la demo del seed**. Cada archivo es un circuito:
 
-| Archivo               | Circuito                                                                                                                    |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `admin-order.spec.ts` | El admin carga un pedido por un cliente (con su lista de precios) y el cliente lo ve como "La distribuidora"                |
-| `credit.spec.ts`      | Un cliente supera el límite de crédito: el pedido queda retenido, no avanza y el admin lo aprueba                           |
-| `delivery.spec.ts`    | Picking con faltante, hoja de ruta, parada desde el celular con entrega parcial y cobro, y cierre                           |
-| `permissions.spec.ts` | Cliente y repartidor no entran al admin; un cliente no ve pedidos de otra empresa; sin sesión, al login                     |
-| `price-lists.spec.ts` | El admin arma una lista con un precio fijo, se la asigna a un cliente con descuento y el cliente ve su precio               |
-| `purchases.spec.ts`   | Orden de compra, recepción de menos, factura sin diferencias y orden de pago                                                |
-| `reports.spec.ts`     | Reporte de ventas y margen del mes, por cliente, "sin movimiento" y CSV                                                     |
-| `returns.spec.ts`     | Devolución del pedido entregado (una bolsa al stock y otra de baja), ajuste por importe, anulaciones y lo que ve el cliente |
-| `shop.spec.ts`        | El cliente arma el carrito, confirma el pedido y lo ve en "Mis pedidos"                                                     |
+| Archivo               | Circuito                                                                                                                              |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `admin-order.spec.ts` | El admin carga un pedido por un cliente (con su lista de precios) y el cliente lo ve como "La distribuidora"                          |
+| `credit.spec.ts`      | Un cliente supera el límite de crédito: el pedido queda retenido, no avanza y el admin lo aprueba                                     |
+| `delivery.spec.ts`    | Picking con faltante, hoja de ruta, parada desde el celular con entrega parcial y cobro, y cierre                                     |
+| `permissions.spec.ts` | Cliente y repartidor no entran al admin; un cliente no ve pedidos de otra empresa; sin sesión, al login                               |
+| `price-lists.spec.ts` | El admin arma una lista con un precio fijo, se la asigna a un cliente con descuento y el cliente ve su precio                         |
+| `purchases.spec.ts`   | Orden de compra, recepción de menos, factura sin diferencias y orden de pago                                                          |
+| `reports.spec.ts`     | Reporte de ventas y margen del mes, por cliente, "sin movimiento" y CSV                                                               |
+| `favorites.spec.ts`   | Favoritos de la empresa con el corazón y el filtro, "agregar todos", lo que más pidió y repetir un pedido (de la lista y del detalle) |
+| `returns.spec.ts`     | Devolución del pedido entregado (una bolsa al stock y otra de baja), ajuste por importe, anulaciones y lo que ve el cliente           |
+| `shop.spec.ts`        | El cliente arma el carrito, confirma el pedido y lo ve en "Mis pedidos"                                                               |
 
 ### Reglas del juego
 
@@ -165,8 +166,11 @@ Reglas que evitan los tests inestables:
    funciona porque Playwright normaliza los espacios.
 5. Un `role="alert"` **reemplaza** el rol de un link: si un `<Link>` lleva `role="alert"`, ya no se
    encuentra con `getByRole("link")`.
-6. Las verificaciones usan los números de la demo; si cambiás la demo, revisá los specs.
-7. Cada spec cuenta **un circuito**, con comentarios que explican qué dato de la demo usa y por qué.
+6. **Con una UI optimista** (el corazón de favoritos cambia al instante), esperar la respuesta del server
+   antes de navegar o el request se cancela: `const saved = page.waitForResponse((r) => r.request().method()
+=== "POST"); await boton.click(); await saved;`.
+7. Las verificaciones usan los números de la demo; si cambiás la demo, revisá los specs.
+8. Cada spec cuenta **un circuito**, con comentarios que explican qué dato de la demo usa y por qué.
 
 ## Integración continua
 

@@ -7,6 +7,7 @@ import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { RepeatOrderButton } from "@/components/orders/repeat-order-button";
 import { MyAccount } from "./my-account";
 
 const PATH = "/orders";
@@ -61,6 +62,7 @@ async function Orders({
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       select: {
+        id: true,
         number: true,
         createdAt: true,
         state: true,
@@ -108,7 +110,12 @@ async function Orders({
               <th className="py-2 pr-3 font-medium">{t.orders.orderedBy}</th>
               <th className="py-2 pr-3 font-medium">{t.orders.address}</th>
               <th className="py-2 pr-3 font-medium">{t.orders.state}</th>
-              <th className="py-2 text-right font-medium">{t.cart.total}</th>
+              <th className="py-2 pr-3 text-right font-medium">
+                {t.cart.total}
+              </th>
+              <th className="py-2">
+                <span className="sr-only">{t.common.actions}</span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -132,8 +139,15 @@ async function Orders({
                 </td>
                 <td className="py-2 pr-3">{sale.address.name}</td>
                 <td className="py-2 pr-3">{t.orders.states[sale.state]}</td>
-                <td className="py-2 text-right whitespace-nowrap">
+                <td className="py-2 pr-3 text-right whitespace-nowrap">
                   {format.money(sale.total)}
+                </td>
+                <td className="py-2 text-right">
+                  <RepeatOrderButton
+                    saleId={sale.id}
+                    label={t.orders.repeat}
+                    pendingLabel={t.orders.repeating}
+                  />
                 </td>
               </tr>
             ))}

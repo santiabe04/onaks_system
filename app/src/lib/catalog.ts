@@ -13,6 +13,8 @@ export type CatalogFilters = {
   /** Busca en nombre, SKU y código de barras. */
   q?: string;
   category?: number;
+  /** Solo los favoritos de la empresa del cliente. */
+  favorites?: boolean;
   page: number;
 };
 
@@ -31,6 +33,7 @@ export function parseCatalogFilters(params: SearchParams): CatalogFilters {
   return {
     q: q && q.length <= 100 ? q : undefined,
     category: Number.isInteger(category) && category > 0 ? category : undefined,
+    favorites: first(params.favorites) === "1" || undefined,
     page: Number.isInteger(page) && page >= 1 ? page : 1,
   };
 }
@@ -44,6 +47,7 @@ export function catalogQuery(
   const params = new URLSearchParams();
   if (next.q) params.set("q", next.q);
   if (next.category) params.set("category", String(next.category));
+  if (next.favorites) params.set("favorites", "1");
   if (next.page > 1) params.set("page", String(next.page));
   const query = params.toString();
   return query ? `?${query}` : "";
@@ -58,9 +62,14 @@ export const VISIBLE_PRODUCT: Prisma.ProductWhereInput = {
   isActive: true,
 };
 
+/**
+ * `customerId` es la empresa del cliente: con el filtro de favoritos, solo
+ * sus favoritos; sin empresa (un admin mirando la tienda) no hay ninguno.
+ */
 export function catalogWhere(
   filters: CatalogFilters,
   categoryIds?: number[],
+  customerId?: string | null,
 ): Prisma.ProductWhereInput {
   const contains = (field: "name" | "sku" | "barcode") => ({
     [field]: { contains: filters.q, mode: "insensitive" as const },
@@ -68,6 +77,11 @@ export function catalogWhere(
   return {
     ...VISIBLE_PRODUCT,
     categoryId: categoryIds ? { in: categoryIds } : undefined,
+    ...(filters.favorites
+      ? customerId
+        ? { favorites: { some: { customerId } } }
+        : { id: { in: [] } }
+      : {}),
     OR: filters.q
       ? [contains("name"), contains("sku"), contains("barcode")]
       : undefined,

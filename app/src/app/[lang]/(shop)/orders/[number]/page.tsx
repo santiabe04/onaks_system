@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CreditNoteList } from "@/components/account/credit-note-list";
+import { RepeatOrderButton } from "@/components/orders/repeat-order-button";
 import { OrderDetail, OrderItems } from "@/components/orders/order-items";
 import { interpolate } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
@@ -116,6 +117,14 @@ async function Order({
         <span className="rounded border border-current/20 px-2 py-0.5 text-sm">
           {t.orders.states[sale.state]}
         </span>
+      </div>
+
+      <div className="mt-3">
+        <RepeatOrderButton
+          saleId={sale.id}
+          label={t.orders.repeat}
+          pendingLabel={t.orders.repeating}
+        />
       </div>
 
       <dl className="mt-4 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
