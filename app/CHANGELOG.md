@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.48.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.47.0-beta...v1.48.0-beta) (2026-11-09)
+
+
+### Features
+
+* **reports:** subtract returns from sales and margin reports ([#122](https://github.com/santiabe04/onaks_system/issues/122)) ([0a01f60](https://github.com/santiabe04/onaks_system/commit/0a01f60ab796f1503a708af251593d50f744967a))
+
 ## [1.47.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.46.0-beta...v1.47.0-beta) (2026-11-09)
 
 
