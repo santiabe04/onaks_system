@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.49.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.48.0-beta...v1.49.0-beta) (2026-11-09)
+
+
+### Features
+
+* **checkout:** pay by bank transfer with a proof the admin validates ([#124](https://github.com/santiabe04/onaks_system/issues/124)) ([832a9c9](https://github.com/santiabe04/onaks_system/commit/832a9c93292fc55345da237b8edc10a66d2950f0))
+
 ## [1.48.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.47.0-beta...v1.48.0-beta) (2026-11-09)
 
 
