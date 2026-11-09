@@ -15,8 +15,9 @@ export async function getFavoriteIds(
 
 /**
  * Los productos que más pidió la empresa, del que más pedidos tiene al que
- * menos (a igualdad, el pedido más reciente), sin contar los cancelados ni
- * los que hoy no se pueden comprar.
+ * menos (a igualdad, el pedido más reciente y después el nombre, para que el
+ * orden sea estable), sin contar los cancelados ni los que hoy no se pueden
+ * comprar.
  */
 export async function getMostOrderedIds(
   customerId: string,
@@ -32,7 +33,8 @@ export async function getMostOrderedIds(
       AND s."state" <> 'CANCELED'
       AND p."is_active" = true AND p."deleted_at" IS NULL
     GROUP BY i."product_id"
-    ORDER BY COUNT(DISTINCT s."id") DESC, MAX(s."created_at") DESC, i."product_id"
+    ORDER BY COUNT(DISTINCT s."id") DESC, MAX(s."created_at") DESC,
+             MIN(p."name"), i."product_id"
     LIMIT ${limit}`;
   return rows.map((row) => row.productId);
 }

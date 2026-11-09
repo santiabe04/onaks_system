@@ -8,16 +8,20 @@ test("el cliente arma el carrito, confirma el pedido y lo ve en Mis pedidos", as
   await expect(page).toHaveURL("/");
 
   // Dos productos desde las tarjetas del catálogo (uno por unidad, otro a granel).
+  // "Lo que más pedís" repite productos arriba de la grilla: se usa la tarjeta
+  // de la grilla principal, que es la última.
   const dogFood = page
     .getByRole("listitem")
-    .filter({ hasText: "Alimento perro adulto 3 kg" });
+    .filter({ hasText: "Alimento perro adulto 3 kg" })
+    .last();
   await dogFood.getByLabel("Cantidad").fill("2");
   await dogFood.getByRole("button", { name: "Agregar" }).click();
   await expect(dogFood.getByText("Agregado al carrito")).toBeVisible();
 
   const catFood = page
     .getByRole("listitem")
-    .filter({ hasText: "Alimento gato suelto" });
+    .filter({ hasText: "Alimento gato suelto" })
+    .last();
   await catFood.getByLabel("Cantidad").fill("1.5");
   await catFood.getByRole("button", { name: "Agregar" }).click();
   await expect(catFood.getByText("Agregado al carrito")).toBeVisible();
