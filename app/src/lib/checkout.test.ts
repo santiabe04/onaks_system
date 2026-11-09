@@ -93,7 +93,28 @@ describe("validateCheckoutForm", () => {
     expect(result.state.values).toEqual({
       addressId: "",
       notes: "Entregar a la mañana",
+      paymentMethod: "CASH",
     });
+  });
+
+  it("sin elegir forma de pago es efectivo; acepta transferencia y rechaza otra", () => {
+    const base = { addressId: "addrdeposito", fingerprint: FINGERPRINT };
+    expect(validateCheckoutForm(form(base), t)).toMatchObject({
+      ok: true,
+      data: { paymentMethod: "CASH" },
+    });
+    expect(
+      validateCheckoutForm(form({ ...base, paymentMethod: "TRANSFER" }), t),
+    ).toMatchObject({ ok: true, data: { paymentMethod: "TRANSFER" } });
+    const invalid = validateCheckoutForm(
+      form({ ...base, paymentMethod: "CHECK" }),
+      t,
+    );
+    expect(invalid.ok).toBe(false);
+    if (invalid.ok) return;
+    expect(invalid.state.errors?.paymentMethod).toEqual([
+      t.paymentMethodInvalid,
+    ]);
   });
 
   it("limita el largo del comentario", () => {

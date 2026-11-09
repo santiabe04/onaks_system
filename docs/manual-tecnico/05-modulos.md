@@ -143,6 +143,35 @@ las personas del cliente ven los mismos. Como el carrito, son una preferencia y 
   de la empresa (`COUNT(DISTINCT pedido)`, sin cancelados ni productos no vendibles; a igualdad, el pedido
   más reciente). Solo en la portada del catálogo, sin búsqueda, categoría ni filtro de favoritos.
 
+### Pago por transferencia
+
+El checkout ofrece **efectivo** o **transferencia** (`paymentMethod` en `lib/checkout.ts`; sin elegir es
+efectivo). La transferencia solo se ofrece si hay **datos de cobro** cargados (`transfer_settings`, una única
+fila con `id = 1` y CHECKs en la migración: banco, titular, CUIT válido y CBU o alias). Los carga el admin en
+`/admin/payment-settings` (permiso `payment-settings:manage`, auditado como `TRANSFER_SETTINGS`); las
+validaciones son puras en `lib/transfer.ts` (`isValidCbu` con los dos dígitos verificadores, `isValidAlias`).
+`placeOrder` vuelve a comprobar en el server que haya datos (`transferAvailable`) y no confía en el form.
+
+El pedido por transferencia sigue su curso normal (no queda retenido esperando el pago): el cobro se valida
+aparte. El cliente adjunta el **comprobante** al confirmar (opcional) o después desde su pedido
+(`uploadTransferProof` en `(shop)/orders/actions.ts`). `canUploadProof` decide si se puede: pedido por
+transferencia, no cancelado ni pagado y sin otro comprobante en revisión. El archivo se procesa y guarda
+**antes** de la transacción (`lib/transfer-proof-files.ts`: imagen → WebP sin EXIF, PDF tal cual, hasta 5 MB)
+y se borra si la transacción falla.
+
+En el detalle del pedido (admin) cada comprobante pendiente tiene dos formularios (`proof-actions.ts`, permiso
+`sales:manage`):
+
+- **Validar** (`validateTransferProof`): el admin confirma monto y fecha (se sugiere lo que falta cobrar) y
+  se asienta un `createCustomerPayment` por transferencia imputado al pedido, así la cuenta corriente, el crédito
+  y los deudores no cambian. Orden de bloqueo: cuenta del cliente y después el comprobante (`FOR UPDATE`, que
+  tiene que seguir PENDING: dos validaciones a la vez no pasan). Guarda el cobro en `payment_id`.
+- **Rechazar** (`rejectTransferProof`): con un motivo (hasta 200 caracteres) que el cliente ve; puede subir otro.
+
+Los comprobantes **no se borran** (historial del pedido) y todo se audita como `TRANSFER_PROOF`. El dashboard
+avisa cuántos hay por validar y "Todos los pedidos" los filtra con `proof=1` (`transferProofs: { some: {
+state: "PENDING" } }` en `lib/order-filters.ts`).
+
 ## 4. Pedido cargado por el admin
 
 **Qué hace.** Pedidos que llegan por teléfono o WhatsApp: en `/admin/orders/new` (o desde la ficha del
@@ -450,7 +479,7 @@ sesiones abiertas.
 | Open redirect en `?next=`                    | `safeNextPath`                                                                                                           |
 | Inyección de fórmulas en CSV                 | `lib/csv.ts` antepone `'` a textos que empiezan con `= + - @`                                                            |
 | Cabeceras de seguridad                       | `next.config.ts` (sin iframe, nosniff, HSTS en producción; **sin CSP todavía**, el script del tema necesitaría un nonce) |
-| Archivos sensibles con sesión                | `app/media/deliveries/[file]`                                                                                            |
+| Archivos sensibles con sesión                | `app/media/deliveries/[file]`, `app/media/transfers/[file]`                                                              |
 
 ## 12. Archivos subidos
 
@@ -461,6 +490,9 @@ sesiones abiertas.
 - **Firmas y fotos de remitos**: `lib/delivery-files.ts` en `UPLOADS_DIR/deliveries`. Las fotos del celular
   llegan sin achicar (hasta 8 MB); por eso las Server Actions aceptan hasta 10 MB (`bodySizeLimit` en
   `next.config.ts`).
+- **Comprobantes de transferencia**: `lib/transfer-proof-files.ts` en `UPLOADS_DIR/transfers` (imagen → WebP
+  sin EXIF, o PDF; hasta 5 MB). Se sirven **con sesión** por `app/media/transfers/[file]`: el admin ve
+  todos; un cliente solo los de su empresa (si no, 404). Los PDF se descargan como adjunto.
 - En Docker, `UPLOADS_DIR` es el volumen `uploads`. **Hay que incluirlo en los backups** (el servicio de
   backup ya lo hace).
 - Los nombres son un UUID aleatorio con extensión `.webp`, generado en el server (`randomUUID`), y al

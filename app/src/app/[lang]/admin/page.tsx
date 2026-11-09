@@ -182,13 +182,20 @@ async function ThisWeek() {
   // La semana actual depende de la hora del request, no de la del build.
   await connection();
   const period = parseOrderPeriod({});
-  const [orders, held] = await Promise.all([
+  const [orders, held, proofs] = await Promise.all([
     getPeriodOrders(period),
     // De cualquier semana: esperan que el admin decida.
     db.sale.count({
       where: {
         creditHoldAt: { not: null },
         creditReleasedAt: null,
+        state: { not: "CANCELED" },
+      },
+    }),
+    // Comprobantes de transferencia que esperan validación.
+    db.sale.count({
+      where: {
+        transferProofs: { some: { state: "PENDING" } },
         state: { not: "CANCELED" },
       },
     }),
@@ -206,6 +213,14 @@ async function ThisWeek() {
           className="mt-3 block rounded border border-amber-600/50 bg-amber-500/10 p-3 text-sm font-medium hover:underline"
         >
           {interpolate(t.dashboard.heldOrders, { count: held })}
+        </Link>
+      )}
+      {proofs > 0 && (
+        <Link
+          href="/admin/orders/list?proof=1"
+          className="mt-3 block rounded border border-sky-600/50 bg-sky-500/10 p-3 text-sm font-medium hover:underline"
+        >
+          {interpolate(t.transfer.pendingAlert, { count: proofs })}
         </Link>
       )}
       <p className="mt-1 text-xs opacity-70">

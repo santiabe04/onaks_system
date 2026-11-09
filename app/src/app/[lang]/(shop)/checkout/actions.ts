@@ -19,25 +19,35 @@ import { validateCheckoutForm, type CheckoutFormState } from "@/lib/checkout";
 import { latestCosts } from "@/lib/cost-queries";
 import { applyCreditCheck } from "@/lib/credit-ledger";
 import { db } from "@/lib/db";
+import { hasUpload } from "@/lib/product-image";
+import { transferAvailable } from "@/lib/transfer";
+import {
+  processProof,
+  removeProofFile,
+  saveProofFile,
+} from "@/lib/transfer-proof-files";
 
 /** Corta la transacción con un mensaje para el cliente. */
 class CheckoutError extends Error {}
 
 /**
- * Confirma el carrito como pedido (solo efectivo por ahora). Los precios se
- * vuelven a calcular acá: si no coinciden con los que vio el cliente, se
- * rechaza para que revise el total.
+ * Confirma el carrito como pedido, en efectivo al recibir o por transferencia
+ * (con el comprobante adjunto, si ya lo tiene). Los precios se vuelven a
+ * calcular acá: si no coinciden con los que vio el cliente, se rechaza para
+ * que revise el total.
  */
 export async function placeOrder(
   _prev: CheckoutFormState,
   formData: FormData,
 ): Promise<CheckoutFormState> {
   const user = await requirePermission("sales:create");
-  const t = getActionDictionary().checkout.errors;
+  const dictionary = getActionDictionary();
+  const t = dictionary.checkout.errors;
+  const transferErrors = dictionary.transfer.errors;
 
   const result = validateCheckoutForm(formData, t);
   if (!result.ok) return result.state;
-  const { addressId, notes, fingerprint } = result.data;
+  const { addressId, notes, fingerprint, paymentMethod } = result.data;
   const fail = (message: string): CheckoutFormState => ({
     errors: { form: [message] },
     values: result.values,
@@ -45,6 +55,30 @@ export async function placeOrder(
 
   const customerId = user.customerId;
   if (!customerId) return fail(t.addressInvalid);
+
+  // Transferencia: tiene que haber datos de cobro cargados y, si se adjunta,
+  // un comprobante válido. El archivo se guarda antes de la transacción y se
+  // borra si ésta falla, para no dejar archivos sin pedido.
+  let proofFile: string | null = null;
+  if (paymentMethod === "TRANSFER") {
+    const settings = await db.transferSettings.findUnique({
+      where: { id: 1 },
+      select: { cbu: true, alias: true },
+    });
+    if (!transferAvailable(settings)) return fail(transferErrors.unavailable);
+    const proof = formData.get("proof");
+    if (hasUpload(proof)) {
+      const processed = await processProof(proof);
+      if (!processed.ok) {
+        return fail(
+          processed.error === "tooLarge"
+            ? transferErrors.tooLarge
+            : transferErrors.invalid,
+        );
+      }
+      proofFile = await saveProofFile(processed.data, processed.ext);
+    }
+  }
 
   let number: number;
   try {
@@ -90,6 +124,7 @@ export async function placeOrder(
         discount: cartDiscount(available),
         total: totals.total,
         notes,
+        paymentMethod,
         // Foto del producto al vender: los cambios posteriores no tocan el pedido.
         items: {
           create: available.map((item) =>
@@ -137,7 +172,6 @@ export async function placeOrder(
           data: {
             ...data,
             userId: user.id,
-            paymentMethod: "CASH",
           },
           include: { items: true },
         });
@@ -147,6 +181,18 @@ export async function placeOrder(
           entityType: "SALE",
           entityId: sale.id,
           after: sale,
+        });
+      }
+      if (proofFile) {
+        const proof = await tx.transferProof.create({
+          data: { saleId: sale.id, file: proofFile, uploadedById: user.id },
+        });
+        await audit(tx, {
+          action: "CREATE",
+          actorUserId: user.id,
+          entityType: "TRANSFER_PROOF",
+          entityId: proof.id,
+          after: proof,
         });
       }
       // Un saldo a favor puede dejar el pedido ya pagado (o cambia lo que falta).
@@ -161,6 +207,7 @@ export async function placeOrder(
       return sale.number;
     });
   } catch (error) {
+    if (proofFile) await removeProofFile(proofFile);
     if (error instanceof CheckoutError) {
       // Que la página vuelva a mostrar el carrito y los precios actuales.
       revalidatePath("/[lang]", "layout");

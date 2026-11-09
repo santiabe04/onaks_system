@@ -89,6 +89,12 @@ describe("orderWhere", () => {
     });
   });
 
+  it("con comprobante por validar busca los pendientes y deja afuera los cancelados", () => {
+    const where = orderWhere(parseOrderFilters({ proof: "1" }));
+    expect(where.transferProofs).toEqual({ some: { state: "PENDING" } });
+    expect(where.NOT).toEqual({ state: "CANCELED" });
+  });
+
   it("sin filtros no restringe nada", () => {
     const where = orderWhere(parseOrderFilters({}));
     expect(Object.values(where).every((value) => value === undefined)).toBe(
@@ -108,6 +114,10 @@ describe("orderQuery", () => {
       "?state=PENDING&state=CANCELED&city=3&page=3",
     );
     expect(orderQuery(filters, 1)).toBe("?state=PENDING&state=CANCELED&city=3");
+  });
+
+  it("reproduce el filtro de comprobantes por validar", () => {
+    expect(orderQuery(parseOrderFilters({ proof: "1" }))).toBe("?proof=1");
   });
 });
 

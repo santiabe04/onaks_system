@@ -112,6 +112,18 @@ enum AuditEntity {
   PRODUCT_LOCATION
   PRICE_LIST
   CUSTOMER_CREDIT_NOTE
+  TRANSFER_SETTINGS
+  TRANSFER_PROOF
+}
+
+/// Estado de un comprobante de transferencia que subió el cliente.
+enum TransferProofState {
+  /// Esperando que el admin lo revise.
+  PENDING
+  /// Validado: generó un cobro en la cuenta corriente.
+  VALIDATED
+  /// Rechazado con motivo: el cliente puede subir otro.
+  REJECTED
 }
 
 /// Qué documenta una nota de crédito al cliente.
@@ -607,6 +619,9 @@ model User {
   paymentsVoided             CustomerPayment[]    @relation("CustomerPaymentVoidedBy")
   customerCreditNotesCreated CustomerCreditNote[] @relation("CustomerCreditNoteCreatedBy")
   customerCreditNotesVoided  CustomerCreditNote[] @relation("CustomerCreditNoteVoidedBy")
+  transferSettingsUpdated    TransferSettings[]
+  transferProofsUploaded     TransferProof[]      @relation("TransferProofUploadedBy")
+  transferProofsReviewed     TransferProof[]      @relation("TransferProofReviewedBy")
   driver                     Driver?              @relation("DriverUser")
   driversCreated             Driver[]             @relation("DriverCreatedBy")
   driversUpdated             Driver[]             @relation("DriverUpdatedBy")
@@ -715,6 +730,7 @@ model Sale {
   stockMovements     StockMovement[]
   payments           CustomerPayment[]
   creditNotes        CustomerCreditNote[]
+  transferProofs     TransferProof[]
   routeStops         RouteStop[]
   pickingItems       PickingListItem[]
 
@@ -787,30 +803,73 @@ enum CustomerPaymentKind {
 /// Cuenta corriente: cobros y reintegros del cliente. La deuda son los pedidos
 /// entregados; los cobros se imputan solos al pedido más viejo (lib/account).
 model CustomerPayment {
-  id          String              @id @default(cuid(2))
-  customerId  String              @map("customer_id")
+  id            String              @id @default(cuid(2))
+  customerId    String              @map("customer_id")
   /// Pedido desde el que se cargó (referencia; la imputación es automática).
-  saleId      String?             @map("sale_id")
-  kind        CustomerPaymentKind
-  amount      Decimal             @db.Decimal(12, 2)
-  method      PaymentMethod
-  paidOn      DateTime            @map("paid_on") @db.Date
-  notes       String?             @db.VarChar(200)
-  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
-  createdById String              @map("created_by")
+  saleId        String?             @map("sale_id")
+  kind          CustomerPaymentKind
+  amount        Decimal             @db.Decimal(12, 2)
+  method        PaymentMethod
+  paidOn        DateTime            @map("paid_on") @db.Date
+  notes         String?             @db.VarChar(200)
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  createdById   String              @map("created_by")
   /// Un cobro mal cargado no se borra: se anula con motivo.
-  voidedAt    DateTime?           @map("voided_at") @db.Timestamptz(3)
-  voidedById  String?             @map("voided_by")
-  voidReason  String?             @map("void_reason") @db.VarChar(200)
-  customer    Customer            @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  sale        Sale?               @relation(fields: [saleId], references: [id], onDelete: Restrict)
-  createdBy   User                @relation("CustomerPaymentCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  voidedBy    User?               @relation("CustomerPaymentVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict)
-  routeStop   RouteStop?
+  voidedAt      DateTime?           @map("voided_at") @db.Timestamptz(3)
+  voidedById    String?             @map("voided_by")
+  voidReason    String?             @map("void_reason") @db.VarChar(200)
+  customer      Customer            @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  sale          Sale?               @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  createdBy     User                @relation("CustomerPaymentCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  voidedBy      User?               @relation("CustomerPaymentVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict)
+  routeStop     RouteStop?
+  transferProof TransferProof?
 
   @@index([customerId, paidOn], map: "idx_customer_payments_customer_id_paid_on")
   @@index([saleId], map: "idx_customer_payments_sale_id")
   @@map("customer_payments")
+}
+
+/// Datos de cobro por transferencia de la distribuidora (una sola fila, id 1).
+/// Sin fila no se ofrece pagar por transferencia en el checkout.
+model TransferSettings {
+  id          Int      @id @default(1)
+  bankName    String   @map("bank_name") @db.VarChar(60)
+  holder      String   @db.VarChar(80)
+  cuit        String   @db.VarChar(11)
+  cbu         String?  @db.VarChar(22)
+  alias       String?  @db.VarChar(20)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedById String?  @map("updated_by")
+  updatedBy   User?    @relation(fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@map("transfer_settings")
+}
+
+/// Comprobante de una transferencia, subido por el cliente. Al validarlo el
+/// admin se asienta el cobro (`payment`); si se rechaza queda el motivo y el
+/// cliente puede subir otro. No se borra: queda en el historial del pedido.
+model TransferProof {
+  id           String             @id @default(cuid(2))
+  saleId       String             @map("sale_id")
+  /// Archivo en `UPLOADS_DIR/transfers` (imagen WebP o PDF).
+  file         String
+  state        TransferProofState @default(PENDING)
+  uploadedById String             @map("uploaded_by")
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  reviewedAt   DateTime?          @map("reviewed_at") @db.Timestamptz(3)
+  reviewedById String?            @map("reviewed_by")
+  rejectReason String?            @map("reject_reason") @db.VarChar(200)
+  /// El cobro que se asentó al validar.
+  paymentId    String?            @unique @map("payment_id")
+  sale         Sale               @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  uploadedBy   User               @relation("TransferProofUploadedBy", fields: [uploadedById], references: [id], onDelete: Restrict)
+  reviewedBy   User?              @relation("TransferProofReviewedBy", fields: [reviewedById], references: [id], onDelete: Restrict)
+  payment      CustomerPayment?   @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@index([saleId], map: "idx_transfer_proofs_sale_id")
+  @@index([state], map: "idx_transfer_proofs_state")
+  @@map("transfer_proofs")
 }
 
 /// Nota de crédito al cliente: baja lo que debe (se imputa en la cuenta como un

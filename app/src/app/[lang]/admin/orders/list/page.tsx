@@ -81,6 +81,8 @@ async function OrdersList({
       select: {
         creditHoldAt: true,
         creditReleasedAt: true,
+        // Para el aviso de "comprobante por validar".
+        transferProofs: { where: { state: "PENDING" }, select: { id: true } },
         id: true,
         number: true,
         createdAt: true,
@@ -235,6 +237,12 @@ async function OrdersList({
                           {t.adminOrders.creditHold.badge}
                         </span>
                       )}
+                      {sale.transferProofs.length > 0 &&
+                        sale.state !== "CANCELED" && (
+                          <span className="ml-1 rounded bg-sky-500/20 px-1.5 py-0.5 text-xs font-medium whitespace-nowrap">
+                            {t.transfer.pendingBadge}
+                          </span>
+                        )}
                     </td>
                     <td className="py-2 pr-3">
                       {t.orders.paymentMethods[sale.paymentMethod]}
@@ -333,6 +341,15 @@ function FiltersForm({
           defaultChecked={filters.held}
         />
         {l.held}
+      </label>
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          name="proof"
+          value="1"
+          defaultChecked={filters.proof}
+        />
+        {t.transfer.filterPending}
       </label>
 
       <div className="flex gap-3">

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { SaleState } from "@/generated/prisma/enums";
+import type { SalePaymentState, SaleState } from "@/generated/prisma/enums";
 import type { Prisma } from "@/generated/prisma/client";
 import { getActionDictionary } from "@/i18n/dictionary";
 import { lockAccount, recomputeAccount } from "@/lib/account-ledger";
@@ -10,7 +10,14 @@ import { audit } from "@/lib/audit";
 import { requirePermission, type SessionUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isCuid } from "@/lib/ids";
+import { hasUpload } from "@/lib/product-image";
 import { planRepeat } from "@/lib/repeat-order";
+import { canUploadProof } from "@/lib/transfer";
+import {
+  processProof,
+  removeProofFile,
+  saveProofFile,
+} from "@/lib/transfer-proof-files";
 import { STATE_COMMENT_MAX_LENGTH } from "@/lib/sale-state-form";
 
 // Lo que el cliente puede hacer con un pedido de su empresa mientras está
@@ -287,4 +294,77 @@ export async function repeatOrder(saleId: string): Promise<OrderActionState> {
       from: String(sale.number),
     })}`,
   );
+}
+
+/**
+ * El cliente sube el comprobante de la transferencia de un pedido de su
+ * empresa. El archivo se guarda antes de la transacción (y se borra si falla);
+ * con el pedido bloqueado se vuelve a comprobar que todavía se pueda subir uno
+ * y que no haya otro esperando revisión.
+ */
+export async function uploadTransferProof(
+  saleId: string,
+  _prev: OrderActionState,
+  formData: FormData,
+): Promise<OrderActionState> {
+  const user = await requirePermission("sales:create");
+  const t = getActionDictionary().transfer.errors;
+  const customerId = user.customerId;
+  if (!customerId || !isCuid(saleId)) return { error: t.notFound };
+
+  const proof = formData.get("proof");
+  if (!hasUpload(proof)) return { error: t.invalid };
+  const processed = await processProof(proof);
+  if (!processed.ok) {
+    return {
+      error: processed.error === "tooLarge" ? t.tooLarge : t.invalid,
+    };
+  }
+  const file = await saveProofFile(processed.data, processed.ext);
+
+  try {
+    await db.$transaction(async (tx) => {
+      // Mismo orden de bloqueo que cobros y cambios de estado: cuenta y pedido.
+      await lockAccount(tx, customerId);
+      const [sale] = await tx.$queryRaw<
+        {
+          paymentMethod: string;
+          state: SaleState;
+          paymentState: SalePaymentState;
+        }[]
+      >`
+        SELECT s."payment_method"::text AS "paymentMethod", s."state",
+               s."payment_state" AS "paymentState"
+        FROM "sales" s
+        JOIN "customer_addresses" a ON a."id" = s."address_id"
+        WHERE s."id" = ${saleId} AND a."customer_id" = ${customerId}
+        FOR UPDATE OF s`;
+      if (!sale) throw new OrderActionError(t.notFound);
+      const proofs = await tx.transferProof.findMany({
+        where: { saleId },
+        select: { state: true },
+      });
+      if (!canUploadProof(sale, proofs)) {
+        throw new OrderActionError(t.notAllowed);
+      }
+      const created = await tx.transferProof.create({
+        data: { saleId, file, uploadedById: user.id },
+      });
+      await audit(tx, {
+        action: "CREATE",
+        actorUserId: user.id,
+        entityType: "TRANSFER_PROOF",
+        entityId: created.id,
+        after: created,
+      });
+    });
+  } catch (error) {
+    await removeProofFile(file);
+    if (error instanceof OrderActionError) return { error: error.message };
+    throw error;
+  }
+
+  // El detalle del pedido (y el aviso del admin) cambian.
+  revalidatePath("/[lang]", "layout");
+  return {};
 }

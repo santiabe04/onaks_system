@@ -38,7 +38,7 @@
    │  │  │  ├─ login/, logout/, change-password/
    │  │  │  └─ [...rest]/  404 con el diseño de la app
    │  │  ├─ api/health/    health check (Docker y CI), sin sesión
-   │  │  └─ media/         imágenes de productos (públicas) y firmas/fotos de remitos (con sesión)
+   │  │  └─ media/         imágenes de productos (públicas) y firmas/fotos de remitos y comprobantes (con sesión)
    │  ├─ components/       componentes compartidos por dominio (orders, catalog, ui, ...)
    │  ├─ i18n/             idioma: config, diccionarios es/en, formatos
    │  ├─ lib/              lógica de negocio (pura y de servidor) y sus tests
@@ -184,7 +184,7 @@ permisos está en código, en `lib/permissions.ts` (`PERMISSIONS`, `ROLE_PERMISS
 
 - **ADMIN**: todos los `*:manage`, `sales:read-all`, `catalog:read`, `audit:read`, `dashboard:read`,
   `routes:deliver` (un admin también puede repartir), `purchases:manage`, `price-lists:manage`,
-  `reports:read`.
+  `reports:read`, `payment-settings:manage`.
 - **CLIENT**: `catalog:read` y `sales:create` (comprar).
 - **DRIVER**: `routes:deliver` (solo las paradas de sus hojas).
 
