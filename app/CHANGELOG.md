@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.50.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.49.0-beta...v1.50.0-beta) (2026-11-10)
+
+
+### Features
+
+* **stock:** track lots and expiry dates with first-expired-first-out ([#126](https://github.com/santiabe04/onaks_system/issues/126)) ([88e6b5d](https://github.com/santiabe04/onaks_system/commit/88e6b5d55c801bb90a78d642ef957309f00bf2fc))
+
 ## [1.49.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.48.0-beta...v1.49.0-beta) (2026-11-09)
 
 
