@@ -11,6 +11,7 @@ describe("can", () => {
     expect(can("ADMIN", "suppliers:manage")).toBe(true);
     expect(can("ADMIN", "products:manage")).toBe(true);
     expect(can("ADMIN", "stock:manage")).toBe(true);
+    expect(can("ADMIN", "stock:count")).toBe(true);
     expect(can("ADMIN", "customers:manage")).toBe(true);
     expect(can("ADMIN", "users:manage")).toBe(true);
     expect(can("ADMIN", "payment-settings:manage")).toBe(true);

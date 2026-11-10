@@ -229,6 +229,18 @@ comentarios y textos de UI en español.
 action>` después de cada action: los no controlados pierden lo tipeado con un error y un select
   controlado vuelve a su primera opción.
 
+## Conteo de inventario
+
+- Conteos por depósito (`/admin/stock/counts`, `stock_counts` + `stock_count_items`; `lib/stock-count` puro y
+  `lib/stock-count-queries`): uno abierto por depósito (índice único parcial escrito a mano). Se carga a
+  ciegas desde el celular en `/admin/stock/counts/[number]` (`ScanForm`: cámara con `BarcodeDetector` si el
+  navegador lo tiene, o código/SKU tipeado o de un lector) y cada escaneo suma a lo contado del producto;
+  guarda también `expected`, el saldo del depósito **en el primer escaneo**. Permisos: `stock:count` para abrir,
+  escanear y quitar; `stock:manage` para revisar (`/review`), aprobar o descartar. `approveStockCount`
+  bloquea el conteo, recorre los productos por id y asienta cada diferencia (contado − esperado, no contra
+  el saldo de hoy) con `recordStockCorrection` (`ADJUSTMENT`, comentario "Conteo #N"); lo no escaneado no se
+  toca. Los escaneos son borrador: se audita abrir, aprobar (con los ajustes) y descartar.
+
 ## Picking
 
 - Listas de picking (`/admin/picking`, `picking_lists` + `picking_list_items` por pedido y producto),

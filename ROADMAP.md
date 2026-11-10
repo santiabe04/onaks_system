@@ -453,7 +453,7 @@ borran (historial). El dashboard avisa los pendientes y "Todos los pedidos" filt
 | ---- | ---------------------------------------------------------------------------------- | --------------- |
 | 19.1 | Pago por transferencia: datos de cobro, comprobante del cliente y validación admin | ✅ v1.49.0-beta |
 
-## Fase 20 — Lotes y vencimientos 🟡
+## Fase 20 — Lotes y vencimientos ✅
 
 Definiciones: el control es **opcional por producto** ("Controla vencimiento"): los demás siguen sin
 lotes. Al **recibir** mercadería de un producto con control, el informe pide lote y fecha de vencimiento,
@@ -468,13 +468,25 @@ mientras está abierta, el admin puede pasar una cantidad de un lote a otro si e
 sugerencia (dos movimientos del pedido, el saldo no cambia). Avisos: listado de lotes en Stock
 (`/admin/stock/lots`, vencidos y por vencer a 30 días) y alerta en el dashboard.
 
-| PR   | Contenido                                                                                 | Estado      |
-| ---- | ----------------------------------------------------------------------------------------- | ----------- |
-| 20.1 | Lotes por depósito, vencimiento al recibir (varios lotes), salidas FEFO, picking y avisos | 🟡 PR listo |
+| PR   | Contenido                                                                                 | Estado         |
+| ---- | ----------------------------------------------------------------------------------------- | -------------- |
+| 20.1 | Lotes por depósito, vencimiento al recibir (varios lotes), salidas FEFO, picking y avisos | ✅ 1.50.0-beta |
 
-## Fase 21 — Toma de inventario desde el celular ⏳
+## Fase 21 — Toma de inventario desde el celular 🟡
 
-- Conteo por depósito con el escáner de código de barras y ajuste automático de las diferencias.
+Definiciones: se cuenta **un depósito a la vez** (un solo conteo abierto por depósito), **a ciegas**: quien
+cuenta ve lo que lleva contado, no el saldo del sistema. El código de barras (o el SKU) se lee con la cámara
+del celular cuando el navegador trae `BarcodeDetector`, o se tipea o llega de un lector físico; cada escaneo
+suma a lo ya contado del producto (con "fijar" se corrige). Contar es el permiso nuevo `stock:count`; un
+admin (`stock:manage`) **revisa y aprueba**: al aprobar, cada diferencia (contado menos el saldo que había al
+primer escaneo, así lo vendido mientras se contaba no se pisa) se asienta como un ajuste de stock con
+`recordStockCorrection`, todo o nada. **Solo se ajusta lo contado**: lo que no se escaneó no se toca, y en la
+revisión se puede quitar lo que no corresponda ajustar. Un producto con control de vencimiento que sobra
+entra sin lote y el que falta sale primero del lote que vence antes.
+
+| PR   | Contenido                                                                        | Estado      |
+| ---- | -------------------------------------------------------------------------------- | ----------- |
+| 21.1 | Conteo por depósito con escáner de cámara, revisión a ciegas y ajuste al aprobar | 🟡 PR listo |
 
 ## Fase 22 — Avisos al cliente ⏳
 
