@@ -4,7 +4,7 @@
 # the database) and leaves in /backups:
 #   db-AAAAMMDD-HHMM.dump       pg_dump in custom format (restored with pg_restore)
 #   uploads-AAAAMMDD-HHMM.tar.gz
-# Deletes the ones older than BACKUP_KEEP_DAYS days. See docs/instalacion.md.
+# Deletes the ones older than BACKUP_KEEP_DAYS days. See docs/en/installation.md.
 set -eu
 
 BACKUP_DIR=/backups

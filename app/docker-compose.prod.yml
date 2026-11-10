@@ -1,7 +1,7 @@
 # Production: added on top of docker-compose.yml.
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 # Uses the published images (APP_IMAGE:APP_VERSION) instead of building, does not
-# publish the database or app ports (only Caddy gets in, on 80/443), and adds the proxy with HTTPS and the automatic backups. See docs/instalacion.md.
+# publish the database or app ports (only Caddy gets in, on 80/443), and adds the proxy with HTTPS and the automatic backups. See docs/en/installation.md.
 
 services:
   db:

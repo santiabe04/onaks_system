@@ -1,5 +1,7 @@
 # Instalación en producción
 
+> English version: [`docs/en/installation.md`](../en/installation.md). Las dos versiones se mantienen al día juntas.
+
 Guía para instalar Onaks System en un servidor (VPS) con Docker. Todo corre con Docker Compose: la base
 de datos, la app, **Caddy** (el proxy que da HTTPS) y un servicio de **backups automáticos**. Los
 comandos se corren dentro de la carpeta `app/` del repositorio.

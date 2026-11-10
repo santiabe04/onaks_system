@@ -196,7 +196,8 @@ los specs que corran después (orden alfabético).
 - [ ] Una tabla nueva: migración + `AuditEntity` + etiquetas + seed/demo si corresponde; sin drift.
 - [ ] Probado en celular, en tema oscuro y (si hay texto nuevo) en inglés.
 - [ ] Tests unitarios de lo puro; e2e si cambia un circuito.
-- [ ] `CLAUDE.md` y `ROADMAP.md` al día; este manual si cambia algo de lo que explica.
+- [ ] `CLAUDE.md` y `ROADMAP.md` al día; este manual si cambia algo de lo que explica (en los dos idiomas:
+      `docs/es/` y `docs/en/`).
 
 ## Errores frecuentes
 
@@ -223,7 +224,7 @@ los specs que corran después (orden alfabético).
 
 - El **código de un módulo ya hecho** es la mejor documentación: elegí el más parecido a lo que vas a hacer
   (tabla en la [receta 1](#receta-1-una-pantalla-nueva-de-administración-abm)) y seguilo.
-- [`ROADMAP.md`](../../ROADMAP.md) tiene el contexto y las definiciones de cada fase: por qué se decidió
+- [`ROADMAP.md`](../../../ROADMAP.md) tiene el contexto y las definiciones de cada fase: por qué se decidió
   cada cosa.
 - La auditoría del sistema (`/admin/audit`) es una buena forma de entender qué hace cada pantalla: probá la
   acción en la demo y mirá qué se registró.
