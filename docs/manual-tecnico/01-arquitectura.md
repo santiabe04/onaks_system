@@ -11,6 +11,7 @@
 | Autenticación | Propia: `bcryptjs` para contraseñas y `jose` (JWT HS256) para la cookie de sesión   |
 | Validación    | Zod 4                                                                               |
 | Imágenes      | `sharp` (convierte a WebP y saca los metadatos EXIF)                                |
+| Mail          | `nodemailer` por SMTP, configurado con env (opcional: sin SMTP no se envía nada)    |
 | Tests         | Vitest (unitarios) y Playwright (de punta a punta, Chromium)                        |
 | Tooling       | npm, Node 22, ESLint, Prettier (con el plugin de Tailwind), Husky + commitlint      |
 | Despliegue    | Docker Compose: Postgres, migrador, app, Caddy (HTTPS) y backups                    |
@@ -184,7 +185,7 @@ permisos está en código, en `lib/permissions.ts` (`PERMISSIONS`, `ROLE_PERMISS
 
 - **ADMIN**: todos los `*:manage`, `sales:read-all`, `catalog:read`, `audit:read`, `dashboard:read`,
   `routes:deliver` (un admin también puede repartir), `purchases:manage`, `price-lists:manage`,
-  `reports:read`, `payment-settings:manage`.
+  `reports:read`, `payment-settings:manage`, `stock:count` (contar el inventario desde el celular).
 - **CLIENT**: `catalog:read` y `sales:create` (comprar).
 - **DRIVER**: `routes:deliver` (solo las paradas de sus hojas).
 
