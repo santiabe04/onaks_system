@@ -22,6 +22,7 @@ const valid = {
   weight: "15",
   volume: "",
   isActive: "on",
+  tracksExpiry: "on",
 };
 
 describe("validateProductForm", () => {
@@ -39,6 +40,7 @@ describe("validateProductForm", () => {
         price: "25000.50",
         weight: "15",
         volume: null,
+        tracksExpiry: true,
         isActive: true,
       },
     });

@@ -13,6 +13,7 @@ import {
   RECEIPT_NOTES_MAX_LENGTH,
   receiptDifference,
 } from "@/lib/goods-receipt";
+import { dayOf } from "@/lib/lots";
 import { getGoodsReceipt } from "@/lib/purchase-queries";
 import { annulGoodsReceipt } from "../actions";
 
@@ -61,6 +62,8 @@ async function Receipt({ params }: { params: Promise<{ number: string }> }) {
   const fullName = (user: typeof receipt.createdBy) =>
     user ? `${user.person.name} ${user.person.surname}` : "—";
   const annulled = receipt.state === "ANNULLED";
+  const lotsOf = (productId: string) =>
+    receipt.lots.filter((lot) => lot.productId === productId);
 
   return (
     <>
@@ -119,6 +122,7 @@ async function Receipt({ params }: { params: Promise<{ number: string }> }) {
               <th className="py-2 pr-3 font-medium">{c.product}</th>
               <th className="py-2 pr-3 text-right font-medium">{c.pending}</th>
               <th className="py-2 pr-3 text-right font-medium">{c.quantity}</th>
+              <th className="py-2 pr-3 font-medium">{c.lot}</th>
               <th className="py-2 text-right font-medium">{c.difference}</th>
             </tr>
           </thead>
@@ -138,6 +142,20 @@ async function Receipt({ params }: { params: Promise<{ number: string }> }) {
                 <td className="py-2 pr-3 text-right whitespace-nowrap">
                   {format.number(item.quantity)}{" "}
                   {item.product.measurementUnit.name}
+                </td>
+                <td className="py-2 pr-3 whitespace-nowrap">
+                  {lotsOf(item.productId).length > 0 ? (
+                    lotsOf(item.productId).map((lot) => (
+                      <span key={lot.id} className="block">
+                        {lot.lotCode} · {format.number(lot.quantity)}
+                        <span className="block text-xs opacity-70">
+                          {c.expiresOn} {format.day(dayOf(lot.expiresOn))}
+                        </span>
+                      </span>
+                    ))
+                  ) : (
+                    <span className="opacity-50">—</span>
+                  )}
                 </td>
                 <td className="py-2 text-right whitespace-nowrap">
                   <DifferenceLabel

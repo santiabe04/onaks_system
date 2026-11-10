@@ -8,8 +8,11 @@ import { getActionDictionary } from "@/i18n/dictionary";
 import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { parseDecimalInput } from "@/lib/decimal-input";
 import { isCuid } from "@/lib/ids";
+import { QUANTITY_LIMITS } from "@/lib/quantity";
 import { applyShortages } from "@/lib/partial-delivery-ledger";
+import { reassignSaleLot, StockLedgerError } from "@/lib/stock-ledger";
 import {
   parsePicked,
   parsePickingRequest,
@@ -395,6 +398,69 @@ export async function removePickingSale(
       });
     }),
   );
+  if (failed) return failed;
+  revalidateOrders();
+  return {};
+}
+
+/**
+ * Cambia el lote del que sale lo de un pedido de una lista abierta (la
+ * sugerencia FEFO no era la que había en el estante). El stock del producto no
+ * cambia: se mueve entre lotes con dos movimientos del pedido.
+ */
+export async function changePickingLot(
+  listId: string,
+  _prev: PickingActionState,
+  formData: FormData,
+): Promise<PickingActionState> {
+  const user = await requirePermission(PERMISSION);
+  const t = messages().picking;
+  const read = (key: string) => {
+    const value = formData.get(key);
+    return typeof value === "string" ? value.trim() : "";
+  };
+  const [saleId, productId, fromLotId, toLotId] = [
+    read("saleId"),
+    read("productId"),
+    read("fromLotId"),
+    read("toLotId"),
+  ];
+  const quantity = parseDecimalInput(read("quantity"), QUANTITY_LIMITS);
+  if (
+    quantity === null ||
+    ![saleId, productId, fromLotId, toLotId].every(isCuid)
+  ) {
+    return { error: t.lotInvalid };
+  }
+  const failed = await run(async () => {
+    try {
+      await db.$transaction(async (tx) => {
+        const { list, sales } = await lockOpenList(tx, listId);
+        const sale = sales.find((row) => row.id === saleId);
+        const inList = list.items.some(
+          (item) => item.saleId === saleId && item.productId === productId,
+        );
+        if (!sale || !inList) throw new PickingError(t.notFound);
+        await reassignSaleLot(
+          tx,
+          sale,
+          {
+            productId,
+            warehouseId: list.warehouseId,
+            fromLotId,
+            toLotId,
+            quantity,
+          },
+          user.id,
+        );
+      });
+    } catch (error) {
+      if (error instanceof StockLedgerError) {
+        throw new PickingError(t.lotInvalid);
+      }
+      throw error;
+    }
+  });
   if (failed) return failed;
   revalidateOrders();
   return {};

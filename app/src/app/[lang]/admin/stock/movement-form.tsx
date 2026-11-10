@@ -13,6 +13,7 @@ import {
   type MovementFormState,
   type MovementValues,
 } from "@/lib/stock";
+import { LOT_CODE_MAX_LENGTH } from "@/lib/lots";
 import { createMovement } from "./actions";
 
 type Option = { id: string; label: string };
@@ -157,6 +158,28 @@ export function MovementForm({
           {isAdjustment ? t.countedHint : t.quantityHint}
         </span>
       </Field>
+
+      {type === "ENTRY" && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label={t.lotCode} error={errors?.lotCode}>
+            <Input
+              key={`l${values.lotCode}`}
+              name="lotCode"
+              defaultValue={values.lotCode}
+              maxLength={LOT_CODE_MAX_LENGTH}
+            />
+          </Field>
+          <Field label={t.expiresOn} error={errors?.expiresOn}>
+            <Input
+              key={`e${values.expiresOn}`}
+              type="date"
+              name="expiresOn"
+              defaultValue={values.expiresOn}
+            />
+          </Field>
+          <p className="text-xs opacity-60 sm:col-span-2">{t.lotHint}</p>
+        </div>
+      )}
 
       <Field
         label={commentRequired(type) ? t.comment : t.commentOptional}

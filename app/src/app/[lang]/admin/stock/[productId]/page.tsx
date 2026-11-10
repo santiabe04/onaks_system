@@ -8,8 +8,12 @@ import { interpolate } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
+import { connection } from "next/server";
+import { LotsTable } from "@/components/stock/lots-table";
 import { db } from "@/lib/db";
 import { isCuid } from "@/lib/ids";
+import { listLots } from "@/lib/lots-queries";
+import { isoDay } from "@/lib/order-period";
 import { fromMilli, toMilli } from "@/lib/quantity";
 import { MOVEMENTS_PAGE_SIZE, parsePage } from "@/lib/stock-filters";
 
@@ -49,9 +53,20 @@ async function ProductStock({
 
   const product = await db.product.findFirst({
     where: { id: productId, deletedAt: null },
-    select: { id: true, name: true, sku: true, isActive: true },
+    select: {
+      id: true,
+      name: true,
+      sku: true,
+      isActive: true,
+      tracksExpiry: true,
+    },
   });
   if (!product) notFound();
+  // El estado de cada lote (vencido, por vencer) depende de la fecha de hoy.
+  await connection();
+  const lots = product.tracksExpiry
+    ? await listLots(isoDay(new Date()), { productId })
+    : [];
 
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
@@ -71,6 +86,7 @@ async function ProductStock({
       take: MOVEMENTS_PAGE_SIZE,
       include: {
         warehouse: { select: { name: true } },
+        lot: { select: { lotCode: true } },
         createdBy: {
           select: { person: { select: { name: true, surname: true } } },
         },
@@ -180,6 +196,18 @@ async function ProductStock({
         </table>
       </div>
 
+      {product.tracksExpiry && (
+        <>
+          <h2 className="mt-8 text-lg font-medium">{t.lots.title}</h2>
+          <LotsTable
+            lots={lots}
+            format={format}
+            t={t.lots}
+            showProduct={false}
+          />
+        </>
+      )}
+
       <h2 className="mt-8 text-lg font-medium">{t.stock.movements}</h2>
       {movements.length === 0 ? (
         <p className="mt-3 text-sm opacity-70">{t.stock.noMovements}</p>
@@ -211,7 +239,14 @@ async function ProductStock({
                     {format.dateTime(movement.createdAt)}
                   </td>
                   <td className="py-2 pr-3">{movement.warehouse.name}</td>
-                  <td className="py-2 pr-3">{t.stock.types[movement.type]}</td>
+                  <td className="py-2 pr-3">
+                    {t.stock.types[movement.type]}
+                    {movement.lot && (
+                      <span className="block font-mono text-xs opacity-70">
+                        {t.lots.lot} {movement.lot.lotCode}
+                      </span>
+                    )}
+                  </td>
                   <td
                     className={`py-2 pr-3 text-right font-mono whitespace-nowrap ${negative(movement.quantity)}`}
                   >

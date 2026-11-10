@@ -35,9 +35,14 @@ export default async function StockPage({
     <main className="mx-auto w-full max-w-6xl p-4 sm:p-8">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{t.stock.title}</h1>
-        <Link href="/admin/stock/new" className={buttonClass()}>
-          {t.stock.newMovement}
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/admin/stock/lots" className={buttonClass("secondary")}>
+            {t.lots.title}
+          </Link>
+          <Link href="/admin/stock/new" className={buttonClass()}>
+            {t.stock.newMovement}
+          </Link>
+        </div>
       </div>
 
       {/* Los filtros vienen de la URL y los saldos de la DB: van en Suspense. */}

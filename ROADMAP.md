@@ -3,8 +3,8 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 09/11/2026: fases 0 a 16 resueltas (la 15 se descartó), en BETA (v1.48.0-beta). Siguen las
-funciones nuevas (fases 19 a 22); facturación electrónica y app del repartidor quedan al fondo.
+Estado al 09/11/2026: fases 0 a 16 resueltas (la 15 se descartó), en BETA (v1.49.0-beta). Siguen las
+funciones nuevas (fases 20 a 22); facturación electrónica y app del repartidor quedan al fondo.
 
 | Fase | Contenido                                                        | Estado      |
 | ---- | ---------------------------------------------------------------- | ----------- |
@@ -27,8 +27,8 @@ funciones nuevas (fases 19 a 22); facturación electrónica y app del repartidor
 | 16   | Límite de crédito y bloqueo por deuda                            | ✅          |
 | 17   | Devoluciones y notas de crédito a clientes                       | ✅          |
 | 18   | Repetir pedido y favoritos                                       | ✅          |
-| 19   | Transferencia en el checkout                                     | 🟡          |
-| 20   | Lotes y vencimientos                                             | ⏳          |
+| 19   | Transferencia en el checkout                                     | ✅          |
+| 20   | Lotes y vencimientos                                             | 🟡          |
 | 21   | Toma de inventario desde el celular                              | ⏳          |
 | 22   | Avisos al cliente (mail y WhatsApp)                              | ⏳          |
 | 23   | Facturación electrónica (ARCA)                                   | 💤 al fondo |
@@ -438,7 +438,7 @@ auditoría, como el carrito.
 | ---- | ----------------------------------------------------------------- | --------------- |
 | 18.1 | Repetir pedido, favoritos por empresa y los productos más pedidos | ✅ v1.47.0-beta |
 
-## Fase 19 — Transferencia en el checkout 🟡
+## Fase 19 — Transferencia en el checkout ✅
 
 Definiciones: en el checkout el cliente elige **efectivo** o **transferencia**; esta última solo se ofrece
 si el admin cargó los **datos de cobro** (`/admin/payment-settings`: banco, titular, CUIT y CBU o alias,
@@ -449,13 +449,28 @@ monto y fecha y se asienta un cobro por transferencia en la cuenta corriente) o 
 que el cliente ve y le permite subir otro. Un comprobante en revisión a la vez; los comprobantes no se
 borran (historial). El dashboard avisa los pendientes y "Todos los pedidos" filtra por ellos.
 
-| PR   | Contenido                                                                          | Estado      |
-| ---- | ---------------------------------------------------------------------------------- | ----------- |
-| 19.1 | Pago por transferencia: datos de cobro, comprobante del cliente y validación admin | 🟡 PR listo |
+| PR   | Contenido                                                                          | Estado          |
+| ---- | ---------------------------------------------------------------------------------- | --------------- |
+| 19.1 | Pago por transferencia: datos de cobro, comprobante del cliente y validación admin | ✅ v1.49.0-beta |
 
-## Fase 20 — Lotes y vencimientos ⏳
+## Fase 20 — Lotes y vencimientos 🟡
 
-- Vencimiento por lote al recibir mercadería; el picking saca primero lo que vence antes.
+Definiciones: el control es **opcional por producto** ("Controla vencimiento"): los demás siguen sin
+lotes. Al **recibir** mercadería de un producto con control, el informe pide lote y fecha de vencimiento,
+y lo que llegó se puede repartir en hasta 5 lotes (las cantidades tienen que sumar). El stock se lleva
+por lote en cada depósito (`stock_lots`) y el saldo del producto sigue siendo el total: lo anterior al
+control queda "sin lote". Las **salidas** (pedido en preparación, bajas, ajustes y transferencias) toman
+primero el lote que vence antes (FEFO), un movimiento por tramo con su lote. Volver un pedido a Pendiente
+o cancelarlo devuelve a los mismos lotes, y anular un informe saca del lote recibido. Un **ingreso a mano**
+de un producto con control pide lote y fecha; una **devolución de cliente** vuelve a los lotes de donde
+salió el pedido. La **lista de picking** muestra de qué lote sale cada producto (también impresa) y,
+mientras está abierta, el admin puede pasar una cantidad de un lote a otro si el estante no coincide con la
+sugerencia (dos movimientos del pedido, el saldo no cambia). Avisos: listado de lotes en Stock
+(`/admin/stock/lots`, vencidos y por vencer a 30 días) y alerta en el dashboard.
+
+| PR   | Contenido                                                                                 | Estado      |
+| ---- | ----------------------------------------------------------------------------------------- | ----------- |
+| 20.1 | Lotes por depósito, vencimiento al recibir (varios lotes), salidas FEFO, picking y avisos | 🟡 PR listo |
 
 ## Fase 21 — Toma de inventario desde el celular ⏳
 

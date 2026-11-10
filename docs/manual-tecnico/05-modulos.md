@@ -223,6 +223,25 @@ las hojas de ruta. Dentro de la transacción de quien llama:
 `/admin/stock` muestra Reservado y Disponible = total − reservado. Desde `PREPARING` el stock ya se
 descontó de verdad.
 
+**Lotes y vencimientos.** Un producto con `tracks_expiry` lleva además su stock por lote (`stock_lots`: producto,
+depósito, código y vencimiento, `quantity >= 0`); el saldo de `product_stocks` sigue siendo el total y la
+diferencia es stock "sin lote". Todo pasa por el libro (`lib/stock-ledger.ts`): una salida (`SALE`, bajas,
+ajustes por inventario y `TRANSFER_OUT`) se parte en tramos con `allocateFefo` (`lib/lots.ts`, puro: primero el
+lote que vence antes y, a igual fecha, por código) y cada tramo es un `stock_movements` con su `lot_id`, más un
+tramo sin lote si los lotes no alcanzan. `SALE_RETURN` devuelve a los lotes de donde salió ese pedido
+(`saleReturnParts`, el neto de sus movimientos con lote). Una recepción trae el lote y la fecha de cada línea
+(`parseReceiptLines`: filas `lot_/exp_/lq_<producto>_<n>`, hasta `MAX_LOTS_PER_LINE` lotes que suman lo que
+llegó; se guardan en `goods_receipt_lots`) e ingresa a cada lote; anular el informe saca de ellos
+(`reversalParts`). Las transferencias llevan cada tramo al mismo lote del depósito destino. Un ingreso a mano
+de un producto con control exige lote y fecha. Una devolución de cliente vuelve a los lotes de donde salió el
+pedido, descontando lo que otras notas ya devolvieron (`noteReturnParts`); darla de baja o anularla saca de
+los lotes donde esa nota dejó la mercadería (`noteHeldParts`). En la lista de picking (`getSaleLots`) se ve de
+qué lote sale cada producto y, con la lista abierta, `changePickingLot` → `reassignSaleLot` pasa una cantidad
+de un lote a otro con dos movimientos del pedido (`SALE_RETURN` al origen y `SALE` al destino), sin cambiar el
+saldo. `/admin/stock/lots` lista los lotes con stock (vencidos y
+por vencer a 30 días, `expiryStatus`) y el dashboard avisa. Las fechas de lote son de calendario: se leen con
+`dayOf` y se muestran con `format.day` (con `format.date` se correría un día por el huso).
+
 **Historial.** El detalle del pedido lo arma leyendo la auditoría de ese pedido (`History` en
 `app/[lang]/admin/orders/[number]/page.tsx`): estados, permisos de modificar, cambios del cliente,
 retenciones y aprobaciones de crédito.

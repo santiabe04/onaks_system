@@ -3,7 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ConfirmPickingForm } from "@/components/picking/picking-forms";
+import { LotChangeForm } from "@/components/picking/lot-change-form";
 import { PickingRoute } from "@/components/picking/picking-route";
+import { getSaleLots, getWarehouseLots } from "@/lib/lots-queries";
+import { sumLotsByProduct } from "@/lib/lots";
 import { SheetActionButton } from "@/components/routes/route-forms";
 import { buttonClass } from "@/components/ui/button";
 import { interpolate } from "@/i18n/config";
@@ -62,6 +65,28 @@ async function PickingList({
   const found = await getPickingList(number);
   if (!found) notFound();
   const { list, lines } = found;
+  // De qué lotes sale lo de cada pedido y qué lotes hay para cambiarlos.
+  const saleLots = await getSaleLots(
+    [...new Set(lines.map((line) => line.saleId))],
+    list.warehouseId,
+  );
+  const lotsByProduct = sumLotsByProduct(saleLots);
+  const warehouseLots =
+    list.state === "OPEN"
+      ? await getWarehouseLots(
+          [...new Set(saleLots.map((row) => row.productId))],
+          list.warehouseId,
+        )
+      : [];
+  const lotLabel = (
+    lot: { lotCode: string; expiresOn: string },
+    quantity: string,
+  ) =>
+    interpolate(p.lotLine, {
+      code: lot.lotCode,
+      date: format.day(lot.expiresOn),
+      quantity: format.number(quantity),
+    });
   const open = list.state === "OPEN";
   const fullName = (user: typeof list.createdBy) =>
     user ? `${user.person.name} ${user.person.surname}` : "—";
@@ -137,7 +162,7 @@ async function PickingList({
       </div>
 
       <h2 className="mt-6 mb-2 text-lg font-medium">{p.route}</h2>
-      <PickingRoute lines={lines} t={p} format={format} />
+      <PickingRoute lines={lines} t={p} format={format} lots={lotsByProduct} />
 
       <h2 className="mt-8 mb-2 text-lg font-medium">{p.byOrder}</h2>
       <div className="flex flex-col gap-3">
@@ -176,6 +201,49 @@ async function PickingList({
                 return (
                   <li key={line.productId}>
                     {format.number(line.quantity)} {line.unit} · {line.name}
+                    {saleLots
+                      .filter(
+                        (row) =>
+                          row.saleId === order.saleId &&
+                          row.productId === line.productId,
+                      )
+                      .map((row) => (
+                        <span
+                          key={row.lotId}
+                          className="block text-xs opacity-80"
+                        >
+                          {p.lots}: {lotLabel(row, row.quantity)}
+                        </span>
+                      ))}
+                    {open &&
+                      saleLots.some(
+                        (row) =>
+                          row.saleId === order.saleId &&
+                          row.productId === line.productId,
+                      ) && (
+                        <LotChangeForm
+                          listId={list.id}
+                          saleId={order.saleId}
+                          productId={line.productId}
+                          assigned={saleLots
+                            .filter(
+                              (row) =>
+                                row.saleId === order.saleId &&
+                                row.productId === line.productId,
+                            )
+                            .map((row) => ({
+                              id: row.lotId,
+                              label: lotLabel(row, row.quantity),
+                            }))}
+                          available={warehouseLots
+                            .filter((lot) => lot.productId === line.productId)
+                            .map((lot) => ({
+                              id: lot.id,
+                              label: lotLabel(lot, lot.quantity),
+                            }))}
+                          t={p}
+                        />
+                      )}
                     {short && line.picked && (
                       <span className="ml-2 text-amber-700 dark:text-amber-400">
                         {interpolate(p.shortage, {

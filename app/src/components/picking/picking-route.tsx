@@ -1,3 +1,4 @@
+import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import type { formatters } from "@/i18n/format";
 import { type PickingLine, pickingRoute } from "@/lib/picking";
@@ -11,11 +12,14 @@ export function PickingRoute({
   t,
   format,
   checkboxes,
+  lots,
 }: {
   lines: PickingLine[];
   t: Dictionary["picking"];
   format: ReturnType<typeof formatters>;
   checkboxes?: boolean;
+  /** De qué lotes sale cada producto (ya sumado entre pedidos). */
+  lots?: Map<string, { code: string; expiresOn: string; quantity: string }[]>;
 }) {
   const c = t.columns;
   return (
@@ -51,6 +55,19 @@ export function PickingRoute({
                 <span className="block font-mono text-xs opacity-70">
                   {stop.sku}
                 </span>
+                {lots?.get(stop.productId)?.map((lot) => (
+                  <span
+                    key={`${lot.code}-${lot.expiresOn}`}
+                    className="block text-xs opacity-80"
+                  >
+                    {t.lots}:{" "}
+                    {interpolate(t.lotLine, {
+                      code: lot.code,
+                      date: format.day(lot.expiresOn),
+                      quantity: format.number(lot.quantity),
+                    })}
+                  </span>
+                ))}
               </td>
               <td className="py-2 pr-3 text-right font-semibold whitespace-nowrap">
                 {format.number(stop.total)} {stop.unit}

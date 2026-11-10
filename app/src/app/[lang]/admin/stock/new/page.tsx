@@ -84,6 +84,8 @@ async function NewMovement({
         toWarehouseId: "",
         quantity: "",
         comment: "",
+        lotCode: "",
+        expiresOn: "",
       }}
       products={products.map((p) => ({
         id: p.id,

@@ -16,6 +16,7 @@ import {
   RECEIVABLE_PO_STATES,
 } from "@/lib/goods-receipt";
 import { isCuid } from "@/lib/ids";
+import { dayOf } from "@/lib/lots";
 import { lockPurchaseOrder } from "@/lib/purchase-lock";
 import { fromMilli, toMilli } from "@/lib/quantity";
 import { recordReceiptMovements, StockLedgerError } from "@/lib/stock-ledger";
@@ -146,7 +147,10 @@ export async function createGoodsReceipt(
           quantity: true,
           receivedQuantity: true,
           product: {
-            select: { measurementUnit: { select: { allowsDecimals: true } } },
+            select: {
+              tracksExpiry: true,
+              measurementUnit: { select: { allowsDecimals: true } },
+            },
           },
         },
       });
@@ -155,6 +159,7 @@ export async function createGoodsReceipt(
         items.map((item) => ({
           productId: item.productId,
           allowsDecimals: item.product.measurementUnit.allowsDecimals,
+          tracksExpiry: item.product.tracksExpiry,
         })),
         t,
       );
@@ -181,6 +186,16 @@ export async function createGoodsReceipt(
               pending: pendingQuantity(item(line.productId)),
             })),
           },
+          lots: {
+            create: parsed.lines.flatMap((line) =>
+              (line.lots ?? []).map((lot) => ({
+                productId: line.productId,
+                lotCode: lot.code,
+                expiresOn: new Date(`${lot.expiresOn}T00:00:00Z`),
+                quantity: lot.quantity,
+              })),
+            ),
+          },
         },
         include: { items: true },
       });
@@ -195,11 +210,22 @@ export async function createGoodsReceipt(
         tx,
         { id: receipt.id, number: receipt.number, orderNumber: order.number },
         "PURCHASE_RECEIPT",
-        parsed.lines.map((line) => ({
-          productId: line.productId,
-          warehouseId: warehouse.id,
-          quantity: line.quantity,
-        })),
+        parsed.lines.flatMap((line) =>
+          line.lots
+            ? line.lots.map((lot) => ({
+                productId: line.productId,
+                warehouseId: warehouse.id,
+                quantity: lot.quantity,
+                lot: { code: lot.code, expiresOn: lot.expiresOn },
+              }))
+            : [
+                {
+                  productId: line.productId,
+                  warehouseId: warehouse.id,
+                  quantity: line.quantity,
+                },
+              ],
+        ),
         user.id,
       );
       await updateOrderReceived(
@@ -249,6 +275,15 @@ export async function annulGoodsReceipt(
         where: { goodsReceiptId: receipt.id },
         select: { productId: true, quantity: true },
       });
+      const receiptLots = await tx.goodsReceiptLot.findMany({
+        where: { goodsReceiptId: receipt.id },
+        select: {
+          productId: true,
+          lotCode: true,
+          expiresOn: true,
+          quantity: true,
+        },
+      });
       // No se puede quedar con menos recibido que lo ya facturado.
       const [received, invoiced] = await Promise.all([
         tx.purchaseOrderItem.findMany({
@@ -270,11 +305,25 @@ export async function annulGoodsReceipt(
         tx,
         { id: receipt.id, number: receipt.number, orderNumber: order.number },
         "PURCHASE_RECEIPT_REVERSAL",
-        items.map((item) => ({
-          productId: item.productId,
-          warehouseId: receipt.warehouseId,
-          quantity: fromMilli(-toMilli(item.quantity)),
-        })),
+        items.flatMap((item) => {
+          const lots = receiptLots.filter(
+            (lot) => lot.productId === item.productId,
+          );
+          return lots.length > 0
+            ? lots.map((lot) => ({
+                productId: item.productId,
+                warehouseId: receipt.warehouseId,
+                quantity: fromMilli(-toMilli(lot.quantity)),
+                lot: { code: lot.lotCode, expiresOn: dayOf(lot.expiresOn) },
+              }))
+            : [
+                {
+                  productId: item.productId,
+                  warehouseId: receipt.warehouseId,
+                  quantity: fromMilli(-toMilli(item.quantity)),
+                },
+              ];
+        }),
         user.id,
       );
       await updateOrderReceived(

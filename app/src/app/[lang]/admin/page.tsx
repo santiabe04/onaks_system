@@ -8,7 +8,8 @@ import { formatters } from "@/i18n/format";
 import { getLocale, getT } from "@/i18n/server";
 import { getUserWithPermission } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { parseOrderPeriod } from "@/lib/order-period";
+import { countExpiryAlerts } from "@/lib/lots-queries";
+import { isoDay, parseOrderPeriod } from "@/lib/order-period";
 import { groupOrdersByZone } from "@/lib/orders-by-zone";
 import { getPeriodOrders } from "@/lib/orders-by-zone-queries";
 
@@ -182,7 +183,7 @@ async function ThisWeek() {
   // La semana actual depende de la hora del request, no de la del build.
   await connection();
   const period = parseOrderPeriod({});
-  const [orders, held, proofs] = await Promise.all([
+  const [orders, held, proofs, lotAlerts] = await Promise.all([
     getPeriodOrders(period),
     // De cualquier semana: esperan que el admin decida.
     db.sale.count({
@@ -199,6 +200,8 @@ async function ThisWeek() {
         state: { not: "CANCELED" },
       },
     }),
+    // Lotes vencidos y por vencer con stock.
+    countExpiryAlerts(isoDay(new Date())),
   ]);
   const { zones, totals } = groupOrdersByZone(orders, locale);
   const pending = orders.filter((order) => order.state === "PENDING").length;
@@ -213,6 +216,17 @@ async function ThisWeek() {
           className="mt-3 block rounded border border-amber-600/50 bg-amber-500/10 p-3 text-sm font-medium hover:underline"
         >
           {interpolate(t.dashboard.heldOrders, { count: held })}
+        </Link>
+      )}
+      {lotAlerts.expired + lotAlerts.soon > 0 && (
+        <Link
+          href={`/admin/stock/lots${lotAlerts.expired > 0 ? "?status=expired" : "?status=soon"}`}
+          className="mt-3 block rounded border border-red-600/50 bg-red-500/10 p-3 text-sm font-medium hover:underline"
+        >
+          {interpolate(t.lots.dashboardAlert, {
+            expired: lotAlerts.expired,
+            soon: lotAlerts.soon,
+          })}
         </Link>
       )}
       {proofs > 0 && (

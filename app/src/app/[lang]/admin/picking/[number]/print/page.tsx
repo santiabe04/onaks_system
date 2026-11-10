@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { PickingRoute } from "@/components/picking/picking-route";
+import { sumLotsByProduct } from "@/lib/lots";
+import { getSaleLots } from "@/lib/lots-queries";
 import { PrintButton } from "@/components/ui/print-button";
 import { interpolate } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
@@ -86,7 +88,18 @@ async function PrintablePicking({
       </header>
 
       <h2 className="mt-4 mb-2 font-medium">{p.route}</h2>
-      <PickingRoute lines={lines} t={p} format={format} checkboxes />
+      <PickingRoute
+        lines={lines}
+        t={p}
+        format={format}
+        checkboxes
+        lots={sumLotsByProduct(
+          await getSaleLots(
+            [...new Set(lines.map((line) => line.saleId))],
+            list.warehouseId,
+          ),
+        )}
+      />
 
       <h2 className="mt-6 mb-2 font-medium">{p.byOrder}</h2>
       <div className="grid grid-cols-2 gap-3 text-xs">

@@ -1,3 +1,4 @@
+import { isValidDay, LOT_CODE_MAX_LENGTH, normalizeLotCode } from "./lots";
 import { z } from "zod";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { parseDecimalInput } from "./decimal-input";
@@ -31,6 +32,9 @@ export type MovementValues = {
   toWarehouseId: string;
   quantity: string;
   comment: string;
+  /** Lote y vencimiento de un ingreso de un producto que controla vencimiento. */
+  lotCode: string;
+  expiresOn: string;
 };
 
 export type MovementFormState = {
@@ -46,6 +50,8 @@ export type MovementInput = {
   /** Cantidad positiva; en un ajuste, lo contado (puede ser 0). */
   quantity: string;
   comment: string | null;
+  /** Solo en un ingreso; el libro lo exige si el producto controla vencimiento. */
+  lot?: { code: string; expiresOn: string } | null;
 };
 
 export function validateMovementForm(
@@ -65,6 +71,8 @@ export function validateMovementForm(
     toWarehouseId: get("toWarehouseId"),
     quantity: get("quantity"),
     comment: get("comment"),
+    lotCode: get("lotCode"),
+    expiresOn: get("expiresOn"),
   };
 
   const schema = z
@@ -74,6 +82,8 @@ export function validateMovementForm(
       warehouseId: z.string().refine(isCuid, t.warehouseRequired),
       toWarehouseId: z.string(),
       quantity: z.string(),
+      lotCode: z.string(),
+      expiresOn: z.string(),
       comment: z
         .string()
         .trim()
@@ -106,6 +116,24 @@ export function validateMovementForm(
           message: t.sameWarehouse,
         });
       }
+      // Lote y fecha van juntos, y solo en un ingreso.
+      const lotCode = normalizeLotCode(data.lotCode);
+      const expiresOn = data.expiresOn.trim();
+      const withLot = data.type === "ENTRY" && (lotCode || expiresOn);
+      if (withLot && (!lotCode || lotCode.length > LOT_CODE_MAX_LENGTH)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["lotCode"],
+          message: t.lotInvalid,
+        });
+      }
+      if (withLot && !isValidDay(expiresOn)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["expiresOn"],
+          message: t.expiryInvalid,
+        });
+      }
       if (commentRequired(data.type) && data.comment === "") {
         ctx.addIssue({
           code: "custom",
@@ -120,6 +148,7 @@ export function validateMovementForm(
         toWarehouseId: isTransfer ? data.toWarehouseId : null,
         quantity: quantity ?? "0",
         comment: data.comment || null,
+        lot: withLot ? { code: lotCode, expiresOn } : null,
       };
     });
 

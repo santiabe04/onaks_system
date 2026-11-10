@@ -36,6 +36,8 @@ export function formatters(locale: Locale) {
     /** Recibe una fracción (0.105 → "10,5 %"), como se guardan las tasas. */
     percent: (value: Numeric) => percent.format(Number(value.toString())),
     date: (value: Date) => date.format(value),
+    /** Un día de calendario (YYYY-MM-DD, como el vencimiento de un lote), sin corrimientos de huso. */
+    day: (iso: string) => date.format(new Date(`${iso}T12:00:00`)),
     time: (value: Date) => time.format(value),
     dateTime: (value: Date) => dateTime.format(value),
   };

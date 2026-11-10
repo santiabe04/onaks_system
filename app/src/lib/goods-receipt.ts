@@ -3,6 +3,7 @@ import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { parseDecimalInput } from "./decimal-input";
 import { isCuid } from "./ids";
+import { isValidDay, LOT_CODE_MAX_LENGTH, normalizeLotCode } from "./lots";
 import { fromMilli, QUANTITY_LIMITS, toMilli } from "./quantity";
 
 // Puro: informes de recepción (IR) de las órdenes de compra.
@@ -54,15 +55,33 @@ export function orderStateFor(
   return complete ? "RECEIVED" : "PARTIALLY_RECEIVED";
 }
 
-export type ReceiptLine = { productId: string; quantity: string };
+/** Cuánto llegó de un lote (con su vencimiento, YYYY-MM-DD). */
+export type ReceiptLot = { code: string; expiresOn: string; quantity: string };
+
+export type ReceiptLine = {
+  productId: string;
+  quantity: string;
+  /** Cómo se reparte entre lotes, solo de productos que controlan vencimiento. */
+  lots?: ReceiptLot[];
+};
+
+/** Cuántos lotes distintos se pueden cargar de un producto en un informe. */
+export const MAX_LOTS_PER_LINE = 5;
 
 /**
  * Las cantidades recibidas del form (`rcv_<producto>`), solo de productos de
- * la OC: en blanco o 0, no llegó. Tiene que llegar al menos uno.
+ * la OC: en blanco o 0, no llegó. Tiene que llegar al menos uno. Lo que llegó
+ * de un producto que controla vencimiento se reparte en lotes: filas
+ * `lot_<producto>_<n>` (código), `exp_<producto>_<n>` (fecha) y `lq_<producto>_<n>`
+ * (cantidad; con una sola fila puede quedar en blanco y es todo lo que llegó).
  */
 export function parseReceiptLines(
   formData: FormData,
-  products: { productId: string; allowsDecimals: boolean }[],
+  products: {
+    productId: string;
+    allowsDecimals: boolean;
+    tracksExpiry?: boolean;
+  }[],
   t: Messages,
 ): { ok: true; lines: ReceiptLine[] } | { ok: false; error: string } {
   const lines: ReceiptLine[] = [];
@@ -76,10 +95,68 @@ export function parseReceiptLines(
     });
     if (quantity === null) return { ok: false, error: t.quantity };
     if (toMilli(quantity) === ZERO) continue;
-    lines.push({
+    const line: ReceiptLine = {
       productId: product.productId,
       quantity: fromMilli(toMilli(quantity)),
-    });
+    };
+    if (product.tracksExpiry) {
+      const text = (key: string, n: number) => {
+        const field = formData.get(`${key}_${product.productId}_${n}`);
+        return typeof field === "string" ? field.trim() : "";
+      };
+      const rows: ReceiptLot[] = [];
+      for (let n = 0; n < MAX_LOTS_PER_LINE; n++) {
+        const [code, expiresOn, rowQuantity] = [
+          normalizeLotCode(text("lot", n)),
+          text("exp", n),
+          text("lq", n),
+        ];
+        // Una fila sin nada es una fila sin usar.
+        if (!code && !expiresOn && !rowQuantity) continue;
+        if (!code) return { ok: false, error: t.lotRequired };
+        if (code.length > LOT_CODE_MAX_LENGTH) {
+          return {
+            ok: false,
+            error: interpolate(t.tooLong, { max: LOT_CODE_MAX_LENGTH }),
+          };
+        }
+        if (!isValidDay(expiresOn)) {
+          return { ok: false, error: t.expiryInvalid };
+        }
+        let lotQuantity = line.quantity;
+        if (rowQuantity) {
+          const parsed = parseDecimalInput(rowQuantity, {
+            ...QUANTITY_LIMITS,
+            maxDecimals: product.allowsDecimals
+              ? QUANTITY_LIMITS.maxDecimals
+              : 0,
+          });
+          if (parsed === null || toMilli(parsed) === ZERO) {
+            return { ok: false, error: t.lotQuantities };
+          }
+          lotQuantity = fromMilli(toMilli(parsed));
+        } else if (rows.length > 0 || n > 0) {
+          // Con más de una fila, cada una dice cuánto trae.
+          return { ok: false, error: t.lotQuantities };
+        }
+        if (
+          rows.some((row) => row.code === code && row.expiresOn === expiresOn)
+        ) {
+          return { ok: false, error: t.lotRepeated };
+        }
+        rows.push({ code, expiresOn, quantity: lotQuantity });
+      }
+      if (rows.length === 0) return { ok: false, error: t.lotRequired };
+      const total = rows.reduce(
+        (sum, row) => sum + toMilli(row.quantity),
+        ZERO,
+      );
+      if (total !== toMilli(line.quantity)) {
+        return { ok: false, error: t.lotQuantities };
+      }
+      line.lots = rows;
+    }
+    lines.push(line);
   }
   if (lines.length === 0) return { ok: false, error: t.noLines };
   return { ok: true, lines };
