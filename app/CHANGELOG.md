@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.51.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.50.0-beta...v1.51.0-beta) (2026-11-10)
+
+
+### Features
+
+* **stock:** count inventory from the phone with barcode scanning ([#128](https://github.com/santiabe04/onaks_system/issues/128)) ([2a8817c](https://github.com/santiabe04/onaks_system/commit/2a8817cf23d2e7206b1b91f9830abf7346c49016))
+
 ## [1.50.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.49.0-beta...v1.50.0-beta) (2026-11-10)
 
 
