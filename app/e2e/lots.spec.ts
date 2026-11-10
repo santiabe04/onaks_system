@@ -160,11 +160,17 @@ test("lotes y vencimientos: recepción, salida FEFO y avisos", async ({
     await expect(page.getByText(/controla vencimiento/)).toBeVisible();
     // React resetea el form un instante después del error: se espera antes de tipear.
     await ready(page);
-    await page.getByLabel(/^Lote/).fill("L-MANUAL");
-    await expect(page.getByLabel(/^Lote/)).toHaveValue("L-MANUAL");
-    await page
-      .getByRole("textbox", { name: "Vencimiento", exact: true })
-      .fill(dayFromNow(200));
+    const expiry = page.getByRole("textbox", {
+      name: "Vencimiento",
+      exact: true,
+    });
+    // Si el reset llega después de tipear, se vuelve a tipear hasta que quede.
+    await expect(async () => {
+      await page.getByLabel(/^Lote/).fill("L-MANUAL");
+      await expiry.fill(dayFromNow(200));
+      await expect(page.getByLabel(/^Lote/)).toHaveValue("L-MANUAL");
+      await expect(expiry).toHaveValue(dayFromNow(200));
+    }).toPass();
     await page.getByRole("button", { name: "Registrar" }).click();
     await page.waitForURL((url) => !url.pathname.endsWith("/new"));
 

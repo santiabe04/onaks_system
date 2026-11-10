@@ -242,6 +242,17 @@ saldo. `/admin/stock/lots` lista los lotes con stock (vencidos y
 por vencer a 30 días, `expiryStatus`) y el dashboard avisa. Las fechas de lote son de calendario: se leen con
 `dayOf` y se muestran con `format.day` (con `format.date` se correría un día por el huso).
 
+**Conteo de inventario.** `/admin/stock/counts` abre el conteo de un depósito (`stock_counts`, un solo
+`OPEN` por depósito: índice único parcial en la migración). Quien cuenta (`stock:count`) lo carga a ciegas
+desde el celular en `/admin/stock/counts/[number]`: `ScanForm` lee el código con la cámara
+(`BarcodeDetector`, si el navegador lo trae) o lo recibe tipeado o de un lector, y `scanCountEntry` lo busca
+por código de barras o SKU (`matchProductByCode`) y suma la cantidad en `stock_count_items.counted`; en el
+primer escaneo de un producto guarda `expected`, el saldo del depósito en ese momento. Un admin
+(`stock:manage`) revisa en `/review` (ahí sí se ve el saldo) y `approveStockCount` asienta cada diferencia
+(`countDifference`: contado − esperado) con `recordStockCorrection`, productos en orden de id y todo en una
+transacción; lo que no se escaneó no se toca. Medir contra el saldo del primer escaneo evita pisar lo
+vendido o recibido mientras se contaba. Descartar no mueve stock.
+
 **Historial.** El detalle del pedido lo arma leyendo la auditoría de ese pedido (`History` en
 `app/[lang]/admin/orders/[number]/page.tsx`): estados, permisos de modificar, cambios del cliente,
 retenciones y aprobaciones de crédito.

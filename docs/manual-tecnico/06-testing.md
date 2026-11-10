@@ -105,6 +105,7 @@ Recorren la app como una persona, con **Chromium**, contra la app **compilada** 
 | `returns.spec.ts`     | Devolución del pedido entregado (una bolsa al stock y otra de baja), ajuste por importe, lo que descuentan los reportes, anulaciones y lo que ve el cliente     |
 | `shop.spec.ts`        | El cliente arma el carrito, confirma el pedido y lo ve en "Mis pedidos"                                                                                         |
 | `lots.spec.ts`        | Producto con vencimiento: recepción repartida en dos lotes, pedido que sale del que vence antes, cambio de lote en el picking, ingreso a mano con lote y avisos |
+| `stock-count.spec.ts` | Conteo de un depósito: código inexistente, escaneos que suman, unidad entera, revisión con diferencia y ajuste en el historial                                  |
 | `transfer.spec.ts`    | Datos de cobro, pedido por transferencia con comprobante, rechazo con motivo, segundo comprobante y validación del cobro                                        |
 
 ### Reglas del juego

@@ -36,6 +36,9 @@ export default async function StockPage({
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{t.stock.title}</h1>
         <div className="flex flex-wrap gap-3">
+          <Link href="/admin/stock/counts" className={buttonClass("secondary")}>
+            {t.stockCount.title}
+          </Link>
           <Link href="/admin/stock/lots" className={buttonClass("secondary")}>
             {t.lots.title}
           </Link>
