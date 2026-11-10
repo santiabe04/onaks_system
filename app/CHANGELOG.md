@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.52.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.51.0-beta...v1.52.0-beta) (2026-11-10)
+
+
+### Features
+
+* **orders:** email customers when their order changes state ([#130](https://github.com/santiabe04/onaks_system/issues/130)) ([99f2483](https://github.com/santiabe04/onaks_system/commit/99f2483d27ab74d48705cd8e928f931a1fbb411c))
+
 ## [1.51.0-beta](https://github.com/santiabe04/onaks_system/compare/v1.50.0-beta...v1.51.0-beta) (2026-11-10)
 
 
