@@ -7,9 +7,9 @@ export type CountItemRow = {
   sku: string;
   unit: string;
   counted: string;
-  /** Saldo del sistema cuando se contó el producto por primera vez. */
+  /** System balance when the product was first counted. */
   expected: string;
-  /** Diferencia asentada al aprobar (null mientras está abierto). */
+  /** Difference recorded on approval (null while it is open). */
   applied: string | null;
 };
 
@@ -24,7 +24,7 @@ export type CountDetail = {
   items: CountItemRow[];
 };
 
-/** Un conteo con lo contado, del último producto cargado al primero. */
+/** A count with what was counted, from the last product loaded to the first. */
 export async function getStockCount(
   number: number,
 ): Promise<CountDetail | null> {

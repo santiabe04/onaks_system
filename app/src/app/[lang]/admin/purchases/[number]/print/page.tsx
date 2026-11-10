@@ -24,14 +24,14 @@ export async function generateMetadata({
   };
 }
 
-// La OC para mandar al proveedor (imprimir o guardar como PDF desde el navegador).
+// The PO to send to the supplier (print or save as PDF from the browser).
 export default async function PurchaseOrderPrintPage({
   params,
 }: PageProps<"/[lang]/admin/purchases/[number]/print">) {
   const t = await getT();
   return (
     <main className="mx-auto w-full max-w-4xl p-4 sm:p-8 print:p-0">
-      {/* params y la orden son de request: van en Suspense. */}
+      {/* params and the order are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >

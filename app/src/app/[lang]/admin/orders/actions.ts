@@ -19,7 +19,7 @@ import {
   type StateChangeFormState,
 } from "@/lib/sale-state-form";
 
-/** Cambia el estado de un pedido (ver `applySaleStateChange`). */
+/** Changes the status of an order (see `applySaleStateChange`). */
 export async function changeSaleState(
   saleId: string,
   _prev: StateChangeFormState,
@@ -41,15 +41,15 @@ export async function changeSaleState(
     throw error;
   }
 
-  // Detalle, listas, Stock (reservado) y dashboard.
+  // Detail, lists, Stock (reserved) and dashboard.
   revalidatePath("/[lang]", "layout");
   return { savedAt: Date.now() };
 }
 
 /**
- * Habilita (o quita) al cliente la modificación de un pedido Pendiente. Al
- * quitarla mientras la está usando, el pedido queda como estaba (los productos
- * siguen en su carrito).
+ * Enables (or removes) the customer's ability to edit a Pending order. When
+ * it is removed while being used, the order stays as it was (the products
+ * stay in its cart).
  */
 export async function setCustomerCanEdit(
   saleId: string,
@@ -100,9 +100,9 @@ export async function setCustomerCanEdit(
 }
 
 /**
- * Cambia el estado de varios pedidos a la vez (p. ej. toda una zona a En
- * reparto). Cada uno en su transacción, con las mismas reglas que el cambio
- * individual: si uno no se puede, los demás siguen y se informa cuál y por qué.
+ * Changes the status of several orders at once (e.g. a whole zone to On the road).
+ * Each one in its own transaction, with the same rules as the individual
+ * change: if one cannot, the others continue and it reports which one and why.
  */
 export async function changeSalesStateBulk(
   _prev: BulkStateChangeState,
@@ -125,7 +125,7 @@ export async function changeSalesStateBulk(
   );
 
   const results: NonNullable<BulkStateChangeState["results"]> = [];
-  // De a uno y en orden: cada pedido bloquea su cuenta y su stock por separado.
+  // One at a time and in order: each order locks its account and its stock separately.
   for (const sale of sales) {
     const number = numbers.get(sale.id);
     if (number === undefined) continue;
@@ -151,8 +151,8 @@ export async function changeSalesStateBulk(
 }
 
 /**
- * Aprueba un pedido retenido por crédito (supera el límite o hay deuda
- * vencida): desde ahí sigue el circuito normal. Queda quién y por qué.
+ * Approves an order held for credit (over the limit or with an overdue
+ * debt): from there it follows the normal flow. Records who and why.
  */
 export async function releaseCreditHold(
   saleId: string,

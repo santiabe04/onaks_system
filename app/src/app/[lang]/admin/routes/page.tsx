@@ -27,7 +27,7 @@ export default async function RouteSheetsPage({
           {t.routes.newButton}
         </Link>
       </div>
-      {/* El filtro viene de la URL y las hojas de la DB: van en Suspense. */}
+      {/* The filter comes from the URL and the sheets from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -48,7 +48,7 @@ async function RouteSheets({
   const r = t.routes;
   const showClosed = (await searchParams).closed === "1";
 
-  // Las abiertas siempre; las cerradas, a pedido (son el historial).
+  // Open ones always; closed ones on request (they are the history).
   const sheets = await db.routeSheet.findMany({
     where: showClosed ? {} : { state: { not: "CLOSED" } },
     orderBy: [{ date: "desc" }, { number: "desc" }],
@@ -103,7 +103,7 @@ async function RouteSheets({
                   </td>
                   <td className="py-2 pr-3 whitespace-nowrap">
                     {format.date(
-                      // `date` es un día sin hora: se muestra ese mismo día.
+                      // `date` is a day without time: it is shown on that same day.
                       new Date(
                         `${sheet.date.toISOString().slice(0, 10)}T12:00:00-03:00`,
                       ),

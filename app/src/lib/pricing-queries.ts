@@ -3,9 +3,9 @@ import { BASE_PRICING, type Pricing } from "./customer-price";
 import { db } from "./db";
 
 /**
- * Lista y descuento de un cliente, con los precios fijos de su lista para
- * esos productos. Sin cliente (un admin mirando la tienda): precio base.
- * Acepta una transacción para calcular dentro de la confirmación.
+ * A customer's list and discount, with the fixed prices of their list for
+ * those products. No customer (an admin looking at the shop): base price.
+ * Accepts a transaction to calculate inside the confirmation.
  */
 export async function getPricing(
   customerId: string | null,

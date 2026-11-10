@@ -9,7 +9,7 @@ const BADGE = {
   ok: "",
 } as const;
 
-/** Lotes con stock, con su vencimiento y si ya vencieron o están por vencer. */
+/** Lots with stock, with their expiry and whether they have already expired or are expiring soon. */
 export function LotsTable({
   lots,
   format,

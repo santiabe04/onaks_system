@@ -5,34 +5,34 @@ import { cartTotals, parseCartQuantity } from "./cart";
 import { parseDecimalInput, PRICE_LIMITS } from "./decimal-input";
 import { fromMilli, toMilli } from "./quantity";
 
-// Puro: notas de crédito al cliente. Una devolución sale de un pedido
-// entregado (productos, cantidades y qué se hace con cada uno); un ajuste es
-// solo un importe. El monto de una devolución es lo que el cliente pagó por
-// eso (precio y alícuota del pedido), no el precio de hoy.
+// Pure: customer credit notes. A return comes from a delivered order
+// (products, quantities and what is done with each); an adjustment is only
+// an amount. The amount of a return is what the customer paid for
+// it (order price and tax rate), not today's price.
 
 export const CREDIT_NOTE_REASON_MAX_LENGTH = 300;
 
 type Messages = Dictionary["customerCreditNotes"]["errors"];
 type Numeric = { toString(): string } | string;
 
-/** Solo se devuelve de un pedido entregado (es cuando pasó a ser deuda). */
+/** Only returned from a delivered order (that is when it became a debt). */
 export function isReturnable(state: SaleState): boolean {
   return CHARGED_SALE_STATES.includes(state);
 }
 
-/** Una línea del pedido con lo que ya se devolvió, para ofrecer lo que queda. */
+/** An order line with what was already returned, to offer what is left. */
 export type ReturnableLine = {
   productId: string;
-  /** Entregado (ya con los faltantes descontados). */
+  /** Delivered (already with the shortages deducted). */
   quantity: Numeric;
-  /** Ya devuelto en notas de crédito vigentes. */
+  /** Already returned in valid credit notes. */
   returned: Numeric;
   unitPrice: Numeric;
   unitTaxRate: Numeric;
   allowsDecimals: boolean;
 };
 
-/** Lo que todavía se puede devolver de una línea ("2.5"), nunca negativo. */
+/** What can still be returned of a line ("2.5"), never negative. */
 export function remainingQuantity(line: {
   quantity: Numeric;
   returned: Numeric;
@@ -41,7 +41,7 @@ export function remainingQuantity(line: {
   return fromMilli(left > BigInt(0) ? left : BigInt(0));
 }
 
-/** Total (con IVA) de lo devuelto: precio y alícuota del pedido, a centavos. */
+/** Total (with VAT) of what was returned: order price and tax rate, to cents. */
 export function returnAmount(
   lines: { quantity: Numeric; unitPrice: Numeric; unitTaxRate: Numeric }[],
 ): string {
@@ -71,10 +71,9 @@ function read(formData: FormData, key: string): string {
 }
 
 /**
- * Lee el form de devolución: `warehouse`, `reason` y, por cada producto,
- * `qty_<id>` (vacío o 0 = no se devuelve) y `dest_<id>`. Valida contra lo
- * que se puede devolver ahora; la acción lo vuelve a validar con la cuenta
- * bloqueada.
+ * Reads the return form: `warehouse`, `reason` and, for each product,
+ * `qty_<id>` (empty or 0 = not returned) and `dest_<id>`. Validates against what
+ * can be returned now; the action validates it again with the account locked.
  */
 export function parseReturn(
   formData: FormData,
@@ -113,7 +112,7 @@ export function parseReturn(
 
 export type AdjustmentInput = { amount: string; reason: string };
 
-/** Nota de crédito por importe: monto mayor a 0 (con IVA) y motivo. */
+/** Credit note by amount: amount greater than 0 (with VAT) and a reason. */
 export function parseAdjustment(
   formData: FormData,
   t: Messages,

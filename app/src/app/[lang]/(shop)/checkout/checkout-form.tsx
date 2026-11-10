@@ -8,7 +8,7 @@ import { placeOrder } from "./actions";
 
 export type AddressOption = { id: string; name: string; detail: string };
 
-/** Los datos de cobro que se muestran al elegir transferencia. */
+/** The payment details shown when transfer is chosen. */
 export type TransferDetails = {
   bankName: string;
   holder: string;
@@ -26,11 +26,11 @@ export function CheckoutForm({
   tTransfer,
 }: {
   addresses: AddressOption[];
-  /** Huella del carrito que se está mostrando (ver `cartFingerprint`). */
+  /** Cart fingerprint being shown (see `cartFingerprint`). */
   fingerprint: string;
-  /** Al modificar un pedido, su dirección. */
+  /** When editing an order, its address. */
   defaultAddressId?: string;
-  /** Datos de cobro; sin ellos solo se ofrece efectivo. */
+  /** Payment details; without them only cash is offered. */
   transfer: TransferDetails | null;
   t: Dictionary["checkout"];
   tTransfer: Dictionary["transfer"];
@@ -39,7 +39,7 @@ export function CheckoutForm({
     placeOrder,
     {},
   );
-  // Con una sola dirección va preseleccionada; con varias, que elija.
+  // With a single address it is preselected; with several, the user picks.
   const values = state.values ?? {
     addressId:
       addresses.find((address) => address.id === defaultAddressId)?.id ??
@@ -47,13 +47,13 @@ export function CheckoutForm({
     notes: "",
     paymentMethod: "CASH",
   };
-  // Transferencia solo si hay datos de cobro (o si ya venía elegida).
+  // Transfer only if there are payment details (or if it was already chosen).
   const [method, setMethod] = useState(
     transfer && values.paymentMethod === "TRANSFER" ? "TRANSFER" : "CASH",
   );
 
   return (
-    // key: React 19 resetea el form después de la action; así vuelve a lo elegido.
+    // key: React 19 resets the form after the action; this brings back the chosen value.
     <form
       key={JSON.stringify(state)}
       action={action}

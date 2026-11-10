@@ -9,7 +9,7 @@ import {
   type CategoryRow,
 } from "./category";
 
-// Alimentos (1) › Perros (2) › Cachorros (3); Accesorios (4) › Correas (5)
+// Food (1) › Dogs (2) › Puppies (3); Accessories (4) › Leashes (5)
 const rows: CategoryRow[] = [
   { id: 3, name: "Cachorros", parentId: 2 },
   { id: 1, name: "Alimentos", parentId: null },
@@ -55,7 +55,7 @@ describe("checkParent", () => {
   });
 
   it("al mover, cuenta los niveles de las descendientes", () => {
-    // Perros tiene una hija: debajo de Correas (nivel 2) quedaría en 3 y Cachorros en 4.
+    // Perros has a child: under Correas (level 2) it would be 3 and Cachorros 4.
     expect(checkParent(rows, 2, 5)).toBe("tooDeep");
     expect(checkParent(rows, 2, 4)).toBeNull();
   });
@@ -76,7 +76,7 @@ describe("parentOptions", () => {
   });
 
   it("saca las categorías que ya tienen productos", () => {
-    // Correas (5) tiene productos: no puede recibir subcategorías.
+    // Correas (5) has products: it cannot receive subcategories.
     expect(parentOptions(rows, null, new Set([5])).map((n) => n.id)).toEqual([
       4, 1, 2,
     ]);

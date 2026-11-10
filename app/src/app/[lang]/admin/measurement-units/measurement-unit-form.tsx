@@ -31,7 +31,7 @@ export function MeasurementUnitForm({
   common,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
-  // Si hubo error, se muestra lo último que tipeó el usuario.
+  // If there was an error, the user's last input is shown.
   const values = state.values ??
     defaultValues ?? {
       name: "",

@@ -5,7 +5,7 @@ import { parseSaleNumber, validateCheckoutForm } from "./checkout";
 
 const t = es.checkout.errors;
 
-// Carrito de un pet shop: bolsas de alimento por unidad y alimento suelto por kg.
+// A pet shop's cart: food bags per unit and loose food by kg.
 const lines = [
   {
     productId: "prodbolsa15",

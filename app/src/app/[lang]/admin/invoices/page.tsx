@@ -23,7 +23,7 @@ export default async function InvoicesPage({
   return (
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.invoices.title}</h1>
-      {/* El filtro viene de la URL y las facturas de la DB: van en Suspense. */}
+      {/* The filter comes from the URL and the invoices from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -65,7 +65,7 @@ async function Invoices({
     }),
     db.supplierInvoice.count({ where: { state: "FLAGGED" } }),
   ]);
-  // Fechas sin hora: se muestran al mediodía para que la zona no cambie el día.
+  // Dates without time: they are shown at noon so the time zone does not change the day.
   const day = (date: Date) =>
     format.date(new Date(`${date.toISOString().slice(0, 10)}T12:00:00-03:00`));
 

@@ -5,15 +5,15 @@ import { useActionState } from "react";
 export type DeleteState = { error?: string };
 
 type Props = {
-  /** La action de borrado con el id ya bindeado. */
+  /** The delete action with the id already bound. */
   action: (state: DeleteState) => Promise<DeleteState>;
   confirmMessage: string;
   labels: { delete: string; deleting: string };
-  /** Si viene, el botón queda deshabilitado y el motivo se ve al pasar el mouse. */
+  /** If set, the button is disabled and the reason is shown on hover. */
   disabledReason?: string;
 };
 
-/** Botón "Borrar" de una fila: pide confirmación y muestra el error de la action. */
+/** "Delete" button for a row: asks for confirmation and shows the action's error. */
 export function DeleteButton({
   action,
   confirmMessage,

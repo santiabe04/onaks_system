@@ -5,7 +5,7 @@ import { FormError } from "@/components/ui/form";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { retryOrderNotice } from "@/app/[lang]/admin/orders/[number]/notice-actions";
 
-/** Reintenta el envío de un aviso que no salió. */
+/** Retries sending a notice that did not go out. */
 export function NoticeRetryButton({
   noticeId,
   t,

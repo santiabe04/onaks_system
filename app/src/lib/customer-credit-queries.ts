@@ -6,9 +6,9 @@ import { db } from "./db";
 type Client = Prisma.TransactionClient | typeof db;
 
 /**
- * Lo que se puede devolver de un pedido: sus líneas con lo ya devuelto en
- * notas de crédito vigentes. null si el pedido no existe; `returnable` dice si
- * está en un estado del que se pueda devolver.
+ * What can be returned from an order: its lines with what was already returned in
+ * valid credit notes. null if the order does not exist; `returnable` says whether it is
+ * in a state that can be returned.
  */
 export async function returnableLines(client: Client, saleId: string) {
   const sale = await client.sale.findUnique({

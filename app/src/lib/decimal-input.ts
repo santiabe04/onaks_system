@@ -1,16 +1,16 @@
-// Puro: números que tipea el usuario ("1250,5" o "1250.5") → string para un
-// Decimal de Postgres, sin pasar por floats.
+// Pure: numbers the user types ("1250,5" or "1250.5") → a string for a
+// Postgres Decimal, without going through floats.
 
 export type DecimalLimits = {
-  /** Decimales máximos que admite la columna. */
+  /** Maximum decimals the column accepts. */
   maxDecimals: number;
-  /** Dígitos enteros máximos (precisión - escala de la columna). */
+  /** Maximum integer digits (column precision − scale). */
   maxIntegerDigits: number;
 };
 
 /**
- * "1250,5" → "1250.5". null si no es un número no negativo con esos límites.
- * Sin separador de miles: "1.250" sería ambiguo entre idiomas.
+ * "1250,5" → "1250.5". null if it is not a non-negative number within those limits.
+ * No thousands separator: "1.250" would be ambiguous between languages.
  */
 export function parseDecimalInput(
   raw: string,
@@ -25,13 +25,13 @@ export function parseDecimalInput(
   return decimals ? `${integer}.${decimals}` : integer;
 }
 
-/** Precio: columna DECIMAL(12,2). */
+/** Price: DECIMAL(12,2) column. */
 export const PRICE_LIMITS: DecimalLimits = {
   maxDecimals: 2,
   maxIntegerDigits: 10,
 };
 
-/** Peso y volumen: columnas DECIMAL(10,3). */
+/** Weight and volume: DECIMAL(10,3) columns. */
 export const MEASURE_LIMITS: DecimalLimits = {
   maxDecimals: 3,
   maxIntegerDigits: 7,

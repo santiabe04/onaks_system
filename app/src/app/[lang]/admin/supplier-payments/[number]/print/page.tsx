@@ -26,14 +26,14 @@ export async function generateMetadata({
   };
 }
 
-// El comprobante de la OP para firmar o mandar al proveedor.
+// The payment order voucher to sign or send to the supplier.
 export default async function SupplierPaymentPrintPage({
   params,
 }: PageProps<"/[lang]/admin/supplier-payments/[number]/print">) {
   const t = await getT();
   return (
     <main className="mx-auto w-full max-w-3xl p-4 sm:p-8 print:p-0">
-      {/* params y la OP son de request: van en Suspense. */}
+      {/* params and the payment order are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >

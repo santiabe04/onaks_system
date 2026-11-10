@@ -1,12 +1,12 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { AuditAction, AuditEntity } from "@/generated/prisma/enums";
 
-// Puro: arma los filtros del visor de auditoría a partir de la URL.
+// Pure: builds the audit viewer's filters from the URL.
 
 export const AUDIT_PAGE_SIZE = 50;
 
-// Las fechas del filtro son días calendario de Argentina, que no tiene horario
-// de verano: el offset es fijo.
+// The filter dates are calendar days in Argentina, which has no daylight saving
+// time: the offset is fixed.
 const TZ_OFFSET = "-03:00";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -42,7 +42,7 @@ function dayStart(raw: string | undefined): Date | undefined {
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
-/** Lo que no se entiende se ignora: una URL editada a mano no rompe la página. */
+/** What is not understood is ignored: a hand-edited URL does not break the page. */
 export function parseAuditFilters(params: SearchParams): AuditFilters {
   const actor = first(params.actor);
   const from = first(params.from);
@@ -69,14 +69,14 @@ export function auditWhere(filters: AuditFilters): Prisma.AuditLogWhereInput {
       from || to
         ? {
             gte: from,
-            // `to` es inclusive: hasta el comienzo del día siguiente.
+            // `to` is inclusive: up to the start of the next day.
             lt: to ? new Date(to.getTime() + DAY_MS) : undefined,
           }
         : undefined,
   };
 }
 
-/** Query string con los mismos filtros y otra página (para los links). */
+/** Query string with the same filters and another page (for the links). */
 export function auditQuery(filters: AuditFilters, page: number): string {
   const params = new URLSearchParams();
   for (const key of ["actor", "entity", "action", "from", "to"] as const) {

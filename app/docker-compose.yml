@@ -45,7 +45,7 @@ services:
     ports:
       - "${APP_PORT:-3000}:3000"
     volumes:
-      # Imágenes de productos: hay que incluirlo en los backups junto con la DB.
+      # Product images: include them in the backups together with the DB.
       - uploads:/app/uploads
     depends_on:
       migrate:

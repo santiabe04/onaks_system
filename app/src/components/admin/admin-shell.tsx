@@ -6,19 +6,19 @@ import { Suspense, useEffect, useState, type ReactNode } from "react";
 import { stripLocalePrefix } from "@/i18n/config";
 
 export type NavItem = { href: string; label: string };
-/** Sin `title` es un grupo sin encabezado (p. ej. "Inicio"). */
+/** Without `title` it is a group with no heading (e.g. "Home"). */
 export type NavSection = { title?: string; items: NavItem[] };
 
 type Props = {
   brand: string;
   sections: NavSection[];
-  /** Usuario, tema y salir: va al pie del menú. */
+  /** User, theme and logout: goes at the foot of the menu. */
   footer: ReactNode;
   labels: { openMenu: string; closeMenu: string };
   children: ReactNode;
 };
 
-// "/admin" solo se marca en el inicio exacto; el resto también en sus subpáginas.
+// "/admin" is only highlighted on the exact home; the rest also on their subpages.
 function isActive(pathname: string, href: string): boolean {
   if (href === "/admin") return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -34,7 +34,7 @@ export function AdminShell({
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
-  // En mobile el menú es un panel: Escape lo cierra.
+  // On mobile the menu is a panel: Escape closes it.
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
@@ -46,7 +46,7 @@ export function AdminShell({
 
   return (
     <div className="flex flex-1 flex-col md:flex-row">
-      {/* Barra superior, solo en pantallas chicas. Ni esto ni el menú se imprimen. */}
+      {/* Top bar, only on small screens. Neither this nor the menu is printed. */}
       <header className="flex items-center gap-3 border-b border-current/20 px-4 py-3 md:hidden print:hidden">
         <button
           type="button"
@@ -92,8 +92,8 @@ export function AdminShell({
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 pb-4 text-sm">
-          {/* La URL es dato del request: el resaltado del activo va en Suspense
-              y, mientras tanto, el menú se ve igual pero sin marcar. */}
+          {/* The URL is request data: the active highlight goes in Suspense
+              and, meanwhile, the menu looks the same but without a highlight. */}
           <Suspense
             fallback={
               <NavList sections={sections} pathname={null} onNavigate={close} />
@@ -127,7 +127,7 @@ function NavList({
   pathname: string | null;
   onNavigate: () => void;
 }) {
-  // Si varias coinciden (/admin/orders y /admin/orders/list), gana la más específica.
+  // If several match (/admin/orders and /admin/orders/list), the most specific wins.
   const activeHref =
     pathname === null
       ? null

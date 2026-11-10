@@ -7,9 +7,9 @@ test("el cliente arma el carrito, confirma el pedido y lo ve en Mis pedidos", as
   await login(page, "patitas");
   await expect(page).toHaveURL("/");
 
-  // Dos productos desde las tarjetas del catálogo (uno por unidad, otro a granel).
-  // "Lo que más pedís" repite productos arriba de la grilla: se usa la tarjeta
-  // de la grilla principal, que es la última.
+  // Two products from the catalog cards (one per unit, one bulk).
+  // "What you order most" repeats products above the grid: the card in the main grid,
+  // which is the last one, is used.
   const dogFood = page
     .getByRole("listitem")
     .filter({ hasText: "Alimento perro adulto 3 kg" })
@@ -26,7 +26,7 @@ test("el cliente arma el carrito, confirma el pedido y lo ve en Mis pedidos", as
   await catFood.getByRole("button", { name: "Agregar" }).click();
   await expect(catFood.getByText("Agregado al carrito")).toBeVisible();
 
-  // Carrito: 2 × $ 6.900 neto (IVA 10,5 %) + 1,5 kg × $ 3.950 neto (IVA 10,5 %).
+  // Cart: 2 × $ 6.900 net (VAT 10,5 %) + 1,5 kg × $ 3.950 net (VAT 10,5 %).
   await page.getByRole("link", { name: "Carrito (2)" }).click();
   await expect(page.getByRole("heading", { name: "Carrito" })).toBeVisible();
   await expect(page.getByText("$ 21.796,13").first()).toBeVisible();
@@ -40,7 +40,7 @@ test("el cliente arma el carrito, confirma el pedido y lo ve en Mis pedidos", as
   const number = numberFromUrl(page.url());
   await expect(page.getByText("Pedido de prueba e2e")).toBeVisible();
 
-  // En Mis pedidos, pendiente y con el carrito vacío.
+  // In My orders, pending and with an empty cart.
   await page.goto("/orders");
   const row = page.getByRole("row").filter({ hasText: `#${number}` });
   await expect(row).toContainText("Pendiente");

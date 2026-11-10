@@ -22,7 +22,7 @@ export type LotRow = {
   unit: string;
 };
 
-/** Lotes con algo de stock, del que vence antes al que vence después. */
+/** Lots with some stock, from the one that expires first to the one that expires last. */
 export async function listLots(
   today: string,
   filter: { productId?: string; status?: ExpiryStatus } = {},
@@ -73,7 +73,7 @@ export async function listLots(
   });
 }
 
-/** Cuántos lotes con stock están vencidos y cuántos por vencer (para el dashboard). */
+/** How many lots with stock are expired and how many expiring (for the dashboard). */
 export async function countExpiryAlerts(
   today: string,
 ): Promise<{ expired: number; soon: number }> {
@@ -101,7 +101,7 @@ export type PickingLotRow = {
   quantity: string;
 };
 
-/** De qué lotes salió lo de cada pedido (neto de cambios y devoluciones). */
+/** Which lots each order's goods came from (net of changes and returns). */
 export async function getSaleLots(
   saleIds: string[],
   warehouseId: string,
@@ -121,7 +121,7 @@ export async function getSaleLots(
     ORDER BY l."expires_on", l."lot_code"`;
 }
 
-/** Lotes con stock de unos productos en un depósito (para cambiar de lote). */
+/** Lots with stock of some products in a warehouse (to change lots). */
 export async function getWarehouseLots(
   productIds: string[],
   warehouseId: string,

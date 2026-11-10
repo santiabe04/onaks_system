@@ -7,19 +7,19 @@ import { Field, FormError, Input, SubmitButton } from "@/components/ui/form";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { LOCATION_NAME_MAX_LENGTH } from "@/lib/location";
 
-/** Estado común a los forms de provincia y localidad. */
+/** State shared by the province and city forms. */
 type FormState = {
   errors?: Partial<Record<"name" | "stateId" | "form", string[]>>;
   values?: { name: string; stateId?: string };
 };
 
-// La action de provincia o de localidad: cada una tipa su propio estado.
+// The province or city action: each one types its own state.
 type Action = (state: never, formData: FormData) => Promise<FormState>;
 
 type Props = {
   action: Action;
   defaultValues: { name: string; stateId?: string };
-  /** Solo para localidades: las provincias a elegir. */
+  /** Only for cities: the provinces to choose from. */
   states?: { id: number; name: string }[];
   placeholder: string;
   submitLabel: string;
@@ -36,20 +36,20 @@ export function LocationForm({
   t,
   common,
 }: Props) {
-  // Seguro: la action solo recibe el estado inicial ({}) o el que ella misma
-  // devolvió, que es de su propio tipo.
+  // Safe: the action only receives the initial state ({}) or the one it
+  // itself returned, which is of its own type.
   const [state, formAction, pending] = useActionState(
     action as (state: FormState, formData: FormData) => Promise<FormState>,
     {},
   );
-  // Si hubo error, se muestra lo último que cargó el usuario.
+  // If there was an error, the user's last input is shown.
   const values = state.values ?? defaultValues;
 
   return (
     <form action={formAction} className="mt-6 flex flex-col gap-4">
       {states && (
         <Field label={t.state} error={state.errors?.stateId}>
-          {/* key: al volver con error, el select toma el valor nuevo. */}
+          {/* key: when returning with an error, the select takes the new value. */}
           <select
             key={values.stateId}
             name="stateId"

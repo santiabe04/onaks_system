@@ -13,7 +13,7 @@ describe("toMilli / fromMilli", () => {
   });
 
   it("suma sin errores de coma flotante", () => {
-    // 0.1 + 0.2 con floats da 0.30000000000000004.
+    // 0.1 + 0.2 with floats gives 0.30000000000000004.
     expect(fromMilli(toMilli("0.1") + toMilli("0.2"))).toBe("0.3");
   });
 });

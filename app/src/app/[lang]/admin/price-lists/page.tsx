@@ -28,7 +28,7 @@ export default async function PriceListsPage() {
       </div>
       <p className="mt-2 text-sm opacity-70">{t.priceLists.hint}</p>
 
-      {/* La lista sale de la DB en cada request: va en Suspense (cacheComponents). */}
+      {/* The list comes from the DB on every request: it goes in Suspense (cacheComponents). */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >

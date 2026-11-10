@@ -4,7 +4,7 @@ import { openInvoices } from "@/lib/supplier-account-ledger";
 import { formatInvoiceNumber } from "@/lib/supplier-invoice";
 import type { OpenInvoiceRow } from "./account-forms";
 
-/** Fecha sin hora al mediodía, para que la zona horaria no cambie el día. */
+/** Date without time at noon, so the time zone does not change the day. */
 export function formatDay(
   format: ReturnType<typeof formatters>,
   day: string | Date,
@@ -13,7 +13,7 @@ export function formatDay(
   return format.date(new Date(`${iso}T12:00:00-03:00`));
 }
 
-/** Las facturas con saldo del proveedor, listas para la tabla de imputación. */
+/** The supplier's invoices with a balance, ready for the allocation table. */
 export function openInvoiceRows(
   account: Awaited<ReturnType<typeof loadSupplierAccount>>,
   format: ReturnType<typeof formatters>,

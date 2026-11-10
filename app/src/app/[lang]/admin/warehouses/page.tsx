@@ -26,7 +26,7 @@ export default async function WarehousesPage() {
         </Link>
       </div>
 
-      {/* La lista sale de la DB en cada request: va en Suspense (cacheComponents). */}
+      {/* The list comes from the DB on every request: it goes in Suspense (cacheComponents). */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -40,7 +40,7 @@ async function WarehousesTable() {
   await getUserWithPermission("warehouses:manage");
   const t = await getT();
 
-  // Los activos primero.
+  // Active ones first.
   const warehouses = await db.warehouse.findMany({
     orderBy: [{ isActive: "desc" }, { name: "asc" }],
     include: { city: { select: { name: true } } },

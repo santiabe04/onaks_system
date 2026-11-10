@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { CHANGE_PASSWORD_PATH } from "@/lib/routes";
 import { APP_VERSION } from "@/lib/version";
 
-/** Pie del menú del admin. Lee la sesión: va dentro de un <Suspense>. */
+/** Foot of the admin menu. Reads the session: it goes inside a <Suspense>. */
 export async function SidebarUser() {
   const [user, t] = await Promise.all([getCurrentUser("ADMIN"), getT()]);
 
@@ -21,7 +21,7 @@ export async function SidebarUser() {
         >
           {t.userMenu.changePassword}
         </Link>
-        {/* Logout por POST: un link GET lo dispararía cualquier prefetch. */}
+        {/* Logout by POST: a GET link would be triggered by any prefetch. */}
         <form action={logout}>
           <button type="submit" className="opacity-70 hover:underline">
             {t.userMenu.logout}

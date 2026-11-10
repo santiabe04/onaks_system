@@ -17,7 +17,7 @@ function form(fields: Record<string, string>) {
 
 describe("suggestQuantity", () => {
   it("cubre el mínimo y lo reservado, descontando stock y lo ya pedido", () => {
-    // Mínimo 10 bolsas, 4 reservadas, 3 en stock, 5 en otra OC: faltan 6.
+    // Minimum 10 bags, 4 reserved, 3 in stock, 5 on another PO: 6 are missing.
     expect(
       suggestQuantity({
         minStock: "10",

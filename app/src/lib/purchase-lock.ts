@@ -11,8 +11,8 @@ export type LockedPurchaseOrder = {
 };
 
 /**
- * Bloquea la OC hasta el fin de la transacción y la devuelve (null si no
- * existe). Órdenes de compra e informes de recepción la bloquean primero.
+ * Locks the PO until the end of the transaction and returns it (null if it
+ * does not exist). Purchase orders and receiving reports lock it first.
  */
 export async function lockPurchaseOrder(
   tx: Prisma.TransactionClient,

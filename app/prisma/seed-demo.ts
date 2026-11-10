@@ -4,22 +4,21 @@ import { TaxCondition, UserType } from "../src/generated/prisma/enums";
 import { cartTotals } from "../src/lib/cart";
 import { isValidCuit } from "../src/lib/cuit";
 
-// Datos de demo de una distribuidora de alimentos y accesorios para mascotas
-// (zona sur): catálogo con stock, proveedores, clientes con usuarios, un
-// repartidor y pedidos pendientes. Para probar la app y para los tests de
-// punta a punta. Se activa con SEED_DEMO=true y solo en una base sin
-// productos: nunca se mezcla con datos reales.
+// Demo data for a food and pet supplies distributor (south zone): catalog with
+// stock, suppliers, customers with users, a driver and pending orders. To try the app and for the
+// end-to-end tests. Enabled with SEED_DEMO=true and only on a database with no
+// products: it is never mixed with real data.
 
-/** Contraseña de todos los usuarios de demo (sin cambio obligatorio). */
+/** Password of all demo users (no forced change). */
 export const DEMO_PASSWORD = "demo1234";
-/** Dominio de los mails de demo. */
+/** Domain of the demo emails. */
 export const DEMO_DOMAIN = "demo.onaks.local";
 
 const mail = (user: string) => `${user}@${DEMO_DOMAIN}`;
 
 type Db = PrismaClient;
 
-// Árbol de categorías: los productos van solo en las hojas.
+// Category tree: products go only in the leaves.
 const CATEGORIES = {
   Alimentos: {
     Perros: ["Alimento seco", "Snacks"],
@@ -43,14 +42,14 @@ const PRODUCTS: {
   name: string;
   sku: string;
   category: Leaf;
-  /** Neto. */
+  /** Net. */
   price: string;
   tax: "IVA 21%" | "IVA 10,5%";
   unit: "u" | "kg";
   weight: string;
   volume?: string;
   minStock?: string;
-  /** Stock inicial por depósito y ubicación en el Sur. */
+  /** Initial stock per warehouse and location in the South. */
   south: string;
   north?: string;
   location: string;
@@ -226,7 +225,7 @@ const WAREHOUSES = [
   },
 ] as const;
 
-/** Costo de compra de la demo: 70 % del precio neto. */
+/** Demo purchase cost: 70 % of the net price. */
 function demoCost(price: string | number): string {
   return (Number(price) * 0.7).toFixed(2);
 }
@@ -241,7 +240,7 @@ const SUPPLIERS = [
     contactMail: mail("ventas.nutricion"),
     city: "Quilmes",
     address: "Calchaquí 2100",
-    // Los alimentos y snacks.
+    // Foods and snacks.
     skus: [
       "PER-AD-15",
       "PER-CA-15",
@@ -266,7 +265,7 @@ const SUPPLIERS = [
   },
 ];
 
-// Listas de precios: un ajuste sobre el precio base y algún precio fijo.
+// Price lists: an adjustment over the base price and some fixed prices.
 const PRICE_LISTS = [
   { name: "Veterinarias", adjustment: "-0.05", fixed: {} },
   { name: "Mayorista", adjustment: "-0.10", fixed: { "PIE-4": "5000" } },
@@ -309,7 +308,7 @@ const CUSTOMERS: {
     legalName: "Distribuidora Mascotas Varela SRL",
     cuit: "30712345884",
     person: { name: "Carla", surname: "Ruiz", user: "varela" },
-    // Compra por mayor: lista Mayorista y 2 % más por volumen.
+    // Bulk purchase: Wholesale list and 2 % more for volume.
     priceList: "Mayorista",
     discountRate: "0.02",
     addresses: [
@@ -322,7 +321,7 @@ const CUSTOMERS: {
   },
 ];
 
-// Pedidos pendientes: [cliente, dirección, [sku, cantidad]...].
+// Pending orders: [customer, address, [sku, quantity]...].
 const ORDERS: [number, number, [string, string][], string | null][] = [
   [
     0,
@@ -364,7 +363,7 @@ const ORDERS: [number, number, [string, string][], string | null][] = [
   ],
 ];
 
-/** Carga la demo. Devuelve false si la base ya tiene productos (no hace nada). */
+/** Loads the demo. Returns false if the database already has products (does nothing). */
 export async function seedDemo(db: Db): Promise<boolean> {
   if ((await db.product.count()) > 0) return false;
 
@@ -377,7 +376,7 @@ export async function seedDemo(db: Db): Promise<boolean> {
 
   await db.$transaction(
     async (tx) => {
-      // Usuarios internos: un admin de demo (sin cambio de contraseña) y un repartidor.
+      // Internal users: a demo admin (no password change) and a driver.
       await tx.person.create({
         data: {
           name: "Admin",
@@ -425,7 +424,7 @@ export async function seedDemo(db: Db): Promise<boolean> {
         },
       });
 
-      // Categorías.
+      // Categories.
       const leaves = new Map<string, number>();
       for (const [rootName, children] of Object.entries(CATEGORIES)) {
         const root = await tx.category.create({ data: { name: rootName } });
@@ -445,7 +444,7 @@ export async function seedDemo(db: Db): Promise<boolean> {
         }
       }
 
-      // Depósitos.
+      // Warehouses.
       const warehouses = new Map<string, string>();
       for (const { key, city, ...data } of WAREHOUSES) {
         const warehouse = await tx.warehouse.create({
@@ -454,7 +453,7 @@ export async function seedDemo(db: Db): Promise<boolean> {
         warehouses.set(key, warehouse.id);
       }
 
-      // Productos con su stock inicial (ingreso en el libro) y ubicación.
+      // Products with their initial stock (entry in the ledger) and location.
       const taxRates = await tx.taxRate.findMany();
       const units = await tx.measurementUnit.findMany();
       const products = new Map<
@@ -516,7 +515,7 @@ export async function seedDemo(db: Db): Promise<boolean> {
         }
       }
 
-      // Proveedores con sus productos y el último costo (≈ 70 % del precio).
+      // Suppliers with their products and the last cost (≈ 70 % of the price).
       for (const { city, skus, ...data } of SUPPLIERS) {
         await tx.supplier.create({
           data: {
@@ -555,7 +554,7 @@ export async function seedDemo(db: Db): Promise<boolean> {
         priceLists.set(list.name, created.id);
       }
 
-      // Clientes con su persona (usuario CLIENT) y direcciones.
+      // Customers with their person (CLIENT user) and addresses.
       const customers: { userId: string; addressIds: string[] }[] = [];
       for (const customer of CUSTOMERS) {
         const created = await tx.customer.create({
@@ -602,7 +601,7 @@ export async function seedDemo(db: Db): Promise<boolean> {
         customers.push({ userId: person.user!.id, addressIds });
       }
 
-      // Pedidos pendientes, con la foto del producto como en el checkout.
+      // Pending orders, with the product snapshot as at checkout.
       for (const [customerIndex, addressIndex, lines, notes] of ORDERS) {
         const customer = customers[customerIndex];
         const items = lines.map(([sku, quantity]) => ({
@@ -631,13 +630,13 @@ export async function seedDemo(db: Db): Promise<boolean> {
               create: items.map((item) => ({
                 productId: item.id,
                 quantity: item.quantity,
-                // Pedidos de demo a precio base.
+                // Demo orders at base price.
                 unitPrice: item.price,
                 unitListPrice: item.price,
                 unitWeight: item.weight,
                 unitVolume: item.volume,
                 unitTaxRate: item.rate,
-                // Todos tienen proveedor: la foto del costo es el último.
+                // All have a supplier: the cost snapshot is the last one.
                 unitCost: demoCost(item.price),
               })),
             },

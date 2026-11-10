@@ -5,8 +5,8 @@ import { checkCredit, creditExposure, isOnCreditHold } from "./credit";
 const DAY = 24 * 60 * 60 * 1000;
 const NOW = new Date("2026-10-31T13:00:00Z");
 
-// Veterinaria San Roque: un pedido entregado hace 40 días, otro hace 5 y uno
-// pendiente (el que acaba de confirmar).
+// Veterinaria San Roque: an order delivered 40 days ago, another 5 days ago and one
+// pending (the one just confirmed).
 const sales = [
   {
     id: "old",

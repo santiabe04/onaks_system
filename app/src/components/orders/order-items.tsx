@@ -5,9 +5,9 @@ import { interpolate } from "@/i18n/config";
 import { cartTotals, lineTotals } from "@/lib/cart";
 import { finalPrice } from "@/lib/price";
 
-// Server Component: ítems y totales de un pedido, iguales para el cliente
-// ("Mis pedidos") y para el admin. Todo sale de la foto guardada al confirmar,
-// no del producto actual.
+// Server Component: items and totals of an order, the same for the customer
+// ("My orders") and for the admin. Everything comes from the snapshot saved on confirmation,
+// not from the current product.
 
 type Numeric = { toString(): string };
 
@@ -33,7 +33,7 @@ export function OrderItems({
   items: OrderItem[];
   subTotal: Numeric;
   tax: Numeric;
-  /** Bonificación neta incluida (lista y descuento del cliente). */
+  /** Net discount included (customer's list and discount). */
   discount: Numeric;
   total: Numeric;
   locale: string;
@@ -121,7 +121,7 @@ export function OrderItems({
   );
 }
 
-/** Un dato del encabezado del pedido (fecha, entrega, pago…). */
+/** A header field of the order (date, delivery, payment…). */
 export function OrderDetail({
   label,
   children,

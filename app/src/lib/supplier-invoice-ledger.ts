@@ -4,8 +4,8 @@ import { audit } from "./audit";
 import { invoicedQuantities, isNewerCost } from "./supplier-invoice";
 
 /**
- * Lo facturado de cada producto de una OC (facturas sin anular), en el mismo
- * formato que las cantidades ("6", "2.5"). Llamar con la OC bloqueada.
+ * What was invoiced of each product of a PO (non-voided invoices), in the same
+ * format as the quantities ("6", "2.5"). Call with the PO locked.
  */
 export async function invoicedByProduct(
   tx: Prisma.TransactionClient,
@@ -25,8 +25,8 @@ export async function invoicedByProduct(
 }
 
 /**
- * Con la factura aprobada, su costo pasa a ser el último del proveedor para
- * cada producto (si no hay uno de una factura más nueva). Auditado.
+ * With the invoice approved, its cost becomes the supplier's last one for
+ * each product (unless there is one from a newer invoice). Audited.
  */
 export async function updateLastCosts(
   tx: Prisma.TransactionClient,
@@ -37,7 +37,7 @@ export async function updateLastCosts(
   },
   userId: string,
 ): Promise<void> {
-  // Mediodía en Argentina: la fecha no cambia al pasarla a UTC.
+  // Noon in Argentina: the date does not change when converted to UTC.
   const at = new Date(`${invoice.issueDate}T12:00:00-03:00`);
   for (const item of invoice.items) {
     const key = { supplierId: invoice.supplierId, productId: item.productId };

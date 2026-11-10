@@ -19,7 +19,7 @@ type Props = {
     formData: FormData,
   ) => Promise<CategoryFormState>;
   defaultValues: CategoryValues;
-  /** Padres posibles, ya filtrados (sin ciclos ni un cuarto nivel). */
+  /** Possible parents, already filtered (no cycles or a fourth level). */
   parents: { id: number; label: string }[];
   submitLabel: string;
   t: Dictionary["categories"];
@@ -35,7 +35,7 @@ export function CategoryForm({
   common,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
-  // Si hubo error, se muestra lo último que eligió el usuario.
+  // If there was an error, the user's last choice is shown.
   const values = state.values ?? defaultValues;
 
   return (
@@ -51,7 +51,7 @@ export function CategoryForm({
       </Field>
 
       <Field label={t.parent} error={state.errors?.parentId}>
-        {/* key: al volver con error, el select toma el valor nuevo. */}
+        {/* key: when returning with an error, the select takes the new value. */}
         <select
           key={values.parentId}
           name="parentId"

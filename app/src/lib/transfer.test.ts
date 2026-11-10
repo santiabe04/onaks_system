@@ -12,7 +12,7 @@ import {
 
 const t = es.paymentSettings.errors;
 const proofT = es.transfer.errors;
-// CBU con sus dos dígitos verificadores correctos.
+// CBU with its two check digits correct.
 const CBU = "0170099220000067797370";
 
 function form(entries: Record<string, string>) {
@@ -29,9 +29,9 @@ describe("isValidCbu", () => {
   });
 
   it("rechaza un dígito cambiado en cualquiera de los dos bloques", () => {
-    expect(isValidCbu("0170099220000067797371")).toBe(false); // cuenta
-    expect(isValidCbu("0170099320000067797370")).toBe(false); // banco/sucursal
-    expect(isValidCbu("0170099220000067797470")).toBe(false); // un dígito de la cuenta
+    expect(isValidCbu("0170099220000067797371")).toBe(false); // account
+    expect(isValidCbu("0170099320000067797370")).toBe(false); // bank/branch
+    expect(isValidCbu("0170099220000067797470")).toBe(false); // one digit of the account
   });
 
   it("rechaza largos y caracteres que no son dígitos", () => {
@@ -142,7 +142,7 @@ describe("canUploadProof", () => {
 
   it("un pedido por transferencia sin comprobante en revisión", () => {
     expect(canUploadProof(sale, [])).toBe(true);
-    // Uno rechazado o validado no impide subir otro (puede ser un pago parcial).
+    // A rejected or validated one does not prevent uploading another (it can be a partial payment).
     expect(
       canUploadProof(sale, [{ state: "REJECTED" }, { state: "VALIDATED" }]),
     ).toBe(true);

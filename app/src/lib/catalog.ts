@@ -5,15 +5,15 @@ import {
   type CategoryRow,
 } from "./category";
 
-// Puro: filtros y reglas del catálogo que ven los clientes.
+// Pure: catalog filters and rules that customers see.
 
 export const CATALOG_PAGE_SIZE = 24;
 
 export type CatalogFilters = {
-  /** Busca en nombre, SKU y código de barras. */
+  /** Searches by name, SKU and barcode. */
   q?: string;
   category?: number;
-  /** Solo los favoritos de la empresa del cliente. */
+  /** Only the customer's company's favorites. */
   favorites?: boolean;
   page: number;
 };
@@ -25,7 +25,7 @@ function first(value: string | string[] | undefined): string | undefined {
   return raw?.trim() || undefined;
 }
 
-/** Lo que no se entiende se ignora: una URL editada a mano no rompe la página. */
+/** What is not understood is ignored: a hand-edited URL does not break the page. */
 export function parseCatalogFilters(params: SearchParams): CatalogFilters {
   const q = first(params.q);
   const category = Number(first(params.category));
@@ -38,7 +38,7 @@ export function parseCatalogFilters(params: SearchParams): CatalogFilters {
   };
 }
 
-/** Query string con los mismos filtros y otros cambios (página, categoría). */
+/** Query string with the same filters and other changes (page, category). */
 export function catalogQuery(
   filters: CatalogFilters,
   changes: Partial<CatalogFilters> = {},
@@ -54,8 +54,8 @@ export function catalogQuery(
 }
 
 /**
- * Qué ve un cliente: productos vigentes y activos. El stock no cuenta: el
- * admin pausa un producto si no quiere venderlo (por falta de stock u otra razón).
+ * What a customer sees: current and active products. Stock does not count: the
+ * admin pauses a product if they do not want to sell it (for lack of stock or any other reason).
  */
 export const VISIBLE_PRODUCT: Prisma.ProductWhereInput = {
   deletedAt: null,
@@ -63,8 +63,8 @@ export const VISIBLE_PRODUCT: Prisma.ProductWhereInput = {
 };
 
 /**
- * `customerId` es la empresa del cliente: con el filtro de favoritos, solo
- * sus favoritos; sin empresa (un admin mirando la tienda) no hay ninguno.
+ * `customerId` is the customer's company: with the favorites filter, only
+ * its favorites; without a company (an admin looking at the shop) there are none.
  */
 export function catalogWhere(
   filters: CatalogFilters,
@@ -89,8 +89,8 @@ export function catalogWhere(
 }
 
 /**
- * El árbol de categorías del menú, solo con las que tienen productos visibles
- * (directamente o en alguna subcategoría): sin ramas vacías para el cliente.
+ * The menu's category tree, only with the ones that have visible products
+ * (directly or in some subcategory): no empty branches for the customer.
  */
 export function visibleCategoryTree(
   rows: CategoryRow[],
@@ -98,8 +98,8 @@ export function visibleCategoryTree(
 ): CategoryNode[] {
   const nodes = flattenCategoryTree(rows);
   const keep = new Set<number>();
-  // Recorrido de abajo hacia arriba: una categoría se ve si tiene productos o
-  // si se ve alguna de sus hijas.
+  // Bottom-up traversal: a category is shown if it has products or
+  // if any of its children is shown.
   for (const node of [...nodes].reverse()) {
     const hasVisibleChild = rows.some(
       (row) => row.parentId === node.id && keep.has(row.id),

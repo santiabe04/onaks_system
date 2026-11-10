@@ -20,7 +20,7 @@ export default async function NewCategoryPage({
   return (
     <main className="mx-auto w-full max-w-md p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.categories.newTitle}</h1>
-      {/* Las opciones de padre salen de la DB y `?parent=` de la URL. */}
+      {/* The parent options come from the DB and `?parent=` from the URL. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -41,7 +41,7 @@ async function NewForm({
   const { rows, withProducts } = await getCategoryTreeData();
   const parents = parentOptions(rows, null, withProducts);
 
-  // "Agregar subcategoría" llega con ?parent=ID: se preselecciona si es válido.
+  // "Add subcategory" arrives with ?parent=ID: it is preselected if valid.
   const requested = parseCategoryId((await searchParams).parent);
   const parentId = parents.some((p) => p.id === requested)
     ? String(requested)

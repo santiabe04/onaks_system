@@ -15,13 +15,13 @@ import {
   type TaxRateValues,
 } from "@/lib/tax-rate";
 
-// Cada acción verifica el permiso antes que nada: se pueden invocar con un POST
-// directo, sin pasar por la página ni por el proxy.
+// Each action checks the permission first of all: they can be invoked with a direct POST
+// without going through the page or the proxy.
 const PERMISSION = "tax-rates:manage";
 const ENTITY = "TAX_RATE";
 
 const LIST_PATH = "/admin/tax-rates";
-// revalidatePath usa la ruta interna: así cubre los dos idiomas.
+// revalidatePath uses the internal route: this way it covers both languages.
 const LIST_ROUTE = "/[lang]/admin/tax-rates";
 
 function messages() {
@@ -34,7 +34,7 @@ function prismaErrorCode(error: unknown): string | undefined {
     : undefined;
 }
 
-/** Errores conocidos de Prisma → estado del form; el resto se relanza. */
+/** Known Prisma errors → form state; the rest is rethrown. */
 function formError(error: unknown, values: TaxRateValues): TaxRateFormState {
   const t = messages();
   const code = prismaErrorCode(error);
@@ -80,7 +80,7 @@ export async function updateTaxRate(
 ): Promise<TaxRateFormState> {
   const user = await requirePermission(PERMISSION);
 
-  // El id viene bindeado desde el cliente: no confiar en el tipo.
+  // The id is bound from the client: do not trust the type.
   const taxRateId = parseTaxRateId(id);
   if (taxRateId === null) return { errors: { form: [messages().invalid] } };
 
@@ -89,7 +89,7 @@ export async function updateTaxRate(
 
   try {
     await db.$transaction(async (tx) => {
-      // findUniqueOrThrow tira P2025 si ya no existe, igual que el update.
+      // findUniqueOrThrow throws P2025 if it no longer exists, just like the update.
       const before = await tx.taxRate.findUniqueOrThrow({
         where: { id: taxRateId },
       });
@@ -114,7 +114,7 @@ export async function updateTaxRate(
   redirect(LIST_PATH);
 }
 
-// Sin parámetro de estado previo: useActionState lo pasa pero no se usa.
+// No previous-state parameter: useActionState passes it but it is not used.
 export async function deleteTaxRate(id: number): Promise<DeleteState> {
   const user = await requirePermission(PERMISSION);
   const t = messages();
@@ -135,9 +135,9 @@ export async function deleteTaxRate(id: number): Promise<DeleteState> {
     });
   } catch (error) {
     const code = prismaErrorCode(error);
-    // P2003: la usan productos (la FK incluye los borrados con soft delete).
+    // P2003: products use it (the FK includes the soft-deleted ones).
     if (code === "P2003") return { error: t.inUse };
-    // P2025: ya estaba borrada; alcanza con refrescar la lista.
+    // P2025: it was already deleted; refreshing the list is enough.
     if (code !== "P2025") throw error;
   }
 

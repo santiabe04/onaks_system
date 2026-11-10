@@ -24,10 +24,10 @@ export type CreditNoteRow = {
 };
 
 /**
- * Las notas de crédito de un pedido. Con `internal` (admin) se ve el motivo,
- * qué se hizo con cada producto y las anuladas; sin él (cliente) solo lo que
- * lo afecta: número, fecha, productos e importe de las vigentes.
- * `actions` es lo que se agrega al pie de cada nota (el botón de anular).
+ * The credit notes of an order. With `internal` (admin) the reason is shown,
+ * what was done with each product and the voided ones; without it (customer) only what
+ * affects them: number, date, products and amount of the valid ones.
+ * `actions` is what is added at the foot of each note (the void button).
  */
 export function CreditNoteList({
   notes,

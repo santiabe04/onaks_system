@@ -12,7 +12,7 @@ import { CREDIT_NOTE_REASON_MAX_LENGTH } from "@/lib/customer-credit";
 
 const CONTROL = "rounded border border-current/20 bg-transparent px-3 py-2";
 
-/** Nota de crédito por importe (bonificación o ajuste), sin mercadería. */
+/** Credit note by amount (discount or adjustment), with no goods. */
 export function AdjustmentForm({
   customerId,
   t,
@@ -26,7 +26,7 @@ export function AdjustmentForm({
   >(registerAdjustment.bind(null, customerId), {});
 
   return (
-    // key: después de guardar, el form vuelve vacío.
+    // key: after saving, the form goes back to empty.
     <form
       key={state.savedAt ?? 0}
       action={action}
@@ -59,7 +59,7 @@ export function AdjustmentForm({
   );
 }
 
-/** Anular una nota de crédito con motivo (queda en el historial). */
+/** Voiding a credit note with a reason (it stays in the history). */
 export function VoidCreditNoteForm({
   noteId,
   t,

@@ -18,7 +18,7 @@ export default async function PaymentSettingsPage() {
     <main className="mx-auto w-full max-w-xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.paymentSettings.title}</h1>
       <p className="mt-1 text-sm opacity-70">{t.paymentSettings.hint}</p>
-      {/* Los datos salen de la DB en cada request: va en Suspense. */}
+      {/* The data comes from the DB on every request: it goes in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >

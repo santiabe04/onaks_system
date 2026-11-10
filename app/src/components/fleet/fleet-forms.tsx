@@ -74,14 +74,14 @@ export function DriverForm({
 }: {
   action: Action<DriverValues>;
   defaultValues: DriverValues;
-  /** Usuarios internos libres (más el que ya tiene, al editar). */
+  /** Free internal users (plus the one it already has, when editing). */
   users: { id: string; label: string }[];
   submitLabel: string;
   t: Dictionary["fleet"];
   common: Dictionary["common"];
 }) {
   const [state, formAction, pending] = useActionState(action, {});
-  // Si hubo error, se muestra lo último que cargó el usuario.
+  // If there was an error, the user's last input is shown.
   const values = state.values ?? defaultValues;
   const errors = state.errors;
 

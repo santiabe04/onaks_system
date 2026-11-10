@@ -15,8 +15,8 @@ export type ProofRow = {
 };
 
 /**
- * Comprobantes de transferencia de un pedido, del más nuevo al más viejo.
- * Sirve al cliente y al admin; `actions` agrega los controles del admin.
+ * Transfer receipts of an order, from newest to oldest.
+ * Serves the customer and the admin; `actions` adds the admin's controls.
  */
 export function TransferProofList({
   proofs,

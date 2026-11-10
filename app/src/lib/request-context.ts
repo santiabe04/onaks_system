@@ -4,10 +4,10 @@ import { parseClientIp } from "./audit-data";
 
 export type RequestContext = { ip: string | null; userAgent: string | null };
 
-// Un user agent no tiene por qué ser largo: se corta para que no llenen la tabla.
+// A user agent does not have to be long: it is cut so it does not fill the table.
 const MAX_USER_AGENT_LENGTH = 512;
 
-/** IP y user agent del request, para auditoría y bloqueo de login. */
+/** Request IP and user agent, for auditing and the login lock. */
 export async function getRequestContext(): Promise<RequestContext> {
   const list = await headers();
   return {

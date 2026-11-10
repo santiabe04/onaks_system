@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { login } from "./helpers";
 
-// Pedidos de la demo: #1 y #2 son de Pet Shop Patitas, #3 de Veterinaria San
-// Roque y #4 de Mascotas Varela (se crean en ese orden en una base nueva).
+// Demo orders: #1 and #2 are from Pet Shop Patitas, #3 from Veterinaria San
+// Roque and #4 from Mascotas Varela (they are created in that order on a new database).
 
 test("un cliente no entra al admin ni ve pedidos de otra empresa", async ({
   page,
@@ -14,7 +14,7 @@ test("un cliente no entra al admin ni ve pedidos de otra empresa", async ({
     await expect(page).toHaveURL("/");
   }
 
-  // Un pedido propio se ve; uno de otra empresa da "no encontrado".
+  // Your own order is visible; another company's gives "not found".
   await page.goto("/orders/1");
   await expect(page.getByRole("heading", { name: "Pedido #1" })).toBeVisible();
   await page.goto("/orders/3");

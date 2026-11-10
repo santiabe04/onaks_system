@@ -31,7 +31,7 @@ export default async function SupplierPage({
 
   return (
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
-      {/* params y la DB son de request: va en Suspense. */}
+      {/* params and the DB are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -78,7 +78,7 @@ async function SupplierDetail({
   const format = formatters(locale);
   const s = t.suppliers;
 
-  // "Editar" en una fila llega con ?product=ID: precarga sus datos en el form.
+  // "Edit" on a row arrives with ?product=ID: it pre-fills its data in the form.
   const requested = (await searchParams).product;
   const editing = supplier.products.find((p) => p.productId === requested);
 
@@ -216,7 +216,7 @@ async function SupplierDetail({
       <h3 className="mt-8 font-medium">{s.addProduct}</h3>
       <p className="text-xs opacity-60">{s.addProductHint}</p>
       <SupplierProductForm
-        // Otra key por producto: al tocar "Editar" en otra fila se precarga de nuevo.
+        // A different key per product: clicking "Edit" on another row pre-fills it again.
         key={editing?.productId ?? "new"}
         action={saveSupplierProduct.bind(null, supplier.id)}
         defaultValues={{

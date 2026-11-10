@@ -13,8 +13,8 @@ const t = es.customerCreditNotes.errors;
 const DOG_FOOD = "dogfood15kg";
 const CAT_LOOSE = "catfoodloose";
 
-// Pedido entregado: 4 bolsas de alimento de perro (ya se devolvió 1) y 2,5 kg
-// de alimento de gato suelto.
+// Delivered order: 4 bags of dog food (1 already returned) and 2.5 kg
+// of loose cat food.
 const lines: ReturnableLine[] = [
   {
     productId: DOG_FOOD,
@@ -74,7 +74,7 @@ describe("returnAmount", () => {
   });
 
   it("suma las líneas ya redondeadas a centavos", () => {
-    // 23.400 + 10,5 % = 25.857,00; 2,5 × 3333,33 = 8333,325 → 8333,33 + IVA 21 % (1750,00) = 10083,33.
+    // 23.400 + 10,5 % = 25.857,00; 2,5 × 3333,33 = 8333,325 → 8333,33 + VAT 21 % (1750,00) = 10083,33.
     expect(
       returnAmount([
         { quantity: "1", unitPrice: "23400", unitTaxRate: "0.105" },

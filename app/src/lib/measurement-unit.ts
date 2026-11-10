@@ -14,7 +14,7 @@ export function measurementUnitSchema(t: Messages) {
       .trim()
       .min(1, t.nameRequired)
       .max(NAME_MAX_LENGTH, interpolate(t.tooLong, { max: NAME_MAX_LENGTH })),
-    // Vacío se guarda como null, no como "".
+    // Empty is stored as null, not as "".
     description: z
       .string()
       .trim()
@@ -23,7 +23,7 @@ export function measurementUnitSchema(t: Messages) {
         interpolate(t.tooLong, { max: DESCRIPTION_MAX_LENGTH }),
       )
       .transform((value) => value || null),
-    // Si se puede vender "1,5" de esta unidad (kg, l) o solo enteros (u).
+    // Whether "1,5" of this unit can be sold (kg, l) or only whole numbers (u).
     allowsDecimals: z.boolean(),
   });
 }
@@ -32,7 +32,7 @@ export type MeasurementUnitInput = z.infer<
   ReturnType<typeof measurementUnitSchema>
 >;
 
-/** Lo que el usuario tipeó, para volver a mostrarlo si hay errores. */
+/** What the user typed, to show it again if there are errors. */
 export type MeasurementUnitValues = {
   name: string;
   description: string;
@@ -71,10 +71,10 @@ export function validateMeasurementUnitForm(
   };
 }
 
-// La columna es INTEGER (int4): cualquier cosa fuera de rango no puede existir.
+// The column is INTEGER (int4): anything out of range cannot exist.
 const unitIdSchema = z.coerce.number().int().positive().max(2_147_483_647);
 
-/** Convierte el id de la URL o de un form en número; null si no es válido. */
+/** Converts the id from the URL or a form into a number; null if it is not valid. */
 export function parseUnitId(raw: unknown): number | null {
   const parsed = unitIdSchema.safeParse(raw);
   return parsed.success ? parsed.data : null;

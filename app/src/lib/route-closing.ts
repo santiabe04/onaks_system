@@ -4,7 +4,7 @@ import type { Dictionary } from "@/i18n/dictionaries/es";
 import { fromCents, toCents } from "./account";
 import { parseDecimalInput } from "./decimal-input";
 
-// Puro: cierre de una hoja de ruta y rendición de efectivo del repartidor.
+// Pure: closing a route sheet and the driver's cash count.
 
 export const CLOSING_NOTES_MAX_LENGTH = 300;
 const MONEY_LIMITS = { maxDecimals: 2, maxIntegerDigits: 10 };
@@ -21,11 +21,11 @@ export type StopCollection = {
 };
 
 export type CollectionSummary = {
-  /** Lo cobrado en las paradas por forma de pago (sin anulados). */
+  /** What was collected at the stops by payment method (without voided ones). */
   byMethod: Partial<Record<PaymentMethod, string>>;
-  /** El efectivo que tiene que entregar el repartidor. */
+  /** The cash the driver has to hand in. */
   cashExpected: string;
-  /** Paradas sin cargar: con alguna, la hoja no se puede cerrar. */
+  /** Stops not loaded: with any of them, the sheet cannot be closed. */
   pendingStops: number;
 };
 
@@ -56,12 +56,12 @@ type Messages = Dictionary["routes"]["closing"]["errors"];
 
 export type ClosingInput = {
   cashReceived: string;
-  /** Recibido − esperado: negativo es faltante, positivo sobrante. */
+  /** Received − expected: negative is a shortage, positive a surplus. */
   difference: string;
   notes: string | null;
 };
 
-/** Lo que entregó el repartidor; si no coincide con lo esperado, el porqué. */
+/** What the driver handed in; if it does not match the expected one, the reason why. */
 export function validateClosingForm(
   formData: FormData,
   cashExpected: Numeric,

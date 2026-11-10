@@ -18,12 +18,12 @@ import {
   type SupplierValues,
 } from "@/lib/supplier";
 
-// Cada acción verifica el permiso antes que nada: se pueden invocar con un POST
-// directo, sin pasar por la página ni por el proxy.
+// Each action checks the permission first of all: they can be invoked with a direct POST
+// without going through the page or the proxy.
 const PERMISSION = "suppliers:manage";
 
 const LIST_PATH = "/admin/suppliers";
-// revalidatePath usa la ruta interna: así cubre los dos idiomas.
+// revalidatePath uses the internal route: this way it covers both languages.
 const LIST_ROUTE = "/[lang]/admin/suppliers";
 
 function messages() {
@@ -36,7 +36,7 @@ function prismaErrorCode(error: unknown): string | undefined {
     : undefined;
 }
 
-/** Error de un campo, para cortar la transacción y mostrarlo en el form. */
+/** Single-field error, to abort the transaction and show it in the form. */
 class FieldError extends Error {
   constructor(
     readonly field: "productId" | "form",
@@ -46,7 +46,7 @@ class FieldError extends Error {
   }
 }
 
-/** Mismo costo (o los dos sin costo), comparando el Decimal sin floats. */
+/** Same cost (or both without a cost), comparing the Decimal without floats. */
 function sameCost(
   before: { toString(): string } | null | undefined,
   after: string | null,
@@ -56,18 +56,18 @@ function sameCost(
   return toMilli(before) === toMilli(after);
 }
 
-/** Errores conocidos de Prisma → estado del form; el resto se relanza. */
+/** Known Prisma errors → form state; the rest is rethrown. */
 function formError(error: unknown, values: SupplierValues): SupplierFormState {
   const t = messages();
   const code = prismaErrorCode(error);
   if (code === "P2002") return { errors: { cuit: [t.duplicateCuit] }, values };
-  // P2003: la localidad elegida no existe (FK).
+  // P2003: the chosen city does not exist (FK).
   if (code === "P2003") return { errors: { cityId: [t.cityNotFound] }, values };
   if (code === "P2025") return { errors: { form: [t.notFound] }, values };
   throw error;
 }
 
-// --- Proveedor ---
+// --- Supplier ---
 
 export async function createSupplier(
   _prev: SupplierFormState,
@@ -98,7 +98,7 @@ export async function createSupplier(
   }
 
   revalidatePath(LIST_ROUTE, "page");
-  // Siguiente paso natural: cargar los productos que provee.
+  // Natural next step: load the products it supplies.
   redirect(`${LIST_PATH}/${supplierId}`);
 }
 
@@ -109,7 +109,7 @@ export async function updateSupplier(
 ): Promise<SupplierFormState> {
   const user = await requirePermission(PERMISSION);
 
-  // El id viene bindeado desde el cliente: no confiar en el tipo.
+  // The id is bound from the client: do not trust the type.
   if (!isCuid(id)) return { errors: { form: [messages().invalid] } };
 
   const result = validateSupplierForm(formData, messages());
@@ -117,7 +117,7 @@ export async function updateSupplier(
 
   try {
     await db.$transaction(async (tx) => {
-      // findUniqueOrThrow tira P2025 si ya no existe, igual que el update.
+      // findUniqueOrThrow throws P2025 if it no longer exists, just like the update.
       const before = await tx.supplier.findUniqueOrThrow({ where: { id } });
       const after = await tx.supplier.update({
         where: { id },
@@ -141,8 +141,8 @@ export async function updateSupplier(
 }
 
 /**
- * Borra el proveedor y su lista de productos (cascade). Si ya tiene compras
- * o pagos, las FK lo impiden y se avisa que se desactive.
+ * Deletes the supplier and its product list (cascade). If it already has purchases
+ * or payments, the FKs prevent it and it is told to deactivate instead.
  */
 export async function deleteSupplier(id: string): Promise<DeleteState> {
   const user = await requirePermission(PERMISSION);
@@ -165,22 +165,22 @@ export async function deleteSupplier(id: string): Promise<DeleteState> {
     });
   } catch (error) {
     const code = prismaErrorCode(error);
-    // P2003: tiene órdenes de compra, facturas o pagos; se desactiva en vez de borrarse.
+    // P2003: it has purchase orders, invoices or payments; it is deactivated instead of deleted.
     if (code === "P2003") return { error: messages().inUse };
-    // P2025: ya estaba borrado; igual se vuelve a la lista.
+    // P2025: it was already deleted; it still goes back to the list.
     if (code !== "P2025") throw error;
   }
 
   revalidatePath(LIST_ROUTE, "page");
-  // Se borra desde su propia pantalla: quedarse ahí daría 404.
+  // Deleted from its own screen: staying there would give a 404.
   redirect(LIST_PATH);
 }
 
-// --- Productos que provee ---
+// --- Products it supplies ---
 
 /**
- * Agrega un producto al proveedor o, si ya estaba, actualiza su código y
- * costo. `lastCostAt` cambia solo si cambia el costo.
+ * Adds a product to the supplier or, if it was already there, updates its code and
+ * cost. `lastCostAt` changes only if the cost changes.
  */
 export async function saveSupplierProduct(
   supplierId: string,
@@ -248,7 +248,7 @@ export async function saveSupplierProduct(
   }
 
   revalidatePath(`${LIST_ROUTE}/[id]`, "page");
-  // savedAt cambia la key del form: queda limpio para cargar el siguiente.
+  // savedAt changes the form's key: it is clean to load the next one.
   return { savedAt: Date.now() };
 }
 
@@ -276,7 +276,7 @@ export async function removeSupplierProduct(
       });
     });
   } catch (error) {
-    // P2025: ya no estaba; alcanza con refrescar.
+    // P2025: it was no longer there; refreshing is enough.
     if (prismaErrorCode(error) !== "P2025") throw error;
   }
 

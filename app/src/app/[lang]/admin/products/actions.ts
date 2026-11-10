@@ -23,13 +23,13 @@ import {
   saveProductImage,
 } from "@/lib/product-image";
 
-// Cada acción verifica el permiso antes que nada: se pueden invocar con un POST
-// directo, sin pasar por la página ni por el proxy.
+// Each action checks the permission first of all: they can be invoked with a direct POST
+// without going through the page or the proxy.
 const PERMISSION = "products:manage";
 const ENTITY = "PRODUCT";
 
 const LIST_PATH = "/admin/products";
-// revalidatePath usa la ruta interna: así cubre los dos idiomas.
+// revalidatePath uses the internal route: this way it covers both languages.
 const LIST_ROUTE = "/[lang]/admin/products";
 
 function messages() {
@@ -42,7 +42,7 @@ function prismaErrorCode(error: unknown): string | undefined {
     : undefined;
 }
 
-/** Error de un campo, para cortar la transacción y mostrarlo en el form. */
+/** Single-field error, to abort the transaction and show it in the form. */
 class FieldError extends Error {
   constructor(
     readonly field: ProductField | "form",
@@ -53,9 +53,9 @@ class FieldError extends Error {
 }
 
 /**
- * Valida contra la DB lo que el schema no puede: categoría final, alícuota
- * activa (o la que el producto ya tenía) y unicidad de nombre, SKU y código de
- * barras (también contra productos borrados: la columna es única igual).
+ * Validates against the DB what the schema cannot: final category, active tax rate
+ * (or the one the product already had), and uniqueness of name, SKU and barcode
+ * (also against deleted products: the column is unique anyway).
  */
 async function assertReferences(
   tx: Prisma.TransactionClient,
@@ -63,8 +63,8 @@ async function assertReferences(
   current?: { id: string; taxRateId: number },
 ) {
   const t = messages();
-  // Comparte el lock con el ABM de categorías: mientras se guarda el producto,
-  // nadie le agrega una subcategoría a la suya.
+  // Shares the lock with the categories CRUD: while the product is saved,
+  // nobody adds a subcategory to its category.
   await tx.$executeRaw`LOCK TABLE "categories" IN SHARE MODE`;
 
   const [category, taxRate, unit, duplicates] = await Promise.all([
@@ -111,7 +111,7 @@ async function assertReferences(
   }
 }
 
-/** Errores conocidos → estado del form; el resto se relanza. */
+/** Known errors → form state; the rest is rethrown. */
 function formError(error: unknown, values: ProductValues): ProductFormState {
   if (error instanceof FieldError) {
     return { errors: { [error.field]: [error.message] }, values };
@@ -119,12 +119,12 @@ function formError(error: unknown, values: ProductValues): ProductFormState {
   const t = messages();
   const code = prismaErrorCode(error);
   if (code === "P2025") return { errors: { form: [t.notFound] }, values };
-  // P2002: otro producto con el mismo dato entró entre el chequeo y el guardado.
+  // P2002: another product with the same value got in between the check and the save.
   if (code === "P2002") return { errors: { form: [t.duplicate] }, values };
   throw error;
 }
 
-/** Procesa la imagen subida, si hay. Un error de imagen se muestra en su campo. */
+/** Processes the uploaded image, if any. An image error is shown on its field. */
 async function readImage(
   formData: FormData,
 ): Promise<{ data: Buffer | null } | { error: string }> {
@@ -149,7 +149,7 @@ export async function createProduct(
     return { errors: { image: [image.error] }, values: result.values };
   }
 
-  // El archivo se escribe antes de la transacción; si la DB falla, se borra.
+  // The file is written before the transaction; if the DB fails, it is deleted.
   const imageFile = image.data ? await saveProductImage(image.data) : null;
   try {
     await db.$transaction(async (tx) => {
@@ -186,7 +186,7 @@ export async function updateProduct(
 ): Promise<ProductFormState> {
   const user = await requirePermission(PERMISSION);
 
-  // El id viene bindeado desde el cliente: no confiar en el tipo.
+  // The id is bound from the client: do not trust the type.
   if (!isProductId(id)) return { errors: { form: [messages().invalid] } };
 
   const result = validateProductForm(formData, messages());
@@ -227,7 +227,7 @@ export async function updateProduct(
     return formError(error, result.values);
   }
 
-  // Recién con el cambio confirmado se borra la imagen anterior.
+  // Only once the change is confirmed is the previous image deleted.
   await deleteProductImage(replacedFile);
 
   revalidatePath(LIST_ROUTE, "page");
@@ -235,8 +235,8 @@ export async function updateProduct(
 }
 
 /**
- * Baja lógica (soft delete): el producto queda para el historial de pedidos y
- * deja de aparecer en el ABM y el catálogo. La imagen se conserva.
+ * Soft delete: the product stays for the order history and stops
+ * appearing in the CRUD and the catalog. The image is kept.
  */
 export async function deleteProduct(id: string): Promise<DeleteState> {
   const user = await requirePermission(PERMISSION);
@@ -248,7 +248,7 @@ export async function deleteProduct(id: string): Promise<DeleteState> {
     const before = await tx.product.findFirst({
       where: { id, deletedAt: null },
     });
-    // Ya estaba borrado: alcanza con refrescar la lista.
+    // Already deleted: refreshing the list is enough.
     if (!before) return;
     await tx.product.update({
       where: { id },

@@ -5,7 +5,7 @@ import { FormError, SubmitButton } from "@/components/ui/form";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { uploadTransferProof, type OrderActionState } from "../actions";
 
-/** El cliente adjunta el comprobante de la transferencia de su pedido. */
+/** The customer attaches the transfer receipt for their order. */
 export function ProofUploadForm({
   saleId,
   t,

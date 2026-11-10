@@ -5,8 +5,8 @@ import { setFavorite } from "@/app/[lang]/(shop)/favorites/actions";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 
 /**
- * Corazón de favorito: cambia al instante y se guarda en segundo plano. Si
- * falla, vuelve a lo que decía el server.
+ * Favorite heart: changes instantly and is saved in the background. If it
+ * fails, it goes back to what the server said.
  */
 export function FavoriteButton({
   productId,

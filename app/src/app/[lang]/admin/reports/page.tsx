@@ -38,7 +38,7 @@ export default async function SalesReportPage({
     <main className="mx-auto w-full max-w-6xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.salesReport.title}</h1>
       <p className="mt-1 text-sm opacity-70">{t.salesReport.hint}</p>
-      {/* Los filtros vienen de la URL y los datos de la DB: va en Suspense. */}
+      {/* The filters come from the URL and the data from the DB: it goes in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -56,7 +56,7 @@ async function Report({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   await getUserWithPermission("reports:read");
-  // El período por defecto es el mes actual.
+  // The default period is the current month.
   await connection();
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const params = parseReportParams(await searchParams);

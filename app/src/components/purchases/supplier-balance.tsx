@@ -3,7 +3,7 @@ import type { Dictionary } from "@/i18n/dictionaries/es";
 import type { formatters } from "@/i18n/format";
 import { fromCents, toCents } from "@/lib/account";
 
-/** "Le debemos $ X" (en rojo), "Saldo a favor $ X" o "Al día". */
+/** "We owe $ X" (in red), "Credit balance $ X" or "Up to date". */
 export function SupplierBalance({
   balance,
   t,

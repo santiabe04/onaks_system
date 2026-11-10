@@ -3,7 +3,7 @@ import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 
 export const MIN_PASSWORD_LENGTH = 8;
-// bcrypt solo usa los primeros 72 bytes: más largo daría una falsa sensación de seguridad.
+// bcrypt only uses the first 72 bytes: a longer one would give a false sense of security.
 const MAX_PASSWORD_BYTES = 72;
 
 type Messages = Dictionary["changePassword"]["errors"];
@@ -42,7 +42,7 @@ export type ChangePasswordInput = z.infer<
 
 type Field = keyof ChangePasswordInput;
 
-// Sin `values`: las contraseñas nunca vuelven al cliente.
+// Without `values`: passwords never go back to the client.
 export type ChangePasswordFormState = {
   errors?: Partial<Record<Field | "form", string[]>>;
 };

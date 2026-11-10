@@ -8,7 +8,7 @@ import {
   type CartActionState,
 } from "./actions";
 
-/** Cantidad editable y "Quitar" de una línea del carrito. */
+/** Editable quantity and "Remove" for a cart line. */
 export function CartLineControls({
   productId,
   quantity,
@@ -17,7 +17,7 @@ export function CartLineControls({
   t,
 }: {
   productId: string;
-  /** Con el separador decimal del idioma ("1,5"). */
+  /** With the language's decimal separator ("1,5"). */
   quantity: string;
   allowsDecimals: boolean;
   unitName: string;
@@ -76,7 +76,7 @@ export function CartLineControls({
   );
 }
 
-/** Solo "Quitar", para productos que ya no se venden. */
+/** Only "Remove", for products that are no longer sold. */
 export function RemoveCartLine({
   productId,
   t,

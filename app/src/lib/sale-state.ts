@@ -1,9 +1,9 @@
 import type { SaleState } from "@/generated/prisma/enums";
 import { fromMilli, toMilli } from "./quantity";
 
-// Puro: qué cambios de estado se permiten y qué pasa con el stock.
+// Pure: which status changes are allowed and what happens to the stock.
 
-/** El recorrido de un pedido. Cancelado queda aparte. */
+/** An order's path. Canceled is kept apart. */
 export const SALE_FLOW = [
   "PENDING",
   "PREPARING",
@@ -21,9 +21,9 @@ function step(state: SaleState): number {
 }
 
 /**
- * A dónde puede pasar un pedido: hacia adelante (salteando pasos si hace
- * falta), un paso atrás para corregir, o a Cancelado mientras no se entregó.
- * Cancelado es final.
+ * Where an order can go: forward (skipping steps if needed),
+ * one step back to correct, or to Canceled as long as it was not delivered.
+ * Canceled is final.
  */
 export function allowedTransitions(state: SaleState): SaleState[] {
   const current = step(state);
@@ -39,15 +39,15 @@ export function canTransition(from: SaleState, to: SaleState): boolean {
   return allowedTransitions(from).includes(to);
 }
 
-/** Si el pedido tiene el stock descontado en ese estado (de En preparación en adelante). */
+/** Whether the order has its stock deducted in that status (from In preparation onwards). */
 export function hasStockDeducted(state: SaleState): boolean {
   return step(state) >= PREPARING;
 }
 
 /**
- * Qué hacer con el stock al cambiar de estado: descontarlo al llegar a En
- * preparación (o más adelante, si se saltean pasos) y devolverlo al volver a
- * Pendiente o cancelar después de haberlo descontado.
+ * What to do with the stock when changing status: deduct it on reaching In
+ * preparation (or later, if steps are skipped) and return it on going back to
+ * Pending or canceling after it was deducted.
  */
 export function stockEffect(
   from: SaleState,
@@ -60,15 +60,15 @@ export function stockEffect(
   return null;
 }
 
-/** Si volver a `to` es retroceder (para avisarlo en la UI). */
+/** Whether going back to `to` is a step back (to warn about it in the UI). */
 export function isStepBack(from: SaleState, to: SaleState): boolean {
   return step(to) !== -1 && step(to) < step(from);
 }
 
 /**
- * Lo que hay que devolver a cada depósito: el neto de los movimientos del
- * pedido (descuentos negativos, devoluciones positivas). Así un pedido que
- * se preparó, volvió y se preparó de nuevo devuelve solo lo que falta.
+ * What has to be returned to each warehouse: the net of the order's
+ * movements (negative deductions, positive returns). This way an order that
+ * was prepared, went back and was prepared again returns only what is missing.
  */
 export function pendingReturns(
   movements: {

@@ -4,21 +4,21 @@ import { db } from "./db";
 export type AccountBalanceRow = {
   id: string;
   tradeName: string;
-  /** Dado de baja: puede seguir debiendo. */
+  /** Deactivated: they can still owe. */
   deleted: boolean;
-  /** Entregado − cobrado ("1234.50"): positivo debe, negativo a favor. */
+  /** Delivered − collected ("1234.50"): positive owes, negative credit balance. */
   balance: string;
-  /** El pedido entregado sin pagar más viejo (antigüedad de la deuda). */
+  /** The oldest delivered unpaid order (age of the debt). */
   oldestUnpaid: Date | null;
   lastPayment: Date | null;
 };
 
 /**
- * Clientes con saldo distinto de 0, de mayor deuda a mayor saldo a favor.
- * Misma cuenta que `summarizeAccount`, pero en SQL para todos los clientes:
- * pedidos entregados menos cobros netos de reintegros y notas de crédito (sin
- * los anulados). La
- * antigüedad sale del estado de pago ya calculado en `sales`.
+ * Customers with a non-zero balance, from the largest debt to the largest credit balance.
+ * Same account as `summarizeAccount`, but in SQL for all customers:
+ * delivered orders minus net payments, refunds and credit notes (without
+ * the voided ones). The
+ * age comes from the payment status already calculated in `sales`.
  */
 export async function getAccountBalances(): Promise<AccountBalanceRow[]> {
   return db.$queryRaw<AccountBalanceRow[]>`

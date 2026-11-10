@@ -4,17 +4,17 @@ import type {
   SaleState,
 } from "@/generated/prisma/enums";
 
-// Puro: la cuenta corriente de un cliente. Todo en centavos (BigInt).
+// Pure: a customer's account. Everything in cents (BigInt).
 //
-// - Un pedido es deuda cuando se entrega (Entregado o Finalizado).
-// - Cobros y reintegros son del cliente, no de un pedido: lo cobrado (neto de
-//   reintegros) se imputa solo, del pedido más viejo al más nuevo. Lo que
-//   sobra cubre por adelantado los pedidos todavía no entregados.
-// - Saldo = entregado − cobrado: positivo es deuda, negativo es saldo a favor.
+// - An order is a debt when it is delivered (Delivered or Finished).
+// - Payments and refunds belong to the customer, not to an order: what was collected (net of
+//   refunds) is allocated automatically, from the oldest order to the newest. What is
+//   left over covers in advance the orders not yet delivered.
+// - Balance = delivered − collected: positive is debt, negative is a credit balance.
 
 type Numeric = { toString(): string } | string;
 
-/** Estados en los que el pedido ya es deuda del cliente. */
+/** States in which the order is already the customer's debt. */
 export const CHARGED_SALE_STATES: SaleState[] = ["DELIVERED", "FINISHED"];
 
 export function isCharged(state: SaleState): boolean {
@@ -31,34 +31,34 @@ export type AccountSale = {
 export type AccountPayment = {
   kind: CustomerPaymentKind;
   amount: Numeric;
-  /** Los anulados no cuentan. */
+  /** Voided ones do not count. */
   voided: boolean;
 };
 
 export type AccountCreditNote = {
   amount: Numeric;
-  /** Las anuladas no cuentan. */
+  /** Voided ones do not count. */
   voided: boolean;
 };
 
 export type SaleAllocation = {
-  /** Lo imputado a este pedido ("1234.50"). */
+  /** What was allocated to this order ("1234.50"). */
   paid: string;
-  /** Lo que falta cobrar de este pedido. */
+  /** What is left to collect on this order. */
   pending: string;
   paymentState: SalePaymentState;
 };
 
 export type AccountSummary = {
-  /** Entregado − cobrado. Positivo: debe; negativo: saldo a favor. */
+  /** Delivered − collected. Positive: owes; negative: credit balance. */
   balance: string;
-  /** Total entregado (la deuda bruta). */
+  /** Total delivered (the gross debt). */
   charged: string;
-  /** Cobros − reintegros. */
+  /** Payments − refunds. */
   paid: string;
-  /** Notas de crédito vigentes: bajan la deuda igual que un cobro. */
+  /** Valid credit notes: they lower the debt just like a payment. */
   credited: string;
-  /** Por pedido (los cancelados no reciben imputación). */
+  /** Per order (canceled ones receive no allocation). */
   sales: Record<string, SaleAllocation>;
 };
 
@@ -84,9 +84,9 @@ function min(a: bigint, b: bigint): bigint {
 }
 
 /**
- * Imputa lo cobrado a los pedidos (del más viejo al más nuevo por número):
- * primero los entregados, que son deuda; con lo que sobra, los que todavía no
- * se entregaron (pagados por adelantado). Los cancelados quedan afuera.
+ * Allocates what was collected to the orders (from the oldest to the newest by number):
+ * first the delivered ones, which are debt; with what is left over, the ones not yet
+ * delivered (paid in advance). Canceled ones are left out.
  */
 export function summarizeAccount(
   sales: AccountSale[],
@@ -111,7 +111,7 @@ export function summarizeAccount(
   const charged = ordered.filter((sale) => isCharged(sale.state));
   const upcoming = ordered.filter((sale) => !isCharged(sale.state));
 
-  // Un cobro y una nota de crédito bajan la deuda igual: se imputan al más viejo.
+  // A payment and a credit note lower the debt the same way: they are allocated to the oldest.
   const settled = paid + credited;
   let available = settled > ZERO ? settled : ZERO;
   const result: Record<string, SaleAllocation> = {};
@@ -144,7 +144,7 @@ export function summarizeAccount(
   };
 }
 
-/** Lo máximo que se puede reintegrar: el saldo a favor (0 si debe). */
+/** The most that can be refunded: the credit balance (0 if it owes). */
 export function maxRefund(balance: Numeric): string {
   const cents = toCents(balance);
   return fromCents(cents < ZERO ? -cents : ZERO);

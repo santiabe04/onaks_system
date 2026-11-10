@@ -1,12 +1,11 @@
-# Producción: se suma a docker-compose.yml.
+# Production: added on top of docker-compose.yml.
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-# Usa las imágenes publicadas (APP_IMAGE:APP_VERSION) en vez de compilar, no
-# publica los puertos de la base ni de la app (solo entra Caddy por 80/443) y
-# suma el proxy con HTTPS y los backups automáticos. Ver docs/instalacion.md.
+# Uses the published images (APP_IMAGE:APP_VERSION) instead of building, does not
+# publish the database or app ports (only Caddy gets in, on 80/443), and adds the proxy with HTTPS and the automatic backups. See docs/instalacion.md.
 
 services:
   db:
-    # La base no se publica: solo la ven los otros servicios.
+    # The database is not published: only the other services can see it.
     ports: !reset []
 
   migrate:
@@ -14,14 +13,14 @@ services:
 
   app:
     image: ${APP_IMAGE:-ghcr.io/santiabe04/onaks_system}:${APP_VERSION:?Falta APP_VERSION en el .env}
-    # Sin puerto publicado: si quedara abierto, se podría entrar sin pasar por
-    # Caddy y mandar un X-Forwarded-For falso (bloqueo de login, auditoría).
+    # No published port: if it were left open, someone could get in without going through
+    # Caddy and send a fake X-Forwarded-For (login lock, audit log).
     ports: !reset []
 
   caddy:
     image: caddy:2.10.2-alpine
     restart: unless-stopped
-    # El modo de TLS elige el Caddyfile: auto | custom | proxy.
+    # The TLS mode picks the Caddyfile: auto | custom | proxy.
     command:
       [
         "caddy",
@@ -33,7 +32,7 @@ services:
       ]
     environment:
       DOMAIN: ${DOMAIN:?Falta DOMAIN en el .env}
-      # Avisos del certificado (Let's Encrypt/ZeroSSL). En los otros modos no se usa, pero se pide igual.
+      # Certificate notices (Let's Encrypt/ZeroSSL). Not used in the other modes, but still required.
       ACME_EMAIL: ${ACME_EMAIL:?Falta ACME_EMAIL en el .env}
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-private_ranges}
     ports:
@@ -42,9 +41,9 @@ services:
       - "443:443/udp"
     volumes:
       - ./deploy/caddy:/etc/caddy:ro
-      # Solo para TLS_MODE=custom (si no, puede estar vacía).
+      # Only for TLS_MODE=custom (otherwise it can be empty).
       - ./certs:/certs:ro
-      # Certificados emitidos y estado de Caddy: no borrar (rate limits de Let's Encrypt).
+      # Issued certificates and Caddy state: do not delete (Let's Encrypt rate limits).
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
@@ -64,7 +63,7 @@ services:
     volumes:
       - ./deploy/backup/backup.sh:/backup.sh:ro
       - uploads:/uploads:ro
-      # Carpeta del servidor: copiarla también fuera del servidor (ver la guía).
+      # Server folder: copy it somewhere outside the server too (see the guide).
       - ${BACKUP_DIR:-./backups}:/backups
     depends_on:
       db:

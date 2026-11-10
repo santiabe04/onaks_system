@@ -25,7 +25,7 @@ export default async function StockCountsPage() {
       </Link>
       <h1 className="mt-2 text-2xl font-semibold">{t.stockCount.title}</h1>
       <p className="mt-2 max-w-2xl text-sm opacity-70">{t.stockCount.intro}</p>
-      {/* Los conteos son de la DB: van en Suspense. */}
+      {/* The counts come from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >

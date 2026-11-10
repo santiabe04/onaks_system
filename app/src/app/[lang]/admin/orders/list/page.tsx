@@ -48,7 +48,7 @@ export default async function OrdersListPage({
   return (
     <main className="mx-auto w-full max-w-6xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.adminOrdersList.title}</h1>
-      {/* Los filtros vienen de la URL y los pedidos de la DB: van en Suspense. */}
+      {/* The filters come from the URL and the orders from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -81,7 +81,7 @@ async function OrdersList({
       select: {
         creditHoldAt: true,
         creditReleasedAt: true,
-        // Para el aviso de "comprobante por validar".
+        // For the "receipt to validate" notice.
         transferProofs: { where: { state: "PENDING" }, select: { id: true } },
         id: true,
         number: true,
@@ -96,7 +96,7 @@ async function OrdersList({
             city: { select: { name: true } },
           },
         },
-        // Con un producto elegido: cuánto se pidió de ese producto.
+        // With a chosen product: how much of that product was ordered.
         items: filters.product
           ? {
               where: { productId: filters.product },
@@ -105,7 +105,7 @@ async function OrdersList({
           : false,
       },
     }),
-    // Para el cambio masivo: depósitos activos.
+    // For the bulk change: active warehouses.
     db.warehouse.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" },
@@ -294,7 +294,7 @@ async function OrdersList({
   );
 }
 
-// Formulario GET: los filtros quedan en la URL, se pueden compartir y recargar.
+// GET form: the filters stay in the URL, so they can be shared and reloaded.
 function FiltersForm({
   filters,
   t,
@@ -308,7 +308,7 @@ function FiltersForm({
   return (
     <form
       action={PATH}
-      // key: al cambiar los filtros (p. ej. "Limpiar"), los campos vuelven a la URL.
+      // key: when the filters change (e.g. "Clear"), the fields go back to the URL.
       key={orderQuery({ ...filters, page: 1 })}
       className="mt-6 flex flex-col gap-4 text-sm"
     >

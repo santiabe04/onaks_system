@@ -6,7 +6,7 @@ import { cartTotals } from "./cart";
 import { parseDecimalInput, PRICE_LIMITS } from "./decimal-input";
 import { fromMilli, QUANTITY_LIMITS, toMilli } from "./quantity";
 
-// Puro: facturas de proveedores y el control de 3 vías (OC, recepciones y factura).
+// Pure: supplier invoices and the 3-way check (PO, receipts and invoice).
 
 export const INVOICE_TYPES: InvoiceType[] = ["A", "B", "C"];
 export const INVOICE_NOTES_MAX_LENGTH = 300;
@@ -17,7 +17,7 @@ const ZERO = BigInt(0);
 type Numeric = { toString(): string } | string;
 type Messages = Dictionary["invoices"]["errors"];
 
-/** "A 00003-00012345", como se lee en el comprobante. */
+/** "A 00003-00012345", as it is read on the voucher. */
 export function formatInvoiceNumber(invoice: {
   type: InvoiceType;
   pointOfSale: number;
@@ -28,13 +28,13 @@ export function formatInvoiceNumber(invoice: {
   ).padStart(8, "0")}`;
 }
 
-/** Lo recibido que todavía no se facturó (no negativo). */
+/** What was received and not yet invoiced (not negative). */
 export function pendingToInvoice(received: Numeric, invoiced: Numeric): string {
   const missing = toMilli(received) - toMilli(invoiced);
   return fromMilli(missing > ZERO ? missing : ZERO);
 }
 
-/** Lo facturado por producto en las facturas sin anular de una OC. */
+/** What was invoiced per product on the non-voided invoices of a PO. */
 export function invoicedQuantities(
   invoices: {
     state: string;
@@ -82,7 +82,7 @@ export type Voucher = {
   issueDate: string;
 };
 
-/** Tipo, punto de venta, número y fecha de un comprobante (factura o nota de crédito). */
+/** Type, point of sale, number and date of a voucher (invoice or credit note). */
 export function parseVoucher(
   formData: FormData,
   t: Pick<Messages, "type" | "number" | "issueDate">,
@@ -124,7 +124,7 @@ export function parseInvoiceHeader(
     return { ok: false, error: t.dueDate };
   }
 
-  // Percepciones: en blanco es 0.
+  // Perceptions: blank is 0.
   const amount = (key: string) => {
     const raw = read(key);
     return raw ? parseDecimalInput(raw, PRICE_LIMITS) : "0";
@@ -169,13 +169,13 @@ export function parseInvoiceHeader(
 export type InvoiceLine = {
   productId: string;
   quantity: string;
-  /** Costo neto unitario facturado. */
+  /** Unit net cost invoiced. */
   unitCost: string;
 };
 
 /**
- * Las líneas del form (`qty_<producto>`, `cost_<producto>`), solo de productos
- * de la OC: sin cantidad (o 0) no se factura. Tiene que haber al menos una.
+ * The form lines (`qty_<product>`, `cost_<product>`), only of products
+ * on the PO: without a quantity (or 0) it is not invoiced. There must be at least one.
  */
 export function parseInvoiceLines(
   formData: FormData,
@@ -211,7 +211,7 @@ export function parseInvoiceLines(
   return { ok: true, lines };
 }
 
-/** Neto e IVA de las líneas (con la alícuota de la OC) más las percepciones. */
+/** Net and VAT of the lines (with the PO's tax rate) plus the perceptions. */
 export function invoiceTotals(
   lines: { quantity: Numeric; unitCost: Numeric; taxRate: Numeric }[],
   taxes: {
@@ -240,23 +240,23 @@ export type MatchDifference =
   | {
       kind: "PRICE";
       productId: string;
-      /** Costo pactado en la OC. */
+      /** Cost agreed on the PO. */
       expected: string;
       actual: string;
     }
   | {
       kind: "QUANTITY";
       productId: string;
-      /** Lo recibido que faltaba facturar. */
+      /** What was received and still needed invoicing. */
       expected: string;
       actual: string;
     }
   | { kind: "TOTAL"; expected: string; actual: string };
 
 /**
- * Control de 3 vías: cada línea contra la OC (costo, al centavo) y contra lo
- * recibido sin facturar (no se factura más de lo que llegó), y el total
- * impreso contra el calculado. Sin diferencias, la factura queda aprobada.
+ * 3-way check: each line against the PO (cost, to the cent) and against
+ * what was received and not invoiced (you cannot invoice more than arrived), and the printed total
+ * against the calculated one. Without differences, the invoice is approved.
  */
 export function matchInvoice(input: {
   lines: InvoiceLine[];
@@ -302,8 +302,8 @@ export function matchInvoice(input: {
 }
 
 /**
- * El último costo del proveedor se actualiza con una factura aprobada, salvo
- * que ya haya uno de una factura más nueva.
+ * The supplier's last cost is updated with an approved invoice, unless
+ * there is already one from a newer invoice.
  */
 export function isNewerCost(
   issueDate: string,

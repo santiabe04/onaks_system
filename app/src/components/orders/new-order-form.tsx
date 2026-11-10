@@ -27,12 +27,12 @@ export type OrderCustomer = {
   cuit: string;
   priceListId: string | null;
   priceListName: string | null;
-  /** Descuento propio como fracción. */
+  /** Own discount as a fraction. */
   discount: string;
   addresses: { id: string; name: string; detail: string }[];
 };
 
-/** Por lista: ajuste como fracción y precios fijos por producto. */
+/** By list: adjustment as a fraction and fixed prices per product. */
 export type OrderPriceLists = Record<
   string,
   { adjustment: string; overrides: Record<string, string> }
@@ -45,13 +45,13 @@ export type OrderProduct = {
   barcode: string | null;
   unit: string;
   allowsDecimals: boolean;
-  /** Decimales como string: precio neto, alícuota y peso unitario. */
+  /** Decimals as strings: net price, tax rate and unit weight. */
   price: string;
   rate: string;
   weight: string;
 };
 
-/** Armar un pedido para un cliente: cliente, dirección, productos y comentario. */
+/** Building an order for a customer: customer, address, products and comment. */
 export function NewOrderForm({
   customers,
   products,
@@ -85,7 +85,7 @@ export function NewOrderForm({
   const [notes, setNotes] = useState("");
 
   const customer = customers.find((row) => row.id === customerId);
-  // Los precios del cliente elegido (el server los vuelve a calcular).
+  // The chosen customer's prices (the server recalculates them).
   const list = customer?.priceListId ? priceLists[customer.priceListId] : null;
   const pricing: Pricing = customer
     ? {
@@ -128,7 +128,7 @@ export function NewOrderForm({
       ),
     );
 
-  // Totales en vivo con la misma cuenta que el server (líneas válidas).
+  // Live totals with the same calculation as the server (valid lines).
   const valid = lines
     .map((line) => {
       const row = product(line.productId);

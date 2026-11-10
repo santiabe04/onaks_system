@@ -5,10 +5,10 @@ import { audit } from "./audit";
 import { checkCredit, type CreditHoldReasons } from "./credit";
 
 /**
- * Control de crédito de un pedido recién confirmado (o modificado), con la
- * cuenta ya recalculada y bloqueada: si el cliente supera su límite o tiene
- * deuda vencida, el pedido queda retenido; si no, se le saca la retención que
- * pudiera tener sin aprobar. Devuelve los motivos (null si pasa).
+ * Credit check of a just-confirmed (or edited) order, with the
+ * account already recalculated and locked: if the customer exceeds their limit or has an
+ * overdue debt, the order is held; if not, the hold it might have without approval is
+ * removed. Returns the reasons (null if it passes).
  */
 export async function applyCreditCheck(
   tx: Prisma.TransactionClient,
@@ -49,7 +49,7 @@ export async function applyCreditCheck(
       },
     });
   } else if (sale.creditHoldAt && !sale.creditReleasedAt) {
-    // Se modificó y ahora entra: ya no hace falta aprobarlo.
+    // It was edited and now goes through: it no longer needs approval.
     await tx.sale.update({
       where: { id: input.saleId },
       data: { creditHoldAt: null, creditHoldReasons: Prisma.DbNull },

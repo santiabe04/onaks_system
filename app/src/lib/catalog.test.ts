@@ -42,7 +42,7 @@ describe("favoritos en el catálogo", () => {
     expect(
       catalogWhere({ favorites: true, page: 1 }, undefined, null),
     ).toMatchObject({ id: { in: [] } });
-    // Sin el filtro no cambia nada.
+    // Without the filter nothing changes.
     expect(catalogWhere({ page: 1 }, undefined, "patitas")).not.toHaveProperty(
       "favorites",
     );
@@ -55,7 +55,7 @@ describe("catalogQuery", () => {
     expect(catalogQuery(filters, { page: 4 })).toBe(
       "?q=alimento&category=2&page=4",
     );
-    // Cambiar de categoría vuelve a la primera página.
+    // Changing category goes back to the first page.
     expect(catalogQuery(filters, { category: 1, page: 1 })).toBe(
       "?q=alimento&category=1",
     );
@@ -81,7 +81,7 @@ describe("catalogWhere", () => {
 });
 
 describe("visibleCategoryTree", () => {
-  // Alimentos (1) › Perros (2) › Cachorros (3); Alimentos › Gatos (4); Accesorios (5) › Correas (6)
+  // Food (1) › Dogs (2) › Puppies (3); Food › Cats (4); Accessories (5) › Leashes (6)
   const rows: CategoryRow[] = [
     { id: 1, name: "Alimentos", parentId: null },
     { id: 2, name: "Perros", parentId: 1 },
@@ -92,7 +92,7 @@ describe("visibleCategoryTree", () => {
   ];
 
   it("muestra las ramas con productos y oculta las vacías", () => {
-    // Solo Cachorros tiene productos visibles.
+    // Only Cachorros has visible products.
     expect(
       visibleCategoryTree(rows, new Set([3])).map((n) => n.path.join(" › ")),
     ).toEqual([

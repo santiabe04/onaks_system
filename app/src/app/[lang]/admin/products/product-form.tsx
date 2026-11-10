@@ -27,10 +27,10 @@ type Props = {
     formData: FormData,
   ) => Promise<ProductFormState>;
   defaultValues: ProductValues;
-  /** Archivo de la imagen actual (al editar). */
+  /** File of the current image (when editing). */
   imageFile?: string | null;
   options: ProductFormOptions;
-  /** Formato de plata del idioma, armado en el server ("es-AR", "en-US"). */
+  /** Language's money format, built on the server ("es-AR", "en-US"). */
   intlLocale: string;
   submitLabel: string;
   t: Dictionary["products"];
@@ -50,11 +50,11 @@ export function ProductForm({
   common,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
-  // Si hubo error, se muestra lo último que cargó el usuario.
+  // If there was an error, the user's last input is shown.
   const values = state.values ?? defaultValues;
   const errors = state.errors;
 
-  // Vista previa del precio final: se recalcula al tipear el neto o cambiar la alícuota.
+  // Final price preview: recalculated while typing the net price or changing the rate.
   const [price, setPrice] = useState(values.price);
   const [taxRateId, setTaxRateId] = useState(values.taxRateId);
   const net = parseDecimalInput(price, PRICE_LIMITS);
@@ -112,7 +112,7 @@ export function ProductForm({
       </Field>
 
       <Field label={t.category} error={errors?.categoryId}>
-        {/* key: al volver con error, el select toma el valor nuevo. */}
+        {/* key: when returning with an error, the select takes the new value. */}
         <select
           key={`c${values.categoryId}`}
           name="categoryId"
@@ -134,9 +134,9 @@ export function ProductForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t.price} error={errors?.price}>
-          {/* No controlados (como el resto): tras una action React resetea el
-              form a los defaultValue, que son lo último enviado. El onChange
-              solo alimenta la vista previa del precio final. */}
+          {/* Uncontrolled (like the rest): after an action React resets the
+              form to the defaultValues, which are the last submitted. The onChange
+              only feeds the final price preview. */}
           <Input
             key={`p${values.price}`}
             name="price"

@@ -28,8 +28,8 @@ export async function login(
   const { mail, password } = result.data;
   const { ip } = await getRequestContext();
 
-  // Bloqueado: no se mira la contraseña ni se cuenta como fallo, así seguir
-  // intentando no extiende el bloqueo.
+  // Locked: the password is not checked nor counted as a failure, so continuing
+  // to try does not extend the lock.
   const now = new Date();
   const lock = await getLoginLock(mail, ip, now);
   if (lock) {
@@ -68,12 +68,12 @@ export async function login(
       ? person.user
       : null;
 
-  // Se compara aunque no haya user, para que el tiempo de respuesta sea igual.
+  // It is compared even if there is no user, so the response time is the same.
   const valid = await verifyPassword(password, user?.passwordHash ?? null);
 
   if (!user || !valid) {
-    // El motivo queda en la auditoría (solo la ven los admins). Al usuario se
-    // le muestra siempre el mismo mensaje: no hay que revelar cuál fue.
+    // The reason is kept in the audit log (only admins see it). The user always
+    // gets the same message: the reason must not be revealed.
     const reason = !person?.user
       ? "unknown_mail"
       : !user
@@ -108,16 +108,16 @@ export async function login(
     mustChangePassword: user.passwordMustChange,
     sessionVersion: user.sessionVersion,
   });
-  // `next` viene del form: se valida para no redirigir afuera del sitio. Si el
-  // rol no puede entrar ahí, el proxy lo rebota a su inicio.
+  // `next` comes from the form: it is validated so as not to redirect outside the site. If the
+  // role cannot enter there, the proxy bounces it to its home.
   if (user.passwordMustChange) redirect(CHANGE_PASSWORD_PATH);
   redirect(safeNextPath(formData.get("next")) ?? homePathFor(user.userType));
 }
 
 export async function logout() {
   const session = await getSession();
-  // El token puede ser de un user que ya no existe (p. ej. una DB recreada):
-  // sin esta verificación la FK de la auditoría rompería el logout.
+  // The token may belong to a user who no longer exists (e.g. a recreated DB):
+  // without this check the audit log's FK would break the logout.
   const user = session
     ? await db.user.findUnique({
         where: { id: session.userId },

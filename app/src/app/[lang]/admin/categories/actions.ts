@@ -19,13 +19,13 @@ import {
 } from "@/lib/category";
 import { db } from "@/lib/db";
 
-// Cada acción verifica el permiso antes que nada: se pueden invocar con un POST
-// directo, sin pasar por la página ni por el proxy.
+// Each action checks the permission first of all: they can be invoked with a direct POST,
+// without going through the page or the proxy.
 const PERMISSION = "categories:manage";
 const ENTITY = "CATEGORY";
 
 const LIST_PATH = "/admin/categories";
-// revalidatePath usa la ruta interna: así cubre los dos idiomas.
+// revalidatePath uses the internal route: this way it covers both languages.
 const LIST_ROUTE = "/[lang]/admin/categories";
 
 function messages() {
@@ -38,7 +38,7 @@ function prismaErrorCode(error: unknown): string | undefined {
     : undefined;
 }
 
-/** Error de validación del árbol, para cortar la transacción y mostrarlo en el form. */
+/** Tree validation error, to abort the transaction and show it in the form. */
 class TreeError extends Error {
   constructor(
     readonly field: "parentId" | "form",
@@ -49,10 +49,10 @@ class TreeError extends Error {
 }
 
 /**
- * Valida el padre contra el árbol actual. El lock serializa las escrituras de
- * categorías hasta el fin de la transacción: sin él, dos cambios simultáneos
- * (A debajo de B y B debajo de A) podrían armar un ciclo. La tabla es chica y
- * solo la edita el admin, así que el costo no se nota.
+ * Validates the parent against the current tree. The lock serializes writes to
+ * categories until the end of the transaction: without it, two simultaneous changes
+ * (A under B and B under A) could create a cycle. The table is small and
+ * only the admin edits it, so the cost is not noticeable.
  */
 async function assertValidParent(
   tx: Prisma.TransactionClient,
@@ -74,9 +74,9 @@ async function assertValidParent(
       interpolate(t.tooDeep, { max: MAX_CATEGORY_DEPTH }),
     );
   }
-  // Los productos van solo en categorías finales: una que ya tiene productos
-  // no puede recibir subcategorías. (El lock también frena a un producto que
-  // se esté cargando en esa categoría al mismo tiempo.)
+  // Products go only in leaf categories: one that already has products
+  // cannot receive subcategories. (The lock also stops a product that is
+  // being added to that category at the same time.)
   if (data.parentId !== null) {
     const products = await tx.product.count({
       where: { categoryId: data.parentId, deletedAt: null },
@@ -85,7 +85,7 @@ async function assertValidParent(
   }
 }
 
-/** Errores conocidos → estado del form; el resto se relanza. */
+/** Known errors → form state; the rest is rethrown. */
 function formError(error: unknown, values: CategoryValues): CategoryFormState {
   const t = messages();
   if (error instanceof TreeError) {
@@ -94,7 +94,7 @@ function formError(error: unknown, values: CategoryValues): CategoryFormState {
   const code = prismaErrorCode(error);
   if (code === "P2002") return { errors: { name: [t.duplicate] }, values };
   if (code === "P2025") return { errors: { form: [t.notFound] }, values };
-  // P2003: el padre se borró entre la validación y el guardado.
+  // P2003: the parent was deleted between validation and saving.
   if (code === "P2003") {
     return { errors: { parentId: [t.parentNotFound] }, values };
   }
@@ -139,7 +139,7 @@ export async function updateCategory(
 ): Promise<CategoryFormState> {
   const user = await requirePermission(PERMISSION);
 
-  // El id viene bindeado desde el cliente: no confiar en el tipo.
+  // The id is bound from the client: do not trust the type.
   const categoryId = parseCategoryId(id);
   if (categoryId === null) {
     return { errors: { form: [messages().invalid] } };
@@ -150,7 +150,7 @@ export async function updateCategory(
 
   try {
     await db.$transaction(async (tx) => {
-      // findUniqueOrThrow tira P2025 si ya no existe, igual que el update.
+      // findUniqueOrThrow throws P2025 if it no longer exists, just like the update.
       const before = await tx.category.findUniqueOrThrow({
         where: { id: categoryId },
       });
@@ -176,7 +176,7 @@ export async function updateCategory(
   redirect(LIST_PATH);
 }
 
-// Sin parámetro de estado previo: useActionState lo pasa pero no se usa.
+// No previous-state parameter: useActionState passes it but it is not used.
 export async function deleteCategory(id: number): Promise<DeleteState> {
   const user = await requirePermission(PERMISSION);
   const t = messages();
@@ -188,7 +188,7 @@ export async function deleteCategory(id: number): Promise<DeleteState> {
     where: { parentId: categoryId },
   });
   if (children > 0) return { error: t.hasChildren };
-  // La FK es RESTRICT e incluye productos con soft delete: contamos todos.
+  // The FK is RESTRICT and includes soft-deleted products: we count all of them.
   const products = await db.product.count({
     where: { categoryId },
   });
@@ -207,9 +207,9 @@ export async function deleteCategory(id: number): Promise<DeleteState> {
     });
   } catch (error) {
     const code = prismaErrorCode(error);
-    // P2003: se agregó una subcategoría o un producto entre el count y el delete.
+    // P2003: a subcategory or product was added between the count and the delete.
     if (code === "P2003") return { error: t.hasProducts };
-    // P2025: ya estaba borrada; alcanza con refrescar la lista.
+    // P2025: it was already deleted; refreshing the list is enough.
     if (code !== "P2025") throw error;
   }
 

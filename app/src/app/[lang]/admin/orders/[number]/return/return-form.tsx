@@ -27,16 +27,16 @@ type Line = {
   allowsDecimals: boolean;
   delivered: string;
   returned: string;
-  /** Lo que todavía se puede devolver. */
+  /** What can still be returned. */
   left: string;
   unitPrice: string;
   unitTaxRate: string;
 };
 
 /**
- * Devolución de un pedido entregado: depósito, motivo y, por producto, cuánto
- * vuelve y qué se hace con eso. El total se calcula en vivo con la misma
- * cuenta que el server (precio y alícuota del pedido).
+ * Return of a delivered order: warehouse, reason and, per product, how much
+ * comes back and what is done with it. The total is calculated live with the same
+ * calculation as the server (order price and tax rate).
  */
 export function ReturnForm({
   saleId,
@@ -64,7 +64,7 @@ export function ReturnForm({
     ),
   });
 
-  // Cantidades válidas (hasta lo que queda) para el total en vivo.
+  // Valid quantities (up to what is left) for the live total.
   const chosen = lines
     .map((line) => {
       const quantity = parseCartQuantity(

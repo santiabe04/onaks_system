@@ -10,20 +10,20 @@ import { isCuid } from "@/lib/ids";
 import { validatePaymentForm } from "@/lib/payment-form";
 import { validateRejectReason } from "@/lib/transfer";
 
-// Revisión de los comprobantes de transferencia: validar asienta el cobro en
-// la cuenta corriente; rechazar deja el motivo para que el cliente suba otro.
-// Mismo permiso que cobrar y cambiar estados.
+// Transfer receipt review: validating records the payment in
+// the customer account; rejecting leaves the reason so the customer can upload another one.
+// Same permission as collecting and changing statuses.
 const PERMISSION = "sales:manage";
 
 export type ProofReviewState = { error?: string };
 
-/** Corta la transacción con un mensaje para el admin. */
+/** Aborts the transaction with a message for the admin. */
 class ProofError extends Error {}
 
 /**
- * Valida el comprobante: crea el cobro por transferencia (monto y fecha que
- * confirma el admin) imputado al pedido y marca el comprobante como validado.
- * Orden de bloqueo: cuenta del cliente y después el comprobante.
+ * Validates the receipt: creates the transfer payment (amount and date that
+ * the admin confirms) allocated to the order and marks the receipt as validated.
+ * Lock order: the customer account, then the receipt.
  */
 export async function validateTransferProof(
   proofId: string,
@@ -35,7 +35,7 @@ export async function validateTransferProof(
   const t = dictionary.transfer.errors;
   if (!isCuid(proofId)) return { error: t.notFound };
 
-  // Siempre un cobro por transferencia: solo el monto y la fecha vienen del form.
+  // Always a transfer payment: only the amount and the date come from the form.
   const paymentForm = new FormData();
   paymentForm.set("kind", "PAYMENT");
   paymentForm.set("method", "TRANSFER");
@@ -65,7 +65,7 @@ export async function validateTransferProof(
       if (!found) throw new ProofError(t.notFound);
       const customerId = found.sale.address.customerId;
       await lockAccount(tx, customerId);
-      // Releído con la cuenta bloqueada: dos validaciones a la vez no pasan.
+      // Re-read with the account locked: two validations at once do not both pass.
       const [locked] = await tx.$queryRaw<{ state: string }[]>`
         SELECT "state"::text AS "state" FROM "transfer_proofs"
         WHERE "id" = ${proofId} FOR UPDATE`;
@@ -100,12 +100,12 @@ export async function validateTransferProof(
     throw error;
   }
 
-  // Detalle del pedido, cuenta corriente, deudores y aviso del dashboard.
+  // Order detail, customer account, debtors and the dashboard notice.
   revalidatePath("/[lang]", "layout");
   return {};
 }
 
-/** Rechaza el comprobante con motivo: el cliente lo ve y puede subir otro. */
+/** Rejects the receipt with a reason: the customer sees it and can upload another one. */
 export async function rejectTransferProof(
   proofId: string,
   _prev: ProofReviewState,
@@ -120,7 +120,7 @@ export async function rejectTransferProof(
 
   try {
     await db.$transaction(async (tx) => {
-      // No toca la cuenta: alcanza con bloquear el comprobante.
+      // Does not touch the account: it is enough to lock the receipt.
       const [locked] = await tx.$queryRaw<{ state: string }[]>`
         SELECT "state"::text AS "state" FROM "transfer_proofs"
         WHERE "id" = ${proofId} FOR UPDATE`;

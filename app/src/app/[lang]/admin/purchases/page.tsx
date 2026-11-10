@@ -30,7 +30,7 @@ export default async function PurchasesPage({
           {t.purchases.newButton}
         </Link>
       </div>
-      {/* El filtro viene de la URL y las órdenes de la DB: van en Suspense. */}
+      {/* The filter comes from the URL and the orders from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -65,7 +65,7 @@ async function Purchases({
         supplier: { select: { legalName: true, tradeName: true } },
       },
     }),
-    // Para el aviso: productos con mínimo cargado y por debajo (total de depósitos).
+    // For the notice: products with a minimum set and below it (total across warehouses).
     db.product
       .findMany({
         where: { minStock: { not: null }, deletedAt: null },

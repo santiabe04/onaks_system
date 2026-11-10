@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "./db";
 
-/** Los favoritos de la empresa (ids de producto). Sin empresa, ninguno. */
+/** The company's favorites (product ids). Without a company, none. */
 export async function getFavoriteIds(
   customerId: string | null,
 ): Promise<Set<string>> {
@@ -14,10 +14,9 @@ export async function getFavoriteIds(
 }
 
 /**
- * Los productos que más pidió la empresa, del que más pedidos tiene al que
- * menos (a igualdad, el pedido más reciente y después el nombre, para que el
- * orden sea estable), sin contar los cancelados ni los que hoy no se pueden
- * comprar.
+ * The products the company ordered most, from the one with the most orders to the
+ * one with the fewest (on a tie, the most recent order and then the name, so the
+ * order is stable), not counting canceled ones or ones that cannot be ordered today
  */
 export async function getMostOrderedIds(
   customerId: string,

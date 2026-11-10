@@ -14,14 +14,14 @@ import { recordSaleMovements, StockLedgerError } from "./stock-ledger";
 
 type Messages = Dictionary["adminOrders"]["stateChange"]["errors"];
 
-/** Un cambio de estado que no se puede hacer, con el mensaje para el admin. */
+/** A status change that cannot be made, with the message for the admin. */
 export class StateChangeError extends Error {}
 
 /**
- * Cambia el estado de un pedido dentro de la transacción que recibe (la usan
- * el cambio individual y el masivo). Al llegar a En preparación descuenta el
- * stock de los depósitos elegidos; al volver a Pendiente o cancelar después,
- * lo devuelve a donde salió. Recalcula la cuenta corriente del cliente.
+ * Changes the status of an order inside the transaction it receives (used
+ * by the individual and the bulk change). On reaching In preparation it deducts the
+ * stock from the chosen warehouses; on going back to Pending or canceling later,
+ * it returns it to where it came from. Recalculates the customer's account.
  */
 export async function applySaleStateChange(
   tx: Prisma.TransactionClient,
@@ -30,8 +30,8 @@ export async function applySaleStateChange(
   userId: string,
   t: Messages,
 ): Promise<void> {
-  // Primero la cuenta del cliente y después el pedido, en el mismo orden
-  // que los cobros: así dos transacciones no se bloquean entre sí.
+  // First the customer's account and then the order, in the same order
+  // as the payments: so two transactions do not block each other.
   const owner = await tx.sale.findUnique({
     where: { id: saleId },
     select: { address: { select: { customerId: true } } },
@@ -40,7 +40,7 @@ export async function applySaleStateChange(
   const customerId = owner.address.customerId;
   await lockAccount(tx, customerId);
 
-  // Bloqueado hasta el final: dos cambios a la vez no descuentan dos veces.
+  // Locked until the end: two changes at once do not deduct twice.
   const [locked] = await tx.$queryRaw<
     { state: SaleState; number: number; editing: boolean; held: boolean }[]
   >`SELECT "state", "number", "editing_person_id" IS NOT NULL AS "editing",
@@ -48,9 +48,9 @@ export async function applySaleStateChange(
     FROM "sales" WHERE "id" = ${saleId} FOR UPDATE`;
   if (!locked) throw new StateChangeError(t.notFound);
   if (locked.state !== input.from) throw new StateChangeError(t.stale);
-  // Sus productos están en el carrito del cliente: no se toca hasta que confirme.
+  // Its products are in the customer's cart: it is not touched until they confirm.
   if (locked.editing) throw new StateChangeError(t.beingEdited);
-  // Retenido por crédito: solo se puede cancelar hasta que se apruebe.
+  // Held for credit: it can only be canceled until it is approved.
   if (locked.held && input.to !== "CANCELED") {
     throw new StateChangeError(t.creditHold);
   }
@@ -75,7 +75,7 @@ export async function applySaleStateChange(
       const lines = items.map((item) => ({
         productId: item.productId,
         warehouseId: warehouses[item.productId],
-        // sale_items guarda 4 decimales; el stock, 3.
+        // sale_items stores 4 decimals; stock, 3.
         quantity: fromMilli(-toMilli(item.quantity)),
       }));
       await recordSaleMovements(tx, sale, "SALE", lines, userId);
@@ -100,9 +100,9 @@ export async function applySaleStateChange(
     where: { id: saleId },
     data: {
       state: input.to,
-      // El permiso de modificar es solo para pedidos Pendientes.
+      // The edit permission is only for Pending orders.
       customerCanEdit: false,
-      // Fecha de venta de los reportes: al entregarse; se borra si vuelve atrás.
+      // Sale date for the reports: on delivery; it is cleared if it goes back.
       deliveredAt: CHARGED_SALE_STATES.includes(input.to)
         ? CHARGED_SALE_STATES.includes(locked.state)
           ? undefined
@@ -119,9 +119,9 @@ export async function applySaleStateChange(
     after: { state: input.to },
     metadata: { comment: input.comment, ...stock },
   });
-  // Entregar (o volver atrás) cambia la deuda y el estado de pago.
+  // Delivering (or going back) changes the debt and the payment status.
   await recomputeAccount(tx, customerId);
-  // Avisa al cliente por mail (hacia adelante, a los estados que se avisan).
+  // Notifies the customer by email (forward, to the statuses that are notified).
   const event = noticeFor(locked.state, input.to);
   if (event) await enqueueOrderNotice(tx, sale, event);
 }

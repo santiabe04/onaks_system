@@ -23,16 +23,16 @@ import {
   updateLastCosts,
 } from "@/lib/supplier-invoice-ledger";
 
-// Facturas de proveedores: se cargan por OC y pasan el control de 3 vías.
-// Sin diferencias quedan aprobadas; con diferencias, observadas hasta que un
-// admin las aprueba. Al aprobarse actualizan el último costo del proveedor.
-// Orden de bloqueo: la OC, después la factura y el proveedor.
+// Supplier invoices: they are entered by PO and pass the 3-way check.
+// Without differences they are approved; with differences, flagged until an
+// admin approves them. On approval they update the supplier's last cost.
+// Lock order: the PO, then the invoice and the supplier.
 const PERMISSION = "purchases:manage";
 const ENTITY = "SUPPLIER_INVOICE";
 
 export type InvoiceActionState = { error?: string };
 
-/** Corta la transacción con un mensaje para el admin. */
+/** Aborts the transaction with a message for the admin. */
 class InvoiceError extends Error {}
 
 function messages() {
@@ -55,7 +55,7 @@ function revalidatePurchases() {
   revalidatePath("/[lang]/admin", "layout");
 }
 
-/** Bloquea la OC de la factura y después la factura; la devuelve. */
+/** Locks the invoice's PO and then the invoice; returns it. */
 async function lockInvoice(tx: Prisma.TransactionClient, invoiceId: string) {
   const t = messages();
   if (!isCuid(invoiceId)) throw new InvoiceError(t.notFound);
@@ -73,7 +73,7 @@ async function lockInvoice(tx: Prisma.TransactionClient, invoiceId: string) {
   });
 }
 
-/** Carga una factura de la OC con el control de 3 vías. */
+/** Enters an invoice for the PO with the 3-way check. */
 export async function createSupplierInvoice(
   orderId: string,
   _prev: InvoiceActionState,
@@ -105,7 +105,7 @@ export async function createSupplierInvoice(
         throw new InvoiceError(t.notInvoiceable);
       }
 
-      // El proveedor bloqueado: dos cargas del mismo comprobante no pasan las dos.
+      // The supplier is locked: two entries of the same voucher do not both pass.
       await tx.$queryRaw`
         SELECT "id" FROM "suppliers" WHERE "id" = ${order.supplierId} FOR UPDATE`;
       const duplicate = await tx.supplierInvoice.findFirst({
@@ -213,7 +213,7 @@ export async function createSupplierInvoice(
   redirect(`/admin/invoices/${invoiceId}`);
 }
 
-/** Acepta una factura observada tal como está, con un comentario. */
+/** Accepts a flagged invoice as it is, with a comment. */
 export async function approveSupplierInvoice(
   invoiceId: string,
   _prev: InvoiceActionState,
@@ -262,8 +262,8 @@ export async function approveSupplierInvoice(
 }
 
 /**
- * Anula una factura cargada por error: deja de contar como facturado (el
- * último costo que haya actualizado queda como está).
+ * Voids an invoice entered by mistake: it stops counting as invoiced (the
+ * last cost it updated stays as it is).
  */
 export async function annulSupplierInvoice(
   invoiceId: string,
@@ -281,7 +281,7 @@ export async function annulSupplierInvoice(
       if (invoice.state === "ANNULLED") {
         throw new InvoiceError(t.alreadyAnnulled);
       }
-      // Con el proveedor bloqueado nadie imputa a la factura mientras tanto.
+      // With the supplier locked, nobody allocates to the invoice in the meantime.
       await lockSupplier(tx, invoice.supplierId);
       const allocated = await tx.supplierAllocation.count({
         where: {

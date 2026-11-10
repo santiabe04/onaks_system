@@ -106,8 +106,8 @@ jobs:
           cp .env.example .env
           sed -i "s|^SESSION_SECRET=.*|SESSION_SECRET=$(openssl rand -base64 32)|" .env
       - name: Validate production config
-        # El compose de producción y los Caddyfile de los tres modos de TLS se
-        # validan sin levantar nada (los valores son de ejemplo).
+        # The production compose file and the Caddyfiles for the three TLS modes are
+        # validated without starting anything (the values are examples).
         env:
           DOMAIN: pedidos.example.com
           ACME_EMAIL: ci@example.com
@@ -164,7 +164,7 @@ jobs:
       APP_LOCALE: es
       SEED_ADMIN_MAIL: admin@e2e.local
       SEED_ADMIN_PASSWORD: e2e
-      # Los tests usan los usuarios y datos de la demo del seed.
+      # The tests use the users and data from the seed demo.
       SEED_DEMO: "true"
     steps:
       - uses: actions/checkout@v4

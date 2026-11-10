@@ -6,7 +6,7 @@ import { isCuid } from "./ids";
 import { isValidDay, LOT_CODE_MAX_LENGTH, normalizeLotCode } from "./lots";
 import { fromMilli, QUANTITY_LIMITS, toMilli } from "./quantity";
 
-// Puro: informes de recepción (IR) de las órdenes de compra.
+// Pure: receiving reports (RR) for purchase orders.
 
 export const RECEIPT_NOTES_MAX_LENGTH = 300;
 export const DELIVERY_NOTE_MAX_LENGTH = 50;
@@ -15,13 +15,13 @@ const ZERO = BigInt(0);
 type Numeric = { toString(): string } | string;
 type Messages = Dictionary["receipts"]["errors"];
 
-/** OC a las que se les puede cargar mercadería. */
+/** POs to which goods can be entered. */
 export const RECEIVABLE_PO_STATES: PurchaseOrderState[] = [
   "SENT",
   "PARTIALLY_RECEIVED",
 ];
 
-/** Lo que falta llegar de una línea de la OC (lo recibido de más no cuenta). */
+/** What is still to arrive of a PO line (what was received in excess does not count). */
 export function pendingQuantity(item: {
   quantity: Numeric;
   receivedQuantity: Numeric;
@@ -31,16 +31,16 @@ export function pendingQuantity(item: {
 }
 
 /**
- * Lo recibido contra lo que faltaba: positivo si llegó de más, negativo si
- * llegó de menos, "0" si coincide.
+ * Received against what was missing: positive if more arrived, negative if
+ * less arrived, "0" if it matches.
  */
 export function receiptDifference(pending: Numeric, received: Numeric): string {
   return fromMilli(toMilli(received) - toMilli(pending));
 }
 
 /**
- * Estado de la OC según lo recibido: nada → Enviada, todo (o más) en cada
- * línea → Recibida, si no → Recibida parcial.
+ * PO status from what was received: nothing → Ordered, everything (or more) on each
+ * line → Received, otherwise → Partially received.
  */
 export function orderStateFor(
   items: { quantity: Numeric; receivedQuantity: Numeric }[],
@@ -55,25 +55,25 @@ export function orderStateFor(
   return complete ? "RECEIVED" : "PARTIALLY_RECEIVED";
 }
 
-/** Cuánto llegó de un lote (con su vencimiento, YYYY-MM-DD). */
+/** How much arrived of a lot (with its expiry, YYYY-MM-DD). */
 export type ReceiptLot = { code: string; expiresOn: string; quantity: string };
 
 export type ReceiptLine = {
   productId: string;
   quantity: string;
-  /** Cómo se reparte entre lotes, solo de productos que controlan vencimiento. */
+  /** How it is split across lots, only for products that track expiry. */
   lots?: ReceiptLot[];
 };
 
-/** Cuántos lotes distintos se pueden cargar de un producto en un informe. */
+/** How many different lots of a product can be entered in one report. */
 export const MAX_LOTS_PER_LINE = 5;
 
 /**
- * Las cantidades recibidas del form (`rcv_<producto>`), solo de productos de
- * la OC: en blanco o 0, no llegó. Tiene que llegar al menos uno. Lo que llegó
- * de un producto que controla vencimiento se reparte en lotes: filas
- * `lot_<producto>_<n>` (código), `exp_<producto>_<n>` (fecha) y `lq_<producto>_<n>`
- * (cantidad; con una sola fila puede quedar en blanco y es todo lo que llegó).
+ * The received quantities from the form (`rcv_<product>`), only for products on
+ * the PO: blank or 0, did not arrive. At least one must arrive. What arrived
+ * of a product that tracks expiry is split into lots: rows
+ * `lot_<product>_<n>` (code), `exp_<product>_<n>` (date) and `lq_<product>_<n>`
+ * (quantity; with a single row it can be left blank and it is everything that arrived).
  */
 export function parseReceiptLines(
   formData: FormData,
@@ -111,7 +111,7 @@ export function parseReceiptLines(
           text("exp", n),
           text("lq", n),
         ];
-        // Una fila sin nada es una fila sin usar.
+        // A row with nothing is an unused row.
         if (!code && !expiresOn && !rowQuantity) continue;
         if (!code) return { ok: false, error: t.lotRequired };
         if (code.length > LOT_CODE_MAX_LENGTH) {
@@ -136,7 +136,7 @@ export function parseReceiptLines(
           }
           lotQuantity = fromMilli(toMilli(parsed));
         } else if (rows.length > 0 || n > 0) {
-          // Con más de una fila, cada una dice cuánto trae.
+          // With more than one row, each one says how much it brings.
           return { ok: false, error: t.lotQuantities };
         }
         if (
@@ -202,7 +202,7 @@ export function parseReceiptHeader(
   };
 }
 
-/** Motivo obligatorio (anular un IR o una factura, cerrar una OC con faltante, aprobar). */
+/** Mandatory reason (voiding an RR or an invoice, closing a PO with a shortage, approving). */
 export function parseReason(
   formData: FormData,
   t: Pick<Messages, "reasonRequired" | "tooLong">,

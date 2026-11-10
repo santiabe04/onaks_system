@@ -1,15 +1,15 @@
 import { expect, test } from "@playwright/test";
 import { login, numberFromUrl, pageAs, ready } from "./helpers";
 
-// PNG de 2×2 para la "foto del remito" (la app la pasa a WebP con sharp).
+// 2×2 PNG for the "receipt photo" (the app converts it to WebP with sharp).
 const PHOTO = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==",
   "base64",
 );
 
-// El pedido #3 de la demo (Veterinaria San Roque): 2 bolsas de alimento perro
-// cachorro y 3 de alimento gato adulto. Pasa por picking (falta una bolsa
-// rota), hoja de ruta, entrega parcial con cobro y cierre con rendición.
+// Order #3 of the demo (Veterinaria San Roque): 2 bags of puppy dog food
+// and 3 of adult cat food. It goes through picking (one bag is
+// broken), a route sheet, a partial delivery with payment and the closing with the cash count.
 test("picking, hoja de ruta, parada con entrega parcial y cierre", async ({
   page,
   browser,
@@ -82,7 +82,7 @@ test("picking, hoja de ruta, parada con entrega parcial y cierre", async ({
         buffer: PHOTO,
       });
 
-    // Recibe solo 1 de las 2 bolsas de cachorro: la otra vuelve al depósito.
+    // Receives only 1 of the 2 puppy bags: the other one goes back to the warehouse.
     await driver.getByLabel("Entrega parcial").check();
     const puppy = driver.getByRole("group", {
       name: "Alimento perro cachorro 15 kg",
@@ -94,7 +94,7 @@ test("picking, hoja de ruta, parada con entrega parcial y cierre", async ({
 
     await driver.getByLabel("Monto cobrado").fill("50000");
     await driver.getByRole("button", { name: "Guardar parada" }).click();
-    // Vuelve a la hoja con la parada cargada.
+    // Goes back to the sheet with the stop loaded.
     await expect(driver).toHaveURL(`/delivery/${sheetNumber}`);
     await expect(driver.getByText("1 de 1 paradas cargadas")).toBeVisible();
     await expect(
@@ -109,7 +109,7 @@ test("picking, hoja de ruta, parada con entrega parcial y cierre", async ({
     await page.getByRole("button", { name: "Cerrar la hoja" }).click();
     await expect(page.getByText(/Cerrada el/)).toBeVisible();
 
-    // El pedido quedó entregado y ajustado a lo que recibió el cliente.
+    // The order is delivered and adjusted to what the customer received.
     await page.goto("/admin/orders/3");
     await expect(page.getByText("Entregado").first()).toBeVisible();
     await expect(page.getByText("$ 75.250,50").first()).toBeVisible();

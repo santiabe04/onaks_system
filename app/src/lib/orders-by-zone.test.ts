@@ -5,7 +5,7 @@ import {
   type ZoneOrderInput,
 } from "./orders-by-zone";
 
-// Pedidos de pet shops del sur del GBA.
+// Orders from pet shops in the south of GBA.
 const dogFood = { quantity: "2", unitWeight: "15", unitVolume: "40" };
 const looseCatFood = { quantity: "1.25", unitWeight: "1", unitVolume: null };
 

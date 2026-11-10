@@ -11,9 +11,9 @@ import {
   type NoticeEvent,
 } from "./order-notice";
 
-// Cola de avisos por mail al cliente. El aviso se guarda en la misma
-// transacción que el cambio de estado (si se deshace, no queda) y se envía
-// después de responder; un mail caído nunca frena un cambio de estado.
+// Queue of email notices to the customer. The notice is saved in the same
+// transaction as the status change (if it is rolled back, it does not remain) and it is sent
+// after responding; a failed email never stops a status change.
 
 type Client = Prisma.TransactionClient | typeof db;
 
@@ -24,8 +24,8 @@ export type NoticeRecipient = {
 };
 
 /**
- * A quién se le avisa de un pedido: a la persona que lo hizo si es del cliente
- * y, si lo cargó el admin, a la persona más antigua de la empresa con usuario.
+ * Who gets notified about an order: the person who placed it if it is the customer's
+ * and, if the admin entered it, the oldest person of the company with a user.
  */
 export async function getOrderRecipient(
   client: Client,
@@ -68,8 +68,8 @@ export async function getOrderRecipient(
 }
 
 /**
- * Deja en cola el aviso de un estado (uno por pedido y estado) y programa el
- * envío para después de la respuesta. Sin SMTP o sin destinatario no hace nada.
+ * Queues the notice for a status (one per order and status) and schedules the
+ * sending for after the response. Without SMTP or without a recipient it does nothing.
  */
 export async function enqueueOrderNotice(
   tx: Prisma.TransactionClient,
@@ -100,7 +100,7 @@ export async function enqueueOrderNotice(
   try {
     after(() => flushOrderNotices());
   } catch {
-    // Fuera de un request (un script): los toma el próximo envío.
+    // Outside a request (a script): the next send picks them up.
   }
 }
 
@@ -108,9 +108,9 @@ const BATCH = 20;
 const STUCK_MINUTES = 5;
 
 /**
- * Envía los avisos en cola: toma un lote (sin pisarse con otro envío), manda
- * cada mail y registra el resultado. Los que fallan quedan en cola para el
- * próximo envío hasta agotar los intentos y pasan a fallidos.
+ * Sends the queued notices: takes a batch (without colliding with another send), sends
+ * each email and records the result. Those that fail stay in the queue for the
+ * next send until the attempts run out, and then become failed.
  */
 export async function flushOrderNotices(): Promise<void> {
   if (!mailEnabled()) return;

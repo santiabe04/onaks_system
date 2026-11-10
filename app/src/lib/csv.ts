@@ -1,23 +1,23 @@
-// Puro: arma un CSV que Excel abre bien.
+// Pure: builds a CSV that Excel opens correctly.
 //
-// Excel en español espera `;` como separador (la coma es el decimal); en
-// inglés, `,`. El BOM hace que respete los acentos (UTF-8).
+// Excel in Spanish expects `;` as the separator (the comma is the decimal); in
+// English, `,`. The BOM makes it respect accents (UTF-8).
 
 const BOM = "\uFEFF";
 
 export type CsvDelimiter = ";" | ",";
 
 /**
- * Un texto que arranca con `=`, `+`, `-`, `@` o un tab Excel lo toma como
- * fórmula (inyección: un comentario del cliente como `=HYPERLINK(...)`). Se le
- * antepone `'`, que Excel no muestra. Los números (`-12,5`) quedan como están.
+ * A text that starts with `=`, `+`, `-`, `@` or a tab is taken by Excel as a
+ * formula (injection: a customer comment like `=HYPERLINK(...)`). A `'` is
+ * prepended to it, which Excel does not show. Numbers (`-12,5`) are left as they are.
  */
 function neutralize(value: string): string {
   if (!/^[=+\-@\t\r]/.test(value)) return value;
   return /^-?\d+([.,]\d+)?$/.test(value) ? value : `'${value}`;
 }
 
-/** Comillas solo cuando hacen falta; las comillas internas se duplican. */
+/** Quotes only when needed; internal quotes are doubled. */
 function cell(raw: string, delimiter: CsvDelimiter): string {
   const value = neutralize(raw);
   return value.includes(delimiter) || /["\r\n]/.test(value)
@@ -36,8 +36,8 @@ export function toCsv(rows: string[][], delimiter: CsvDelimiter): string {
 }
 
 /**
- * "1234.5" → "1234,5" con coma decimal. Sin separador de miles: una planilla
- * lo tiene que poder leer como número.
+ * "1234.5" → "1234,5" with decimal comma. No thousands separator: a spreadsheet
+ * must be able to read it as a number.
  */
 export function csvNumber(
   value: { toString(): string },

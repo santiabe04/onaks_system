@@ -27,7 +27,7 @@ export default async function CategoriesPage() {
         </Link>
       </div>
 
-      {/* La lista sale de la DB en cada request: va en Suspense (cacheComponents). */}
+      {/* The list comes from the DB on every request: it goes in Suspense (cacheComponents). */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -43,7 +43,7 @@ async function CategoryTree() {
 
   const [rows, productCounts] = await Promise.all([
     db.category.findMany({ select: { id: true, name: true, parentId: true } }),
-    // La FK incluye productos borrados (soft delete): cuentan para no borrar.
+    // The FK includes soft-deleted products: they count, so that nothing is deleted.
     db.product.groupBy({ by: ["categoryId"], _count: { _all: true } }),
   ]);
   const products = new Map(
@@ -62,7 +62,7 @@ async function CategoryTree() {
           key={node.id}
           className="flex items-start justify-between gap-4 border-b border-current/10 py-2"
         >
-          {/* Sangría por nivel: el árbol se lee de un vistazo. */}
+          {/* Indentation per level: the tree can be read at a glance. */}
           <span
             style={{ paddingLeft: `${(node.depth - 1) * 1.5}rem` }}
             className={node.depth === 1 ? "font-medium" : undefined}
@@ -71,7 +71,7 @@ async function CategoryTree() {
             {node.name}
           </span>
           <div className="flex shrink-0 items-start gap-4">
-            {/* Con productos ya no puede tener hijas: solo las finales los tienen. */}
+            {/* With products it can no longer have children: only leaf categories have them. */}
             {node.depth < MAX_CATEGORY_DEPTH && !products.has(node.id) && (
               <Link
                 href={`/admin/categories/new?parent=${node.id}`}

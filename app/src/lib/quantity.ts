@@ -1,18 +1,18 @@
 import type { DecimalLimits } from "./decimal-input";
 
-// Puro: cantidades de stock (DECIMAL(12,3)) como enteros en milésimas, para
-// sumar y restar sin errores de coma flotante.
+// Pure: stock quantities (DECIMAL(12,3)) as integers in thousandths, to
+// add and subtract without floating-point errors.
 
 export const QUANTITY_LIMITS: DecimalLimits = {
   maxDecimals: 3,
   maxIntegerDigits: 9,
 };
 
-// BigInt(...) y no literales `1000n`: el target del tsconfig es anterior a ES2020.
+// BigInt(...) and not `1000n` literals: the tsconfig target is older than ES2020.
 const SCALE = BigInt(1000);
 const ZERO = BigInt(0);
 
-/** "12.5" o un Decimal ("-3.250") → 12500n / -3250n. */
+/** "12.5" or a Decimal ("-3.250") → 12500n / -3250n. */
 export function toMilli(value: { toString(): string }): bigint {
   const text = value.toString().trim();
   const negative = text.startsWith("-");
@@ -23,7 +23,7 @@ export function toMilli(value: { toString(): string }): bigint {
   return negative ? -milli : milli;
 }
 
-/** 12500n → "12.5"; -3250n → "-3.25"; 0n → "0". Sin ceros de más. */
+/** 12500n → "12.5"; -3250n → "-3.25"; 0n → "0". No extra zeros. */
 export function fromMilli(milli: bigint): string {
   const negative = milli < ZERO;
   const abs = negative ? -milli : milli;

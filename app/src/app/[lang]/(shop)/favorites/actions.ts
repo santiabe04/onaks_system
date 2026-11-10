@@ -6,12 +6,12 @@ import { VISIBLE_PRODUCT } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { isCuid } from "@/lib/ids";
 
-// Favoritos de la empresa: los comparten todas sus personas. Solo compra quien
-// tiene `sales:create`. Como el carrito, es una preferencia y no va a la
-// auditoría.
+// Company favorites: shared by all its people. Only those who buy
+// have `sales:create`. Like the cart, it is a preference and does not go to the
+// audit log.
 const PERMISSION = "sales:create";
 
-/** Marca o desmarca un producto como favorito de la empresa del usuario. */
+/** Marks or unmarks a product as a favorite of the user's company. */
 export async function setFavorite(
   productId: string,
   favorite: boolean,
@@ -21,7 +21,7 @@ export async function setFavorite(
   if (!customerId || !isCuid(productId)) return;
 
   if (favorite) {
-    // Solo se agrega lo que se puede comprar; quitar siempre se puede.
+    // Only what can be bought is added; removing is always possible.
     const product = await db.product.findFirst({
       where: { id: productId, ...VISIBLE_PRODUCT },
       select: { id: true },
@@ -39,14 +39,14 @@ export async function setFavorite(
 }
 
 export type AddFavoritesState = {
-  /** Cuántos productos se sumaron (los que ya estaban en el carrito no). */
+  /** How many products were added (those already in the cart are not counted). */
   added?: number;
   savedAt?: number;
 };
 
 /**
- * Suma al carrito una unidad de cada favorito que todavía no esté en él: lo
- * que ya tenía el carrito (con su cantidad) no se toca.
+ * Adds one unit of each favorite not yet in the cart: what
+ * the cart already had (with its quantity) is not touched.
  */
 export async function addFavoritesToCart(): Promise<AddFavoritesState> {
   const user = await requirePermission(PERMISSION);

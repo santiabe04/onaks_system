@@ -10,7 +10,7 @@ export default async function AdminLayout({
 }: LayoutProps<"/[lang]/admin">) {
   const t = await getT();
 
-  // Un grupo aparece cuando existe alguna de sus pantallas.
+  // A group appears when at least one of its screens exists.
   const sections: NavSection[] = [
     { items: [{ href: "/admin", label: t.adminNav.home }] },
     {
@@ -91,7 +91,7 @@ export default async function AdminLayout({
       }}
       footer={
         <div className="flex flex-col gap-3">
-          {/* La sesión no se lee en el layout: se empuja a un hijo en Suspense. */}
+          {/* The session is not read in the layout: it is pushed to a child in Suspense. */}
           <Suspense fallback={null}>
             <SidebarUser />
           </Suspense>

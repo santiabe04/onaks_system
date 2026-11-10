@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "./db";
 import type { PickingLine } from "./picking";
 
-/** Una lista de picking con sus pedidos, productos y la ubicación en su depósito. */
+/** A picking list with its orders, products and the location in its warehouse. */
 export async function getPickingList(number: number) {
   const list = await db.pickingList.findUnique({
     where: { number },

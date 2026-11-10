@@ -1,9 +1,9 @@
 import { INTL_LOCALE, type Locale } from "./config";
 
-// La moneda es siempre ARS: el idioma cambia el formato, no los datos.
+// The currency is always ARS: the language changes the format, not the data.
 const CURRENCY = "ARS";
 
-/** Prisma devuelve Decimal: se acepta cualquier cosa que se pueda pasar a número. */
+/** Prisma returns Decimal: anything that can be passed to a number is accepted. */
 type Numeric = number | string | { toString(): string };
 
 export function formatters(locale: Locale) {
@@ -31,12 +31,12 @@ export function formatters(locale: Locale) {
   return {
     money: (value: Numeric) => money.format(Number(value.toString())),
     number: (value: Numeric) => number.format(Number(value.toString())),
-    /** Para precargar un input: separador decimal del idioma, sin miles ("25000,5"). */
+    /** To pre-fill an input: the language's decimal separator, without thousands ("25000,5"). */
     input: (value: Numeric) => input.format(Number(value.toString())),
-    /** Recibe una fracción (0.105 → "10,5 %"), como se guardan las tasas. */
+    /** Takes a fraction (0.105 → "10,5 %"), as rates are stored. */
     percent: (value: Numeric) => percent.format(Number(value.toString())),
     date: (value: Date) => date.format(value),
-    /** Un día de calendario (YYYY-MM-DD, como el vencimiento de un lote), sin corrimientos de huso. */
+    /** A calendar day (YYYY-MM-DD, like a lot's expiry), without time zone shifts. */
     day: (iso: string) => date.format(new Date(`${iso}T12:00:00`)),
     time: (value: Date) => time.format(value),
     dateTime: (value: Date) => dateTime.format(value),

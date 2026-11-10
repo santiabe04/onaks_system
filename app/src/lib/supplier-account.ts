@@ -9,8 +9,8 @@ import { fromCents, toCents } from "./account";
 import { parseDecimalInput, PRICE_LIMITS } from "./decimal-input";
 import { isDay } from "./supplier-invoice";
 
-// Puro: cuenta corriente de proveedores (órdenes de pago, notas de crédito e
-// imputaciones a facturas). Todo en centavos.
+// Pure: supplier account (payment orders, credit notes and
+// allocations to invoices). Everything in cents.
 
 export const PAYMENT_METHODS: SupplierPaymentMethod[] = [
   "CASH",
@@ -21,7 +21,7 @@ export const PAYMENT_METHODS: SupplierPaymentMethod[] = [
 export const WITHHOLDING_TYPES: WithholdingType[] = ["VAT", "IIBB", "INCOME"];
 export const PAYMENT_NOTES_MAX_LENGTH = 300;
 export const MAX_PAYMENT_LINES = 20;
-/** Días hacia adelante que cuentan como "vence pronto". */
+/** Days forward that count as "due soon". */
 export const DUE_SOON_DAYS = 7;
 const ZERO = BigInt(0);
 
@@ -33,15 +33,15 @@ export type PaymentLine = {
   amount: string;
   reference: string | null;
   bank: string | null;
-  /** Cheque: fecha de pago (YYYY-MM-DD). */
+  /** Check: payment date (YYYY-MM-DD). */
   dueDate: string | null;
   withholdingType: WithholdingType | null;
 };
 
 /**
- * Los medios del form (`method_<i>`, `amount_<i>`, `reference_<i>`, `bank_<i>`,
- * `due_<i>`, `withholding_<i>`, con i hasta `lines`). Transferencia, cheque y
- * retención llevan número; el cheque, banco y fecha; la retención, el tipo.
+ * The form's methods (`method_<i>`, `amount_<i>`, `reference_<i>`, `bank_<i>`,
+ * `due_<i>`, `withholding_<i>`, with i up to `lines`). Transfer, check and
+ * withholding carry a number; the check, bank and date; the withholding, the type.
  */
 export function parsePaymentLines(
   formData: FormData,
@@ -104,8 +104,8 @@ export function parsePaymentLines(
 export type Allocation = { invoiceId: string; amount: string };
 
 /**
- * Cuánto se imputa a cada factura (`alloc_<factura>`): no más de lo que le
- * falta a cada una ni, en total, más de lo disponible. En blanco o 0, nada.
+ * How much is allocated to each invoice (`alloc_<invoice>`): no more than what each
+ * is missing nor, in total, more than what is available. Blank or 0, nothing.
  */
 export function parseAllocations(
   formData: FormData,
@@ -134,8 +134,8 @@ export function parseAllocations(
 }
 
 /**
- * Reparte un importe entre las facturas en el orden dado (la más vieja
- * primero), sin pasarse de lo que le falta a cada una.
+ * Splits an amount across the invoices in the given order (the oldest
+ * first), without exceeding what each one is missing.
  */
 export function autoAllocate(
   invoices: { id: string; outstanding: Numeric }[],
@@ -166,7 +166,7 @@ export type AccountInvoice = {
 export type AccountDocument = {
   total: Numeric;
   annulled: boolean;
-  /** Lo imputado por este comprobante (solo cuenta si no está anulado). */
+  /** What this voucher allocated (only counts if it is not voided). */
   allocations: { invoiceId: string; amount: Numeric }[];
 };
 
@@ -174,28 +174,28 @@ export type InvoiceBalance = {
   id: string;
   paid: string;
   outstanding: string;
-  /** Vence (o venció, sin vencimiento cuenta la fecha de la factura). */
+  /** Due (or overdue; without a due date the invoice date counts). */
   dueOn: string;
   overdue: boolean;
 };
 
 export type SupplierAccountSummary = {
-  /** Facturas aprobadas − OP − notas de crédito (sin anuladas). */
+  /** Approved invoices − PO − credit notes (without voided ones). */
   balance: string;
-  /** Lo que se debe de las facturas aprobadas, factura por factura. */
+  /** What is owed on the approved invoices, invoice by invoice. */
   invoices: InvoiceBalance[];
   overdue: string;
   dueSoon: string;
-  /** Pagado o acreditado sin imputar a ninguna factura. */
+  /** Paid or credited but not allocated to any invoice. */
   unallocated: string;
-  /** Facturas observadas: no se pagan hasta aprobarlas. */
+  /** Flagged invoices: they are not paid until approved. */
   flagged: string;
 };
 
 /**
- * La cuenta de un proveedor. Solo las facturas aprobadas son deuda; las
- * observadas se informan aparte. Lo imputado de comprobantes anulados no
- * cuenta. Vencida: con saldo y vencimiento anterior a hoy.
+ * The supplier's account. Only approved invoices are debt; flagged ones are
+ * reported separately. What was allocated from voided vouchers does not
+ * count. Overdue: with a balance and a due date before today.
  */
 export function summarizeSupplierAccount(
   input: {
@@ -258,7 +258,7 @@ export function summarizeSupplierAccount(
   };
 }
 
-/** Lo que le queda sin imputar a una OP o nota de crédito. */
+/** What is left unallocated on a PO or credit note. */
 export function unallocatedOf(document: AccountDocument): string {
   if (document.annulled) return "0.00";
   const allocated = document.allocations.reduce(
@@ -281,7 +281,7 @@ export type CreditNoteAmounts = {
   notes: string | null;
 };
 
-/** Neto e IVA de la nota de crédito (el total es la suma) y el comentario. */
+/** Net and VAT of the credit note (the total is the sum) and the comment. */
 export function parseCreditNoteAmounts(
   formData: FormData,
   t: Dictionary["creditNotes"]["errors"],
@@ -314,7 +314,7 @@ export function parseCreditNoteAmounts(
   };
 }
 
-/** Fecha de pago y comentario de la OP. */
+/** Payment date and comment of the PO. */
 export function parsePaymentHeader(
   formData: FormData,
   t: Pick<Messages, "paidOn" | "tooLong">,

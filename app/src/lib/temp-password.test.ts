@@ -12,7 +12,7 @@ describe("generateTempPassword", () => {
   });
 
   it("descarta los bytes que sesgarían la distribución", () => {
-    // 250 está por encima del último múltiplo de 57 (228): se descarta.
+    // 250 is above the last multiple of 57 (228): it is discarded.
     const bytes = [250, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
     const password = generateTempPassword((target) => {
       target.set(bytes);

@@ -2,17 +2,17 @@ import type { Dictionary } from "@/i18n/dictionaries/es";
 import { parseDecimalInput } from "./decimal-input";
 import { fromMilli, QUANTITY_LIMITS, toMilli } from "./quantity";
 
-// Puro: entrega parcial de una parada. Por producto, cuánto se entregó y,
-// si faltó algo, el motivo (que decide qué pasa con el stock).
+// Pure: partial delivery of a stop. Per product, how much was delivered and,
+// if something was missing, the reason (which decides what happens to the stock).
 
 /**
- * RETURNED: vuelve en la camioneta (rechazado, sobrante) → vuelve al depósito.
- * WRITTEN_OFF: se rompió o venció → se da de baja.
+ * RETURNED: comes back on the truck (rejected, surplus) → goes back to the warehouse.
+ * WRITTEN_OFF: broken or expired → written off.
  */
 export const SHORTAGE_REASONS = ["RETURNED", "WRITTEN_OFF"] as const;
 /**
- * En el picking: MISSING (no estaba en el depósito → ajuste de stock) o
- * WRITTEN_OFF (roto o vencido → baja).
+ * In picking: MISSING (not in the warehouse → stock adjustment) or
+ * WRITTEN_OFF (broken or expired → write-off).
  */
 export const PICKING_SHORTAGE_REASONS = ["MISSING", "WRITTEN_OFF"] as const;
 export type ShortageReason =
@@ -28,7 +28,7 @@ export type OrderedItem = {
 
 export type Shortage = {
   productId: string;
-  /** Cantidades normalizadas ("2", "1.25"). */
+  /** Normalized quantities ("2", "1.25"). */
   ordered: string;
   delivered: string;
   missing: string;
@@ -38,9 +38,9 @@ export type Shortage = {
 type Messages = Dictionary["delivery"]["errors"];
 
 /**
- * Lee la entrega parcial del form (`partial`, `delivered_<producto>`,
- * `reason_<producto>`). Sin `partial`, o si al final se entregó todo, no hay
- * faltantes. Algo tiene que haberse entregado: si no, es "No entregado".
+ * Reads the partial delivery from the form (`partial`, `delivered_<product>`,
+ * `reason_<product>`). Without `partial`, or if in the end everything was delivered, there are no
+ * shortages. Something must have been delivered: otherwise it is "Not delivered".
  */
 export function parsePartialDelivery(
   formData: FormData,
@@ -83,7 +83,7 @@ export function parsePartialDelivery(
   return { ok: true, shortages };
 }
 
-/** Las cantidades del pedido después de la entrega parcial (0 = se quita). */
+/** The order's quantities after the partial delivery (0 = removed). */
 export function deliveredQuantities(
   items: { productId: string; quantity: Numeric }[],
   shortages: Shortage[],

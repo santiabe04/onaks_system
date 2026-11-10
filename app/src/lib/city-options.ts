@@ -6,7 +6,7 @@ export type CityGroup = {
   cities: { id: number; name: string }[];
 };
 
-/** Localidades agrupadas por provincia, para un <select> con <optgroup>. */
+/** Cities grouped by province, for a <select> with <optgroup>. */
 export async function getCityGroups(): Promise<CityGroup[]> {
   const states = await db.state.findMany({
     orderBy: { name: "asc" },

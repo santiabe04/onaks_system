@@ -1,12 +1,12 @@
 import { fromMilli, toMilli } from "./quantity";
 
-// Puro: lotes y vencimientos. Las cantidades van en milésimas (BigInt), como
-// el resto del stock; las fechas son YYYY-MM-DD (día calendario, sin hora).
+// Pure: lots and expiries. Quantities are in thousandths (BigInt), like
+// the rest of the stock; dates are YYYY-MM-DD (calendar day, no time).
 
 const ZERO = BigInt(0);
 
 export const LOT_CODE_MAX_LENGTH = 40;
-/** Con cuántos días de anticipación se avisa que un lote está por vencer. */
+/** How many days in advance a lot is flagged as expiring soon. */
 export const EXPIRY_WARNING_DAYS = 30;
 
 export type LotBalance = {
@@ -19,7 +19,7 @@ export type LotBalance = {
 
 export type LotTake = { lotId: string; quantity: string };
 
-/** Primero lo que vence antes; a igual fecha, por código para que sea estable. */
+/** The one that expires first first; on the same date, by code so it is stable. */
 export function byExpiry(
   a: { expiresOn: string; lotCode: string },
   b: { expiresOn: string; lotCode: string },
@@ -30,9 +30,9 @@ export function byExpiry(
 }
 
 /**
- * Reparte una salida entre los lotes, primero el que vence antes (FEFO).
- * `rest` es lo que no cubren los lotes (stock sin lote): se saca igual del
- * saldo del producto.
+ * Splits an outgoing quantity across the lots, the one that expires first (FEFO).
+ * `rest` is what the lots do not cover (stock with no lot): it is taken anyway from
+ * the product's balance.
  */
 export function allocateFefo(
   lots: LotBalance[],
@@ -52,8 +52,8 @@ export function allocateFefo(
 }
 
 /**
- * Devuelve una cantidad a los lotes de donde salió, sin pasarse de lo que
- * salió de cada uno. `taken` es lo que sigue fuera de cada lote.
+ * Returns a quantity to the lots it came from, without exceeding what
+ * left each one. `taken` is what is still out of each lot.
  */
 export function returnToLots(
   taken: LotTake[],
@@ -74,7 +74,7 @@ export function returnToLots(
 
 export type ExpiryStatus = "expired" | "soon" | "ok";
 
-/** Vencido, por vencer (dentro de `warnDays`) o en fecha. `today` es YYYY-MM-DD. */
+/** Expired, expiring soon (within `warnDays`) or on the date. `today` is YYYY-MM-DD. */
 export function expiryStatus(
   expiresOn: string,
   today: string,
@@ -84,14 +84,14 @@ export function expiryStatus(
   return expiresOn <= addDays(today, warnDays) ? "soon" : "ok";
 }
 
-/** Suma días a un YYYY-MM-DD (en UTC: no hay horario de verano que lo mueva). */
+/** Adds days to a YYYY-MM-DD (in UTC: there is no daylight saving time to move it). */
 export function addDays(day: string, days: number): string {
   const date = new Date(`${day}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
 }
 
-/** Fecha de calendario válida (rechaza 2026-02-30). */
+/** Valid calendar date (rejects 2026-02-30). */
 export function isValidDay(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const date = new Date(`${value}T00:00:00Z`);
@@ -100,7 +100,7 @@ export function isValidDay(value: string): boolean {
   );
 }
 
-/** Suma por producto los lotes de varios pedidos (mismo lote = una sola fila). */
+/** Sums the lots of several orders per product (same lot = a single row). */
 export function sumLotsByProduct(
   rows: {
     productId: string;
@@ -144,12 +144,12 @@ function byExpiry2(
   return a.expiresOn.localeCompare(b.expiresOn) || a.code.localeCompare(b.code);
 }
 
-/** El día (YYYY-MM-DD) de una columna `@db.Date`, que Prisma entrega a medianoche UTC. */
+/** The day (YYYY-MM-DD) of a `@db.Date` column, which Prisma delivers at UTC midnight. */
 export function dayOf(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-/** El código de lote como se guarda: sin espacios sobrantes y en mayúsculas. */
+/** The lot code as it is stored: no extra spaces and in uppercase. */
 export function normalizeLotCode(input: string): string {
   return input.trim().toUpperCase();
 }

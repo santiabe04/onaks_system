@@ -16,10 +16,10 @@ export type SessionUser = {
   mustChangePassword: boolean;
 };
 
-// El token solo prueba quién es. El rol y el estado salen de la DB, así una
-// baja o un cambio de rol corta el acceso sin esperar a que venza la cookie.
-// Si `session_version` no coincide, la sesión fue revocada (p. ej. otro
-// dispositivo cambió la contraseña).
+// The token only proves who it is. The role and status come from the DB, so a
+// deactivation or role change cuts access without waiting for the cookie to expire.
+// If `session_version` does not match, the session was revoked (e.g. another
+// device changed the password).
 async function findSessionUser(): Promise<SessionUser | null> {
   const session = await getSession();
   if (!session) return null;
@@ -53,8 +53,8 @@ async function findSessionUser(): Promise<SessionUser | null> {
 }
 
 /**
- * Para renderizar: se cachea por sesión, así varios componentes de la misma
- * página no repiten la consulta.
+ * For rendering: cached per session, so several components on the same
+ * page do not repeat the query.
  */
 async function findSessionUserCached(): Promise<SessionUser | null> {
   "use cache: private";
@@ -62,10 +62,10 @@ async function findSessionUserCached(): Promise<SessionUser | null> {
 }
 
 /**
- * Manda al usuario a su inicio. Solo las Server Actions registran el intento
- * en la auditoría: al renderizar, una misma página chequea varias veces y los
- * prefetch de los links también renderizan, así que un registro por render
- * llenaría el log de entradas que el usuario nunca pidió.
+ * Sends the user to their home. Only Server Actions record the attempt
+ * in the audit log: when rendering, the same page checks several times and the
+ * prefetches of the links also render, so one record per render would
+ * fill the log with entries the user never asked for.
  */
 async function deny(
   user: SessionUser,
@@ -87,10 +87,10 @@ async function checkAccess(
   role: UserType | undefined,
   record: boolean,
 ): Promise<SessionUser> {
-  // Sin user puede haber igual un token válido: /logout lo borra antes del login.
+  // Without a user there may still be a valid token: /logout deletes it before login.
   if (!user) redirect(LOGOUT_PATH);
-  // La DB manda: el token puede no tener la marca (p. ej. si el admin la puso
-  // después del login). Con contraseña pendiente no se usa nada más de la app.
+  // The DB decides: the token may not have the flag (e.g. if the admin set it
+  // after login). With a pending password nothing else in the app is used.
   if (user.mustChangePassword) redirect(CHANGE_PASSWORD_PATH);
   if (role && user.role !== role) {
     await deny(user, { requiredRole: role }, record);
@@ -110,19 +110,19 @@ async function checkPermission(
   return checked;
 }
 
-/** Para Server Components (dentro de un <Suspense>). */
+/** For Server Components (inside a <Suspense>). */
 export async function getCurrentUser(role?: UserType): Promise<SessionUser> {
   return checkAccess(await findSessionUserCached(), role, false);
 }
 
-/** Para Server Actions y Route Handlers: siempre verifica contra la DB, sin caché. */
+/** For Server Actions and Route Handlers: always checks against the DB, without cache. */
 export async function requireUser(role?: UserType): Promise<SessionUser> {
   return checkAccess(await findSessionUser(), role, true);
 }
 
 /**
- * Solo para cambiar la contraseña: exige sesión pero no que el cambio ya esté
- * hecho (si no, nadie con la marca podría cumplirlo).
+ * Only to change the password: requires a session but not that the change is already
+ * done (otherwise nobody with the flag could meet it).
  */
 export async function requireUserForPasswordChange(): Promise<SessionUser> {
   const user = await findSessionUser();
@@ -130,7 +130,7 @@ export async function requireUserForPasswordChange(): Promise<SessionUser> {
   return user;
 }
 
-/** Como `getCurrentUser`, pero exige un permiso. Para páginas. */
+/** Like `getCurrentUser`, but requires a permission. For pages. */
 export async function getUserWithPermission(
   permission: Permission,
 ): Promise<SessionUser> {
@@ -138,8 +138,8 @@ export async function getUserWithPermission(
 }
 
 /**
- * Primera línea de toda Server Action que toca datos protegidos. Una action se
- * puede invocar con un POST directo: el proxy y la UI no alcanzan.
+ * First line of every Server Action that touches protected data. An action can be
+ * invoked with a direct POST: the proxy and the UI are not enough.
  */
 export async function requirePermission(
   permission: Permission,

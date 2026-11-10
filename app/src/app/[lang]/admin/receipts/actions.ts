@@ -22,14 +22,14 @@ import { fromMilli, toMilli } from "@/lib/quantity";
 import { recordReceiptMovements, StockLedgerError } from "@/lib/stock-ledger";
 import { invoicedByProduct } from "@/lib/supplier-invoice-ledger";
 
-// Informes de recepción (IR): lo que llegó de una OC entra al stock de un
-// depósito y suma a lo recibido de la OC. Se anulan con motivo (revierten
-// todo). Orden de bloqueo: la OC, después el informe, después los saldos.
+// Receiving reports (RR): what arrived for a PO goes into the stock of a
+// warehouse and adds to the PO's received quantity. They are voided with a reason (reversing
+// everything). Lock order: the PO, then the report, then the balances.
 const PERMISSION = "purchases:manage";
 
 export type ReceiptActionState = { error?: string };
 
-/** Corta la transacción con un mensaje para el admin. */
+/** Aborts the transaction with a message for the admin. */
 class ReceiptError extends Error {}
 
 function messages() {
@@ -62,8 +62,8 @@ async function lockOrder(tx: Prisma.TransactionClient, orderId: unknown) {
 }
 
 /**
- * Nuevo estado de la OC con lo recibido actualizado, auditado. Al anular un
- * informe se reabre si estaba cerrada con faltante.
+ * New PO status with the received quantity updated, audited. When a
+ * report is voided, the PO reopens if it had been closed with a shortage.
  */
 async function updateOrderReceived(
   tx: Prisma.TransactionClient,
@@ -122,7 +122,7 @@ async function updateOrderReceived(
   });
 }
 
-/** Carga lo que llegó de una OC: ingresa el stock y actualiza la OC. */
+/** Records what arrived for a PO: enters the stock and updates the PO. */
 export async function createGoodsReceipt(
   orderId: string,
   _prev: ReceiptActionState,
@@ -244,7 +244,7 @@ export async function createGoodsReceipt(
   redirect(`/admin/receipts/${number}`);
 }
 
-/** Anula un informe: saca el stock que ingresó y lo descuenta de la OC. */
+/** Voids a report: removes the stock it entered and deducts it from the PO. */
 export async function annulGoodsReceipt(
   receiptId: string,
   _prev: ReceiptActionState,
@@ -284,7 +284,7 @@ export async function annulGoodsReceipt(
           quantity: true,
         },
       });
-      // No se puede quedar con menos recibido que lo ya facturado.
+      // You cannot end up with less received than already invoiced.
       const [received, invoiced] = await Promise.all([
         tx.purchaseOrderItem.findMany({
           where: { purchaseOrderId: order.id },
@@ -357,8 +357,8 @@ export async function annulGoodsReceipt(
 }
 
 /**
- * Da por terminada una OC recibida en parte: queda Recibida y lo que falta
- * deja de contarse como pedido (no se espera más mercadería).
+ * Closes a partially received PO: it stays Received and what is missing
+ * stops counting as ordered (no more goods are expected).
  */
 export async function closePurchaseOrderShort(
   orderId: string,

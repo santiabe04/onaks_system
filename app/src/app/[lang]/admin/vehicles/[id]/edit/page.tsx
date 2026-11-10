@@ -21,7 +21,7 @@ export default async function EditVehiclePage({
   return (
     <main className="mx-auto w-full max-w-md p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.fleet.editVehicle}</h1>
-      {/* params y la query a la DB son de request: van en Suspense. */}
+      {/* params and the DB query are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -46,7 +46,7 @@ async function EditVehicle({ params }: { params: Promise<{ id: string }> }) {
       defaultValues={{
         name: vehicle.name,
         plate: vehicle.plate ?? "",
-        // Con el separador decimal del idioma.
+        // With the language's decimal separator.
         capacityKg: vehicle.capacityKg ? format.input(vehicle.capacityKg) : "",
         capacityLiters: vehicle.capacityLiters
           ? format.input(vehicle.capacityLiters)

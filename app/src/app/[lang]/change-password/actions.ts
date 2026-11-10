@@ -24,8 +24,8 @@ export async function changePassword(
   if (!result.ok) return result.state;
   const { currentPassword, newPassword } = result.data;
 
-  // Se pide la actual aunque haya sesión: una cookie robada no alcanza para
-  // quedarse con la cuenta.
+  // The current password is required even with a session: a stolen cookie is not enough
+  // to take over the account.
   const stored = await db.user.findUnique({
     where: { id: user.id },
     select: { passwordHash: true },
@@ -37,7 +37,7 @@ export async function changePassword(
   if (!valid) return { errors: { currentPassword: [t.currentWrong] } };
 
   const passwordHash = await hashPassword(newPassword);
-  // Subir la versión invalida las sesiones abiertas en otros dispositivos.
+  // Raising the version invalidates the open sessions on other devices.
   const { sessionVersion } = await db.$transaction(async (tx) => {
     const updated = await tx.user.update({
       where: { id: user.id },
@@ -58,8 +58,8 @@ export async function changePassword(
     return updated;
   });
 
-  // Token nuevo con la versión nueva y sin la marca: si no, esta sesión
-  // también quedaría revocada y el proxy lo seguiría mandando acá.
+  // New token with the new version and without the flag: otherwise this session
+  // would also be revoked and the proxy would keep sending it back here.
   await createSession({
     userId: user.id,
     role: user.role,

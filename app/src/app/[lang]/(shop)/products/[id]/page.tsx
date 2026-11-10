@@ -41,7 +41,7 @@ export default async function ProductPage({
       <Link href="/" className="text-sm hover:underline">
         ← {t.catalog.back}
       </Link>
-      {/* params y la DB son de request: va en Suspense. */}
+      {/* params and the DB are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -56,7 +56,7 @@ async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!isProductId(id)) notFound();
 
-  // Pausados o borrados no existen para el cliente.
+  // Paused or deleted products do not exist for the customer.
   const product = await db.product.findFirst({
     where: { id, ...VISIBLE_PRODUCT },
     select: {

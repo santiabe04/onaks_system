@@ -2,16 +2,16 @@ import { z } from "zod";
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 
-// Puro: conversión de porcentajes y validación del form de alícuotas.
+// Pure: percentage conversion and validation of the tax rate form.
 
 export const TAX_RATE_NAME_MAX_LENGTH = 40;
 
-// Hasta 100 con 2 decimales: la columna es DECIMAL(5,4) como fracción.
+// Up to 100 with 2 decimals: the column is DECIMAL(5,4) as a fraction.
 const PERCENT_PATTERN = /^(\d{1,3})(?:[.,](\d{1,2}))?$/;
 
 /**
- * "10,5" o "10.5" → "0.1050" (fracción como string, sin pasar por floats).
- * null si no es un porcentaje válido entre 0 y 100 con hasta 2 decimales.
+ * "10,5" or "10.5" → "0.1050" (fraction as a string, without going through floats).
+ * null if it is not a valid percentage between 0 and 100 with up to 2 decimals.
  */
 export function percentToFraction(raw: string): string | null {
   const match = PERCENT_PATTERN.exec(raw.trim());
@@ -19,13 +19,13 @@ export function percentToFraction(raw: string): string | null {
   const hundredths =
     Number(match[1]) * 100 + Number((match[2] ?? "").padEnd(2, "0"));
   if (hundredths > 10_000) return null;
-  // 4 decimales de la fracción = centésimos del porcentaje.
+  // 4 decimals of the fraction = hundredths of the percentage.
   const whole = Math.floor(hundredths / 10_000);
   const decimals = String(hundredths % 10_000).padStart(4, "0");
   return `${whole}.${decimals}`;
 }
 
-/** Fracción guardada ("0.105" o un Decimal) → porcentaje como número (10.5). */
+/** Stored fraction ("0.105" or a Decimal) → percentage as a number (10.5). */
 export function fractionToPercent(rate: { toString(): string }): number {
   return Math.round(Number(rate.toString()) * 10_000) / 100;
 }
@@ -78,7 +78,7 @@ export function validateTaxRateForm(
   const values: TaxRateValues = {
     name: get("name"),
     percent: get("percent"),
-    // Checkbox: solo viene en el form si está tildado.
+    // Checkbox: only comes in the form if it is ticked.
     isActive: formData.get("isActive") === "on",
   };
   const parsed = taxRateSchema(t).safeParse({
@@ -88,7 +88,7 @@ export function validateTaxRateForm(
   });
   if (parsed.success) return { ok: true, data: parsed.data, values };
 
-  // El campo del form se llama `percent` aunque el dato sea `rate`.
+  // The form field is called `percent` even though the data is `rate`.
   const { rate, ...errors } = z.flattenError(parsed.error).fieldErrors;
   return {
     ok: false,
@@ -96,10 +96,10 @@ export function validateTaxRateForm(
   };
 }
 
-// La columna es INTEGER (int4): cualquier cosa fuera de rango no puede existir.
+// The column is INTEGER (int4): anything out of range cannot exist.
 const idSchema = z.coerce.number().int().positive().max(2_147_483_647);
 
-/** Convierte un id de la URL o de un form en número; null si no es válido. */
+/** Converts an id from the URL or a form into a number; null if it is not valid. */
 export function parseTaxRateId(raw: unknown): number | null {
   const parsed = idSchema.safeParse(raw);
   return parsed.success ? parsed.data : null;

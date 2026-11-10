@@ -19,7 +19,7 @@ function readTheme(): Theme {
   }
 }
 
-// Se escucha también `storage`: un cambio en otra pestaña se refleja acá.
+// The `storage` event is also listened to: a change in another tab is reflected here.
 function subscribe(onChange: () => void) {
   window.addEventListener(CHANGE_EVENT, onChange);
   window.addEventListener("storage", onChange);
@@ -34,7 +34,7 @@ function applyTheme(theme: Theme) {
     if (theme === "system") localStorage.removeItem(THEME_STORAGE_KEY);
     else localStorage.setItem(THEME_STORAGE_KEY, theme);
   } catch {
-    // Sin localStorage el cambio vale solo hasta recargar.
+    // Without localStorage the change lasts only until reload.
   }
   if (theme === "system") delete document.documentElement.dataset.theme;
   else document.documentElement.dataset.theme = theme;
@@ -46,7 +46,7 @@ export function ThemeSelector({
 }: {
   labels: Record<Theme, string> & { title: string };
 }) {
-  // En el server no hay preferencia: se renderiza "system" y se corrige al hidratar.
+  // On the server there is no preference: "system" is rendered and corrected on hydration.
   const theme = useSyncExternalStore(subscribe, readTheme, () => DEFAULT_THEME);
 
   return (

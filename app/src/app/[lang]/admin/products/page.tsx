@@ -44,7 +44,7 @@ export default async function ProductsPage({
         </Link>
       </div>
 
-      {/* Los filtros vienen de la URL y la lista de la DB: van en Suspense. */}
+      {/* The filters come from the URL and the list from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -69,7 +69,7 @@ async function ProductsContent({
   });
   const tree = flattenCategoryTree(categories);
   const paths = new Map(tree.map((node) => [node.id, node.path.join(" › ")]));
-  // Filtrar por una categoría incluye sus subcategorías.
+  // Filtering by a category includes its subcategories.
   const categoryIds = filters.category
     ? [filters.category, ...descendantIds(categories, filters.category)]
     : undefined;
@@ -85,7 +85,7 @@ async function ProductsContent({
       include: { taxRate: { select: { rate: true } } },
     }),
   ]);
-  // Stock total (todos los depósitos) de los productos de esta página.
+  // Total stock (all warehouses) of the products on this page.
   const stocks = await db.productStock.groupBy({
     by: ["productId"],
     where: { productId: { in: products.map((p) => p.id) } },
@@ -244,7 +244,7 @@ async function ProductsContent({
   );
 }
 
-// Formulario GET: los filtros quedan en la URL, se pueden compartir y recargar.
+// GET form: the filters stay in the URL, so they can be shared and reloaded.
 function FiltersForm({
   t,
   filters,

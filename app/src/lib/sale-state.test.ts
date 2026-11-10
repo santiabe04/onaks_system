@@ -72,7 +72,7 @@ describe("pendingReturns", () => {
   it("devuelve el neto de cada producto y depósito", () => {
     expect(
       pendingReturns([
-        // Se preparó desde dos depósitos, volvió, y se preparó otra vez.
+        // It was prepared from two warehouses, went back, and was prepared again.
         { productId: "prodbolsa15", warehouseId: "depsur", quantity: "-2" },
         { productId: "prodsuelto", warehouseId: "depnorte", quantity: "-1.25" },
         { productId: "prodbolsa15", warehouseId: "depsur", quantity: "2" },

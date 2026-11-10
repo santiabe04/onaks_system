@@ -22,7 +22,7 @@ export default async function DriversPage() {
           {t.fleet.newDriver}
         </Link>
       </div>
-      {/* La lista sale de la DB en cada request: va en Suspense. */}
+      {/* The list comes from the DB on every request: it goes in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -37,7 +37,7 @@ async function DriversTable() {
   const t = await getT();
   const f = t.fleet;
 
-  // Los activos primero.
+  // Active ones first.
   const drivers = await db.driver.findMany({
     orderBy: [{ isActive: "desc" }, { name: "asc" }],
     include: {

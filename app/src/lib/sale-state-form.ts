@@ -3,19 +3,19 @@ import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { isCuid } from "./ids";
 
-// Puro: el formulario de cambio de estado de un pedido.
+// Pure: the status change form of an order.
 
 export const STATE_COMMENT_MAX_LENGTH = 200;
 
 type Messages = Dictionary["adminOrders"]["stateChange"]["errors"];
 
 export type StateChangeInput = {
-  /** El estado que vio el admin: si ya cambió, se rechaza. */
+  /** The status the admin saw: if it already changed, it is rejected. */
   from: SaleState;
   to: SaleState;
-  /** Depósito para todo el pedido (al descontar stock). */
+  /** Warehouse for the whole order (when deducting stock). */
   warehouseId: string | null;
-  /** Depósito por producto, si se eligió uno distinto. */
+  /** Warehouse per product, if a different one was chosen. */
   itemWarehouses: Record<string, string>;
   comment: string | null;
 };
@@ -69,8 +69,8 @@ export function parseStateChangeForm(
 }
 
 /**
- * De qué depósito sale cada producto: el elegido para ese producto o, si no,
- * el del pedido. null si a alguno le falta.
+ * Which warehouse each product comes from: the one chosen for that product or, if not,
+ * the order's one. null if any is missing.
  */
 export function resolveWarehouses(
   productIds: string[],
@@ -85,11 +85,11 @@ export function resolveWarehouses(
   return result;
 }
 
-/** Tope de pedidos por cambio masivo (una zona entera entra de sobra). */
+/** Cap on orders in a bulk change (a whole zone fits easily). */
 export const BULK_MAX_SALES = 200;
 
 export type BulkStateChangeInput = {
-  /** Cada pedido con el estado que vio el admin (para rechazar si cambió). */
+  /** Each order with the status the admin saw (to reject if it changed). */
   sales: { id: string; from: SaleState }[];
   to: SaleState;
   warehouseId: string | null;
@@ -102,7 +102,7 @@ export type BulkStateChangeState = {
   savedAt?: number;
 };
 
-/** Las casillas llegan como "id:ESTADO"; repetidas o inválidas se descartan. */
+/** The checkboxes come as "id:STATUS"; repeated or invalid ones are discarded. */
 export function parseBulkStateChangeForm(
   formData: FormData,
   t: Messages,
@@ -125,7 +125,7 @@ export function parseBulkStateChangeForm(
     };
   }
 
-  // El resto se valida igual que el cambio individual.
+  // The rest is validated the same way as the individual change.
   const single = new FormData();
   single.set("from", sales[0].from);
   for (const key of ["to", "warehouse", "comment"]) {

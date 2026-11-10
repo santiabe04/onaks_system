@@ -3,7 +3,7 @@ import { parseDecimalInput } from "./decimal-input";
 import { isCuid } from "./ids";
 import { fromMilli, QUANTITY_LIMITS, toMilli } from "./quantity";
 
-// Puro: conteo de inventario de un depósito (se carga a ciegas desde el celular).
+// Pure: inventory count of a warehouse (entered blind from the phone).
 
 export const COUNT_NOTES_MAX_LENGTH = 300;
 export const COUNT_CODE_MAX_LENGTH = 60;
@@ -12,14 +12,14 @@ const THOUSAND = BigInt(1000);
 
 type Messages = Dictionary["stockCount"]["errors"];
 
-/** Código tipeado o escaneado: sin espacios de más (un lector suele sumar un salto). */
+/** Typed or scanned code: no extra spaces (a reader often adds a line break). */
 export function normalizeCountCode(raw: string): string {
   return raw.trim().replace(/\s+/g, "");
 }
 
 /**
- * Busca un producto por código de barras o SKU (el SKU va en mayúsculas). Un
- * código de barras tiene prioridad sobre un SKU igual de otro producto.
+ * Looks up a product by barcode or SKU (the SKU is in uppercase). A
+ * barcode takes priority over an identical SKU of another product.
  */
 export function matchProductByCode<
   T extends { barcode: string | null; sku: string },
@@ -33,7 +33,7 @@ export function matchProductByCode<
   );
 }
 
-/** Conteo nuevo: depósito y nota opcional. */
+/** New count: warehouse and optional note. */
 export function parseCountRequest(
   formData: FormData,
   t: Messages,
@@ -52,12 +52,12 @@ export function parseCountRequest(
 
 export type CountEntry = {
   code: string;
-  /** "add" suma a lo ya contado; "set" lo reemplaza (corregir un error). */
+  /** "add" adds to what was already counted; "set" replaces it (correcting a mistake). */
   mode: "add" | "set";
   quantity: string;
 };
 
-/** Un escaneo o corrección: código, modo y cantidad. */
+/** A scan or correction: code, mode and quantity. */
 export function parseCountEntry(
   formData: FormData,
   t: Messages,
@@ -72,14 +72,14 @@ export function parseCountEntry(
     QUANTITY_LIMITS,
   );
   if (quantity === null) return { ok: false, error: t.quantity };
-  // Sumar cero no cambia nada; fijar cero sí (el estante está vacío).
+  // Adding zero changes nothing; setting zero does (the shelf is empty).
   if (mode === "add" && toMilli(quantity) === ZERO) {
     return { ok: false, error: t.quantity };
   }
   return { ok: true, data: { code, mode, quantity } };
 }
 
-/** ¿La cantidad cabe en la unidad del producto? (kg y l admiten decimales, u no). */
+/** Does the quantity fit the product's unit? (kg and l allow decimals, u does not). */
 export function quantityFitsUnit(
   quantity: string,
   allowsDecimals: boolean,
@@ -87,7 +87,7 @@ export function quantityFitsUnit(
   return allowsDecimals || toMilli(quantity) % THOUSAND === ZERO;
 }
 
-/** Lo que queda contado después de un escaneo. */
+/** What remains counted after a scan. */
 export function applyCountEntry(
   current: string | null,
   entry: Pick<CountEntry, "mode" | "quantity">,
@@ -96,14 +96,14 @@ export function applyCountEntry(
   return fromMilli(toMilli(current) + toMilli(entry.quantity));
 }
 
-/** Diferencia con signo: contado − saldo que había al contar ("-3", "0", "2.5"). */
+/** Signed difference: counted − balance there was when counting ("-3", "0", "2.5"). */
 export function countDifference(counted: string, expected: string): string {
   return fromMilli(toMilli(counted) - toMilli(expected));
 }
 
 export type CountLine = { counted: string; expected: string };
 
-/** Resumen para revisar: cuántos productos coinciden y cuántos tienen diferencia. */
+/** Summary to review: how many products match and how many have a difference. */
 export function summarizeCount(lines: CountLine[]): {
   total: number;
   matching: number;

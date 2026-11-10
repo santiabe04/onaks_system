@@ -8,9 +8,9 @@ import { VISIBLE_PRODUCT } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { isCuid } from "@/lib/ids";
 
-// Solo los clientes compran (permiso `sales:create`): el admin ve el catálogo
-// pero no tiene carrito. El carrito no va a la auditoría: no es un dato del
-// negocio hasta que se confirma como pedido.
+// Only customers buy (permission `sales:create`): the admin sees the catalog
+// but has no cart. The cart is not audited: it is not business data
+// until it is confirmed as an order.
 const PERMISSION = "sales:create";
 
 export type CartActionState = { error?: string; savedAt?: number };
@@ -20,11 +20,11 @@ function messages() {
 }
 
 function revalidateCart() {
-  // El layout de la tienda muestra la cantidad en el header.
+  // The shop layout shows the quantity in the header.
   revalidatePath("/[lang]", "layout");
 }
 
-/** Producto que se puede comprar, con lo que hace falta para validar la cantidad. */
+/** Product that can be bought, with what is needed to validate the quantity. */
 async function findBuyable(productId: string) {
   if (!isCuid(productId)) return null;
   return db.product.findFirst({
@@ -38,7 +38,7 @@ function readQuantity(formData: FormData, allowsDecimals: boolean) {
   return parseCartQuantity(typeof raw === "string" ? raw : "", allowsDecimals);
 }
 
-/** Suma la cantidad al carrito (si el producto ya estaba, se acumula). */
+/** Adds the quantity to the cart (if the product was already there, it accumulates). */
 export async function addToCart(
   productId: string,
   _prev: CartActionState,
@@ -70,7 +70,7 @@ export async function addToCart(
   return { savedAt: Date.now() };
 }
 
-/** Reemplaza la cantidad (desde el carrito). */
+/** Replaces the quantity (from the cart). */
 export async function updateCartItem(
   productId: string,
   _prev: CartActionState,

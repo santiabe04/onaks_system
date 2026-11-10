@@ -1,15 +1,15 @@
 import { expect, test } from "@playwright/test";
 import { login } from "./helpers";
 
-// Corre después de delivery.spec: el pedido #3 (Veterinaria San Roque) ya está
-// entregado con faltante. Los costos de la demo son el 70 % del precio neto.
+// Runs after delivery.spec: order #3 (Veterinaria San Roque) is already
+// delivered with a shortage. The demo costs are 70 % of the net price.
 test("reporte de ventas y margen del mes, por cliente y sin movimiento", async ({
   page,
 }) => {
   await login(page, "admin");
   await page.goto("/admin/reports?tab=customers");
 
-  // Entregados del mes: solo el #3.
+  // Delivered this month: only #3.
   const totals = page.locator("dl").first();
   await expect(totals).toContainText("$ 68.100,00");
   await expect(totals).toContainText("$ 20.430,00");
@@ -18,7 +18,7 @@ test("reporte de ventas y margen del mes, por cliente y sin movimiento", async (
     page.getByRole("row").filter({ hasText: "Veterinaria San Roque" }),
   ).toContainText("$ 68.100,00");
 
-  // Confirmados: entran también los pendientes.
+  // Confirmed: pending ones are included too.
   await page
     .getByRole("combobox", { name: "Qué cuenta como venta" })
     .selectOption("confirmed");

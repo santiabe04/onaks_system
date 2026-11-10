@@ -32,19 +32,19 @@ export type ReceiptFormLine = {
   sku: string;
   unit: string;
   allowsDecimals: boolean;
-  /** Ya formateados para mostrar. */
+  /** Already formatted for display. */
   ordered: string;
   receivedBefore: string;
   pendingLabel: string;
-  /** Pendiente como decimal ("8", "2.5"), para la diferencia en vivo. */
+  /** Pending as a decimal ("8", "2.5"), for the live difference. */
   pending: string;
-  /** Valor inicial del input (separador decimal del idioma). */
+  /** Initial value of the input (the language's decimal separator). */
   initial: string;
-  /** Controla vencimiento: al recibir se cargan lote y fecha. */
+  /** Tracks expiry: on receipt, lot and date are entered. */
   tracksExpiry: boolean;
 };
 
-/** Lo tipeado ("2,5") como decimal, solo para mostrar la diferencia; el server valida. */
+/** What was typed ("2,5") as a decimal, only to show the difference; the server validates it. */
 function typed(raw: string): string | null {
   if (!raw.trim()) return "0";
   return parseDecimalInput(raw, QUANTITY_LIMITS);
@@ -71,7 +71,7 @@ function LineDifference({
   );
 }
 
-/** El informe de recepción: depósito, remito y lo que llegó de cada producto. */
+/** The receiving report: warehouse, delivery note and what arrived of each product. */
 export function ReceiptForm({
   orderId,
   warehouses,
@@ -104,7 +104,7 @@ export function ReceiptForm({
       ),
     ),
   });
-  // Cuántas filas de lote muestra cada producto (empieza con una).
+  // How many lot rows each product shows (starts with one).
   const [lotRows, setLotRows] = useState<Record<string, number>>({});
   const rowsOf = (productId: string) => lotRows[productId] ?? 1;
   const format = formatters(locale);
@@ -285,8 +285,8 @@ export function ReceiptForm({
 }
 
 /**
- * Una acción con motivo obligatorio (anular un informe o una factura, cerrar
- * una OC con faltante, aprobar una factura observada), plegada hasta que se la pide.
+ * An action with a mandatory reason (voiding a report or an invoice, closing
+ * a PO with a shortage, approving a flagged invoice), folded until it is required.
  */
 export function ReasonForm({
   action,
@@ -306,7 +306,7 @@ export function ReasonForm({
   reasonLabel: string;
   pendingLabel: string;
   maxLength: number;
-  /** Rojo para anular; neutro para aprobar. */
+  /** Red for voiding; neutral for approving. */
   tone?: "danger" | "neutral";
 }) {
   const color = tone === "danger" ? "text-red-600" : "";

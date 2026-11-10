@@ -2,9 +2,9 @@ import bcrypt from "bcryptjs";
 
 const COST = 12;
 
-// Hash de una contraseña al azar que nadie conoce. Cuando el mail no existe se
-// compara contra este, para que el login tarde lo mismo y no revele qué mails
-// están registrados.
+// Hash of a random password nobody knows. When the email does not exist it is
+// compared against this one, so the login takes the same time and does not reveal which emails
+// are registered.
 const DUMMY_HASH =
   "$2b$12$Wy.1012oVDIfKtIFVxTtBOoWTmjs7m5TdIZh/xoaTwRDrMxaUvGDO";
 
@@ -12,7 +12,7 @@ export function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, COST);
 }
 
-/** Compara siempre, aunque no haya hash (user inexistente): tiempo constante. */
+/** Always compares, even if there is no hash (nonexistent user): constant time. */
 export async function verifyPassword(
   password: string,
   hash: string | null,

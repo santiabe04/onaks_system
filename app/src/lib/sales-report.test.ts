@@ -8,7 +8,7 @@ import {
   type ReportLine,
 } from "./sales-report";
 
-// 30/10/2026 10:00 en Argentina.
+// 30/10/2026 10:00 in Argentina.
 const NOW = new Date("2026-10-30T13:00:00Z");
 
 describe("parseReportParams", () => {
@@ -91,7 +91,7 @@ describe("summarizeBy", () => {
       unitPrice: "23400",
       unitCost: "18200",
     }),
-    // Sin costo: suma venta, no margen.
+    // No cost: adds to sales, not to margin.
     line({
       saleId: "s2",
       productId: "toyball",
@@ -99,7 +99,7 @@ describe("summarizeBy", () => {
       unitPrice: "1800",
       unitCost: null,
     }),
-    // Por kilo, con decimales.
+    // By kilo, with decimals.
     line({
       saleId: "s3",
       productId: "catloose",
@@ -170,7 +170,7 @@ describe("summarizeBy", () => {
 });
 
 describe("devoluciones", () => {
-  // Pedido s1: 4 bolsas de cachorro y 2 de gato adulto.
+  // Order s1: 4 puppy bags and 2 adult cat bags.
   const sold = [
     line({
       saleId: "s1",
@@ -228,8 +228,8 @@ describe("devoluciones", () => {
       ],
       (row) => row.productId,
     ).filter((row) => row.key === "catadult");
-    // Vendió 2 (39.600, costo 27.720) y devolvió 1 que se tiró: 19.800 de venta
-    // contra 27.720 de costo.
+    // Sold 2 (39,600, cost 27,720) and returned 1 that was thrown away: 19,800 of sales
+    // against 27.720 of cost.
     expect(cat).toMatchObject({
       quantity: "1",
       net: "19800.00",

@@ -11,29 +11,29 @@ import { customerPrice, type Pricing } from "./customer-price";
 import { finalPrice } from "./price";
 import { productImageUrl } from "./product";
 
-/** Lo que muestra el catálogo de un producto, ya formateado (se pasa a Client Components). */
+/** What the catalog shows for a product, already formatted (it is passed to Client Components). */
 export type CatalogItem = {
   id: string;
   name: string;
   sku: string;
   description: string | null;
   imageUrl: string | null;
-  /** Precio final del cliente (su lista y su descuento). */
+  /** Customer's final price (their list and their discount). */
   finalPrice: string;
-  /** Precio final base, solo si el del cliente es menor (se muestra tachado). */
+  /** Base final price, only if the customer's is lower (it is shown crossed out). */
   baseFinalPrice: string | null;
-  /** "Neto $ 25.000,00 + IVA 10,5%". */
+  /** "Net $ 25.000,00 + VAT 10,5%". */
   netLine: string;
   /** "u · 15 kg". */
   unitLine: string;
   unitName: string;
-  /** La unidad admite cantidades con decimales (kg, litros). */
+  /** The unit allows quantities with decimals (kg, liters). */
   allowsDecimals: boolean;
-  /** Es favorito de la empresa del cliente. */
+  /** It is a favorite of the customer's company. */
   favorite: boolean;
 };
 
-/** Árbol de categorías del menú: solo las que tienen productos visibles. */
+/** Category tree of the menu: only the ones that have visible products. */
 export async function getCatalogCategories(): Promise<CategoryNode[]> {
   const [rows, used] = await Promise.all([
     db.category.findMany({ select: { id: true, name: true, parentId: true } }),
@@ -42,7 +42,7 @@ export async function getCatalogCategories(): Promise<CategoryNode[]> {
   return visibleCategoryTree(rows, new Set(used.map((u) => u.categoryId)));
 }
 
-/** Campos que hacen falta para armar un `CatalogItem`. */
+/** Fields needed to build a `CatalogItem`. */
 export const CATALOG_PRODUCT_SELECT = {
   id: true,
   name: true,
@@ -55,10 +55,10 @@ export const CATALOG_PRODUCT_SELECT = {
   measurementUnit: { select: { name: true, allowsDecimals: true } },
 } as const;
 
-/** Cuántos productos muestra "Lo que más pedís". */
+/** How many products "What you order most" shows. */
 export const MOST_ORDERED_COUNT = 4;
 
-/** Los más pedidos de la empresa, listos para `toCatalogItem` y en ese orden. */
+/** The company's most ordered, ready for `toCatalogItem` and in that order. */
 export async function getMostOrderedProducts(
   customerId: string,
   limit: number,

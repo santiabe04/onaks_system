@@ -10,7 +10,7 @@ const NOTHING_TO_COLLECT = {
   total: "0.00",
 };
 
-/** Repartidores y vehículos activos, para elegir al armar una hoja. */
+/** Active drivers and vehicles, to choose from when building a sheet. */
 export async function getFleetOptions() {
   const [drivers, vehicles] = await Promise.all([
     db.driver.findMany({
@@ -36,8 +36,8 @@ export async function getFleetOptions() {
 export type FleetOptions = Awaited<ReturnType<typeof getFleetOptions>>;
 
 /**
- * Una hoja con todo lo que se muestra e imprime: paradas en orden, cliente,
- * dirección, contacto, productos, peso/volumen y cuánto cobrar en cada una.
+ * A sheet with everything that is shown and printed: stops in order, customer,
+ * address, contact, products, weight/volume and how much to collect at each one.
  */
 export async function getRouteSheet(number: number) {
   const sheet = await db.routeSheet.findUnique({
@@ -121,7 +121,7 @@ export async function getRouteSheet(number: number) {
   });
   if (!sheet) return null;
 
-  // Peso y volumen por parada y de la hoja (misma cuenta que "Por zona").
+  // Weight and volume per stop and for the sheet (same calculation as "By zone").
   const { zones, totals } = groupOrdersByZone(
     sheet.stops.map((stop) => ({
       stopId: stop.id,
@@ -142,7 +142,7 @@ export async function getRouteSheet(number: number) {
     ),
   );
 
-  // Cuánto cobrar: lo que falta de cada pedido + la deuda anterior del cliente.
+  // How much to collect: what is missing on each order + the customer's previous debt.
   const customerIds = [
     ...new Set(sheet.stops.map((stop) => stop.sale.address.customerId)),
   ];
@@ -153,8 +153,8 @@ export async function getRouteSheet(number: number) {
       ),
     ),
   );
-  // Solo las paradas pendientes: en las cargadas ya se cobró (o no) y la
-  // deuda anterior va en la primera pendiente de cada cliente.
+  // Only pending stops: in the loaded ones the payment was already collected (or not) and the
+  // previous debt goes on each customer's first pending one.
   const collect = amountsToCollect(
     sheet.stops
       .filter((stop) => stop.status === "PENDING")
@@ -182,7 +182,7 @@ export async function getRouteSheet(number: number) {
   };
 }
 
-/** Pedidos que se pueden sumar: listos para despachar y sin hoja abierta. */
+/** Orders that can be added: ready to ship and not on an open sheet. */
 export async function getRouteCandidates() {
   return db.sale.findMany({
     where: {
@@ -206,8 +206,8 @@ export async function getRouteCandidates() {
 }
 
 /**
- * Las hojas en reparto que ve quien carga las paradas: las del repartidor
- * vinculado a su usuario o, para un admin, todas.
+ * The sheets on the road that the person loading stops sees: the driver's linked to
+ * their user or, for an admin, all of them.
  */
 export async function getDeliverySheets(user: {
   id: string;
@@ -233,7 +233,7 @@ export async function getDeliverySheets(user: {
   }));
 }
 
-/** Si el usuario puede cargar las paradas de esta hoja. */
+/** Whether the user can load the stops of this sheet. */
 export function canRecordSheet(
   sheet: { driver: { userId: string | null } },
   user: { id: string; canManage: boolean },

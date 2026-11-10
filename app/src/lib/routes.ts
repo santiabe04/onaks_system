@@ -2,17 +2,17 @@ import type { UserType } from "@/generated/prisma/enums";
 
 export const LOGIN_PATH = "/login";
 /**
- * Borra la cookie y manda al login. Lo usa `lib/auth` cuando el token es válido
- * pero el user ya no (baja, desactivado): si redirigiera directo a /login, el
- * proxy vería un token válido y lo devolvería al inicio, en loop.
+ * Clears the cookie and sends to login. Used by `lib/auth` when the token is valid
+ * but the user no longer is (deactivated): if it redirected straight to /login, the
+ * proxy would see a valid token and send it back to the home, in a loop.
  */
 export const LOGOUT_PATH = "/logout";
 export const CHANGE_PASSWORD_PATH = "/change-password";
 const ADMIN_PATH = "/admin";
-/** Inicio del repartidor: sus hojas de ruta. */
+/** Driver's home: their route sheets. */
 export const DELIVERY_PATH = "/delivery";
 
-/** Adónde va cada rol al entrar o cuando intenta abrir algo que no le corresponde. */
+/** Where each role goes on entry or when it tries to open something that is not theirs. */
 export function homePathFor(role: UserType): string {
   if (role === "ADMIN") return ADMIN_PATH;
   if (role === "DRIVER") return DELIVERY_PATH;
@@ -24,12 +24,12 @@ function isUnder(pathname: string, base: string): boolean {
 }
 
 /**
- * Valida el `?next=` del login. Solo rutas internas: aceptar cualquier URL
- * sería un open redirect (`/login?next=https://phishing.com`).
+ * Validates the login's `?next=`. Internal routes only: accepting any URL
+ * would be an open redirect (`/login?next=https://phishing.com`).
  */
 export function safeNextPath(raw: unknown): string | null {
   if (typeof raw !== "string" || !raw.startsWith("/")) return null;
-  // `//host` y `/\host` los navegadores los toman como otro dominio.
+  // `//host` and `/\host` browsers take as another domain.
   const base = "http://onaks.internal";
   let url: URL;
   try {
@@ -48,8 +48,8 @@ export function safeNextPath(raw: unknown): string | null {
 }
 
 /**
- * Decisión del proxy: a dónde redirigir, o null para dejar pasar.
- * Es optimista (solo mira el token): la autorización real está en `lib/auth`.
+ * Proxy decision: where to redirect, or null to let it through.
+ * It is optimistic (it only looks at the token): the real authorization is in `lib/auth`.
  */
 export function proxyRedirect(
   pathname: string,
@@ -72,8 +72,8 @@ export function proxyRedirect(
       : LOGIN_PATH;
   }
 
-  // Con la contraseña pendiente solo se puede cambiarla (o salir).
-  // Sin la marca, /change-password queda abierto para un cambio voluntario.
+  // With a pending password, it can only be changed (or log out).
+  // Without the flag, /change-password stays open for a voluntary change.
   if (isUnder(pathname, CHANGE_PASSWORD_PATH)) return null;
   if (session.mustChangePassword) return CHANGE_PASSWORD_PATH;
 

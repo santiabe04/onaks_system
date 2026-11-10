@@ -7,20 +7,20 @@ import { getRequestContext } from "./request-context";
 
 export type AuditEvent = {
   action: AuditAction;
-  /** Quién lo hizo. Null si no hay sesión (p. ej. un login fallido). */
+  /** Who did it. Null if there is no session (e.g. a failed login). */
   actorUserId?: string | null;
   entityType?: AuditEntity;
   entityId?: string | number;
-  /** Snapshots de la fila: se guardan sin campos sensibles (ver `audit-data`). */
+  /** Row snapshots: stored without sensitive fields (see `audit-data`). */
   before?: unknown;
   after?: unknown;
   metadata?: Record<string, unknown>;
 };
 
 /**
- * Registra un evento con la IP y el user agent del request. Para cambios de
- * datos, pasar el `tx` de la transacción: si el cambio falla, tampoco queda el
- * registro, y si el registro falla, el cambio se deshace.
+ * Records an event with the IP and user agent of the request. For data
+ * changes, pass the transaction's `tx`: if the change fails, the record does not remain either,
+ * and if the record fails, the change is rolled back.
  */
 export async function audit(
   client: Prisma.TransactionClient | typeof db,

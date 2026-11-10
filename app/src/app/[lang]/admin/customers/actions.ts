@@ -19,12 +19,12 @@ import {
 import { db } from "@/lib/db";
 import { isCuid } from "@/lib/ids";
 
-// Cada acción verifica el permiso antes que nada: se pueden invocar con un POST
-// directo, sin pasar por la página ni por el proxy.
+// Each action checks the permission first of all: they can be invoked with a direct POST,
+// without going through the page or the proxy.
 const PERMISSION = "customers:manage";
 
 const LIST_PATH = "/admin/customers";
-// revalidatePath usa la ruta interna: así cubre los dos idiomas.
+// revalidatePath uses the internal route: this way it covers both languages.
 const ROUTE = "/[lang]/admin/customers";
 
 function messages() {
@@ -37,17 +37,17 @@ function prismaErrorCode(error: unknown): string | undefined {
     : undefined;
 }
 
-/** El cliente (o lo que se edita) ya no existe o está dado de baja. */
+/** The customer (or what is being edited) no longer exists or is deactivated. */
 class NotFoundError extends Error {}
 
-/** Errores conocidos → estado del form; el resto se relanza. */
+/** Known errors → form state; the rest is rethrown. */
 function formError<V>(
   error: unknown,
   values: V,
   duplicate?: { field: keyof V; message: string },
 ): FormState<V> {
   const t = messages();
-  // Con V genérico TS no puede comprobar las claves: el cast queda en un lugar.
+  // With a generic V, TS cannot check the keys: the cast stays in one place.
   const fail = (field: keyof V | "form", message: string): FormState<V> => ({
     errors: { [field]: [message] } as FormState<V>["errors"],
     values,
@@ -61,7 +61,7 @@ function formError<V>(
   throw error;
 }
 
-/** Cliente vigente (no dado de baja); si no, corta la transacción. */
+/** Active customer (not deactivated); otherwise aborts the transaction. */
 async function assertCustomer(
   tx: Prisma.TransactionClient,
   customerId: string,
@@ -79,7 +79,7 @@ function revalidateCustomer(customerId: string) {
   return `${LIST_PATH}/${customerId}`;
 }
 
-// --- Cliente ---
+// --- Customer ---
 
 export async function createCustomer(
   _prev: FormState<CustomerValues>,
@@ -107,7 +107,7 @@ export async function createCustomer(
       return customer.id;
     });
   } catch (error) {
-    // P2003: la lista de precios elegida ya no existe.
+    // P2003: the chosen price list no longer exists.
     if (prismaErrorCode(error) === "P2003") {
       return {
         errors: { priceListId: [t.priceListInvalid] },
@@ -120,7 +120,7 @@ export async function createCustomer(
     });
   }
 
-  // Siguiente paso natural: cargar sus personas y direcciones.
+  // Natural next step: load its people and addresses.
   redirect(revalidateCustomer(customerId));
 }
 
@@ -132,7 +132,7 @@ export async function updateCustomer(
   const user = await requirePermission(PERMISSION);
   const t = messages();
 
-  // El id viene bindeado desde el cliente: no confiar en el tipo.
+  // The id is bound from the client: do not trust the type.
   if (!isCuid(id)) return { errors: { form: [t.invalid] } };
 
   const result = validateCustomerForm(formData, t);
@@ -158,7 +158,7 @@ export async function updateCustomer(
       });
     });
   } catch (error) {
-    // P2003: la lista de precios elegida ya no existe.
+    // P2003: the chosen price list no longer exists.
     if (prismaErrorCode(error) === "P2003") {
       return {
         errors: { priceListId: [t.priceListInvalid] },
@@ -175,9 +175,9 @@ export async function updateCustomer(
 }
 
 /**
- * Baja lógica del cliente junto con sus personas y direcciones: quedan para el
- * historial de pedidos, y sus usuarios ya no pueden entrar (la capa de auth
- * rechaza personas dadas de baja).
+ * Soft delete of the customer together with its people and addresses: they stay for the
+ * order history, and their users can no longer log in (the auth layer
+ * rejects deactivated people).
  */
 export async function deleteCustomer(id: string): Promise<DeleteState> {
   const user = await requirePermission(PERMISSION);
@@ -192,7 +192,7 @@ export async function deleteCustomer(id: string): Promise<DeleteState> {
         addresses: { where: { deletedAt: null } },
       },
     });
-    // Ya estaba dado de baja: igual se vuelve a la lista.
+    // Already deactivated: it still goes back to the list.
     if (!before) return;
     const now = new Date();
     const by = { deletedAt: now, updatedById: user.id };
@@ -215,11 +215,11 @@ export async function deleteCustomer(id: string): Promise<DeleteState> {
   });
 
   revalidatePath(ROUTE, "page");
-  // Se da de baja desde su propia pantalla: quedarse ahí daría 404.
+  // Deactivated from its own screen: staying there would give a 404.
   redirect(LIST_PATH);
 }
 
-// --- Personas ---
+// --- People ---
 
 export async function savePerson(
   customerId: string,
@@ -258,7 +258,7 @@ export async function savePerson(
         });
         return;
       }
-      // La persona tiene que ser de este cliente: no se edita una ajena por URL.
+      // The person must belong to this customer: another one is not edited through the URL.
       const before = await tx.person.findFirst({
         where: { id: personId, customerId, deletedAt: null },
       });
@@ -318,7 +318,7 @@ export async function deletePerson(
   return {};
 }
 
-// --- Direcciones de entrega ---
+// --- Delivery addresses ---
 
 export async function saveAddress(
   customerId: string,
@@ -375,7 +375,7 @@ export async function saveAddress(
       });
     });
   } catch (error) {
-    // P2003: la localidad elegida no existe (FK).
+    // P2003: the chosen city does not exist (FK).
     if (prismaErrorCode(error) === "P2003") {
       return { errors: { cityId: [t.cityNotFound] }, values: result.values };
     }
@@ -385,7 +385,7 @@ export async function saveAddress(
   redirect(revalidateCustomer(customerId));
 }
 
-/** Baja lógica: los pedidos hechos a esa dirección la siguen referenciando. */
+/** Soft delete: orders placed to that address still reference it. */
 export async function deleteAddress(
   customerId: string,
   addressId: string,

@@ -3,8 +3,8 @@ import { db } from "@/lib/db";
 import { can } from "@/lib/permissions";
 import { proofContentType, readProofFile } from "@/lib/transfer-proof-files";
 
-// Comprobantes de transferencia: NO son públicos. Los ve quien gestiona
-// pedidos y, de cada comprobante, la empresa a la que pertenece el pedido.
+// Transfer receipts: NOT public. Seen by whoever manages
+// orders and, for each receipt, the company the order belongs to.
 export async function GET(
   _request: Request,
   { params }: RouteContext<"/media/transfers/[file]">,
@@ -13,7 +13,7 @@ export async function GET(
   const file = (await params).file;
 
   if (!can(user.role, "sales:read-all")) {
-    // Otro cliente recibe lo mismo que si el archivo no existiera.
+    // Another customer gets the same as if the file did not exist.
     const own = user.customerId
       ? await db.transferProof.findFirst({
           where: { file, sale: { address: { customerId: user.customerId } } },
@@ -29,7 +29,7 @@ export async function GET(
   return new Response(new Uint8Array(data), {
     headers: {
       "Content-Type": proofContentType(file),
-      // Un PDF se descarga en vez de abrirse en la pestaña de la app.
+      // A PDF is downloaded instead of opened in the app's tab.
       "Content-Disposition": isPdf
         ? `attachment; filename="${file}"`
         : "inline",

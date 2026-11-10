@@ -13,7 +13,7 @@ import {
   type OrderActionState,
 } from "../actions";
 
-/** Cancelar y modificar un pedido Pendiente, desde "Mis pedidos". */
+/** Cancel and edit a Pending order, from "My orders". */
 export function OrderActions({
   saleId,
   canEdit,
@@ -21,9 +21,9 @@ export function OrderActions({
   t,
 }: {
   saleId: string;
-  /** El admin habilitó la modificación. */
+  /** The admin enabled editing. */
   canEdit: boolean;
-  /** Esta persona ya lo está modificando. */
+  /** This person is already editing it. */
   editingByMe: boolean;
   t: Dictionary["orders"];
 }) {

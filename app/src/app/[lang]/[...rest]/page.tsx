@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
-// Toda URL pasa por el proxy y queda bajo `[lang]`: las que no existen caen acá
-// para usar el not-found traducido en vez del 404 por defecto de Next.
+// Every URL goes through the proxy and falls under `[lang]`: the ones that do not exist land here
+// to use the translated not-found page instead of Next's default 404.
 export default function CatchAll() {
   notFound();
 }

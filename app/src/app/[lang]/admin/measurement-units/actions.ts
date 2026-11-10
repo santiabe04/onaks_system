@@ -14,13 +14,13 @@ import {
   type MeasurementUnitFormState,
 } from "@/lib/measurement-unit";
 
-// Cada acción verifica el permiso antes que nada: se pueden invocar con un POST
-// directo, sin pasar por la página ni por el proxy.
+// Each action checks the permission first of all: they can be invoked with a direct POST
+// without going through the page or the proxy.
 const PERMISSION = "measurement-units:manage";
 const ENTITY = "MEASUREMENT_UNIT";
 
 const LIST_PATH = "/admin/measurement-units";
-// revalidatePath usa la ruta interna: así cubre los dos idiomas.
+// revalidatePath uses the internal route: this way it covers both languages.
 const LIST_ROUTE = "/[lang]/admin/measurement-units";
 
 function messages() {
@@ -75,7 +75,7 @@ export async function updateMeasurementUnit(
   const user = await requirePermission(PERMISSION);
   const t = messages();
 
-  // El id viene bindeado desde el cliente: no confiar en el tipo.
+  // The id is bound from the client: do not trust the type.
   const unitId = parseUnitId(id);
   if (unitId === null) return { errors: { form: [t.invalid] } };
 
@@ -84,7 +84,7 @@ export async function updateMeasurementUnit(
 
   try {
     await db.$transaction(async (tx) => {
-      // findUniqueOrThrow tira P2025 si ya no existe, igual que el update.
+      // findUniqueOrThrow throws P2025 if it no longer exists, just like the update.
       const before = await tx.measurementUnit.findUniqueOrThrow({
         where: { id: unitId },
       });
@@ -116,7 +116,7 @@ export async function updateMeasurementUnit(
   redirect(LIST_PATH);
 }
 
-// Sin parámetro de estado previo: useActionState lo pasa pero no se usa.
+// No previous-state parameter: useActionState passes it but it is not used.
 export async function deleteMeasurementUnit(id: number): Promise<DeleteState> {
   const user = await requirePermission(PERMISSION);
   const t = messages();
@@ -124,7 +124,7 @@ export async function deleteMeasurementUnit(id: number): Promise<DeleteState> {
   const unitId = parseUnitId(id);
   if (unitId === null) return { error: t.invalid };
 
-  // La FK es RESTRICT e incluye productos con soft delete: contamos todos.
+  // The FK is RESTRICT and includes soft-deleted products: we count all of them.
   const products = await db.product.count({
     where: { measurementUnitId: unitId },
   });
@@ -143,9 +143,9 @@ export async function deleteMeasurementUnit(id: number): Promise<DeleteState> {
     });
   } catch (error) {
     const code = prismaErrorCode(error);
-    // P2003: se cargó un producto entre el count y el delete.
+    // P2003: a product was added between the count and the delete.
     if (code === "P2003") return { error: t.inUse };
-    // P2025: ya estaba borrada; alcanza con refrescar la lista.
+    // P2025: it was already deleted; refreshing the list is enough.
     if (code !== "P2025") throw error;
   }
 

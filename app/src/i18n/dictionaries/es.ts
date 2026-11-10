@@ -1,7 +1,7 @@
-// Textos de la UI en español (idioma por defecto). El tipo `Dictionary` sale de
-// acá, así que a `en.ts` no le puede faltar ninguna clave. Solo strings, para
-// poder pasarlos a Client Components; los `{x}` se completan con `interpolate`.
-// El nombre de la app no va acá: es marca (ver `lib/app`).
+// UI texts in Spanish (default language). The `Dictionary` type comes from
+// here, so `en.ts` cannot be missing any key. Strings only, so they can be
+// passed to Client Components; the `{x}` are filled in with `interpolate`.
+// The app name does not go here: it is a brand (see `lib/app`).
 export const es = {
   common: {
     loading: "Cargando…",

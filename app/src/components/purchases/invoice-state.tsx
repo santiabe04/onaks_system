@@ -1,6 +1,6 @@
 import type { SupplierInvoiceState } from "@/generated/prisma/enums";
 
-/** Estado con color: observada en ámbar, anulada en rojo. */
+/** Status with color: flagged in amber, voided in red. */
 export function InvoiceState({
   state,
   label,

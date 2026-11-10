@@ -21,7 +21,7 @@ export default async function NewMovementPage({
   return (
     <main className="mx-auto w-full max-w-xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.stock.movementTitle}</h1>
-      {/* Las opciones salen de la DB y `?product=` de la URL. */}
+      {/* The options come from the DB and `?product=` from the URL. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -56,7 +56,7 @@ async function NewMovement({
     return <p className="mt-6 text-sm">{t.stock.noWarehouses}</p>;
   }
 
-  // "Registrar movimiento" desde un producto llega con ?product=ID.
+  // "Record movement" from a product arrives with ?product=ID.
   const requested = (await searchParams).product;
   const productId =
     typeof requested === "string" &&
@@ -65,7 +65,7 @@ async function NewMovement({
       ? requested
       : "";
 
-  // Con el producto elegido se muestran sus saldos: útil para el ajuste.
+  // With the chosen product its balances are shown: useful for the adjustment.
   const balances = productId
     ? await db.productStock.findMany({
         where: { productId, warehouse: { isActive: true } },

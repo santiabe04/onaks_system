@@ -69,8 +69,8 @@ jobs:
           labels: |
             org.opencontainers.image.version=${{ needs.release-please.outputs.version }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-      # Sin cache gha: en eventos pull_request queda atada al ref del PR y no se reutiliza.
-      # El migrator reutiliza la etapa deps del build anterior (mismo builder).
+      # No gha cache: on pull_request events it is tied to the PR ref and is not reused.
+      # The migrator reuses the deps stage of the previous build (same builder).
       - name: Migrator build and push
         uses: docker/build-push-action@v6
         with:

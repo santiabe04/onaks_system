@@ -40,7 +40,7 @@ export default async function PickingListPage({
       <Link href={PATH} className="text-sm hover:underline">
         ← {t.picking.title}
       </Link>
-      {/* params y la lista son de request: van en Suspense. */}
+      {/* params and the list are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -65,7 +65,7 @@ async function PickingList({
   const found = await getPickingList(number);
   if (!found) notFound();
   const { list, lines } = found;
-  // De qué lotes sale lo de cada pedido y qué lotes hay para cambiarlos.
+  // Which lots each order's goods come from and which lots there are to change them.
   const saleLots = await getSaleLots(
     [...new Set(lines.map((line) => line.saleId))],
     list.warehouseId,
@@ -91,7 +91,7 @@ async function PickingList({
   const fullName = (user: typeof list.createdBy) =>
     user ? `${user.person.name} ${user.person.surname}` : "—";
 
-  // Por pedido, en el orden de la lista.
+  // Per order, in the order of the list.
   const orders = [...new Set(lines.map((line) => line.saleId))].map(
     (saleId) => {
       const own = lines.filter((line) => line.saleId === saleId);

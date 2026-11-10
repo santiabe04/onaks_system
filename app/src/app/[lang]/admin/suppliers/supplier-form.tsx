@@ -40,7 +40,7 @@ export function SupplierForm({
   common,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
-  // Si hubo error, se muestra lo último que cargó el usuario.
+  // If there was an error, the user's last input is shown.
   const values = state.values ?? defaultValues;
   const errors = state.errors;
 
@@ -77,7 +77,7 @@ export function SupplierForm({
             />
           </Field>
           <Field label={t.taxCondition} error={errors?.taxCondition}>
-            {/* key: al volver con error, el select toma el valor nuevo. */}
+            {/* key: when returning with an error, the select takes the new value. */}
             <select
               key={`tc${values.taxCondition}`}
               name="taxCondition"

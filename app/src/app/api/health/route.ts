@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 
-// Lo usa el HEALTHCHECK de Docker: responde 200 solo si la DB contesta.
+// Used by the Docker HEALTHCHECK: it responds 200 only if the DB answers.
 export async function GET() {
   try {
     await db.$queryRaw`SELECT 1`;

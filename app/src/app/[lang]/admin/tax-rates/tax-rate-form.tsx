@@ -30,7 +30,7 @@ export function TaxRateForm({
   common,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
-  // Si hubo error, se muestra lo último que cargó el usuario.
+  // If there was an error, the user's last input is shown.
   const values = state.values ?? defaultValues;
 
   return (
@@ -47,7 +47,7 @@ export function TaxRateForm({
 
       <Field label={t.percent} error={state.errors?.percent}>
         <div className="flex items-center gap-2">
-          {/* Texto y no number: acepta coma decimal y el server valida. */}
+          {/* Text and not number: accepts a decimal comma and the server validates it. */}
           <Input
             name="percent"
             defaultValue={values.percent}

@@ -15,7 +15,7 @@ import { getPeriodOrders } from "@/lib/orders-by-zone-queries";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Se llama después de `connection()`: la hora es la del request, no la del build.
+// Called after `connection()`: the time is the request's, not the build's.
 function hoursAgo24(): Date {
   return new Date(Date.now() - DAY_MS);
 }
@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.dashboard.title };
 }
 
-// Dashboard: crece con cada fase (stock bajo, etc.).
+// Dashboard: grows with each phase (low stock, etc.).
 export default async function DashboardPage() {
   const t = await getT();
   const loading = <p className="mt-3 text-sm opacity-70">{t.common.loading}</p>;
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
         </Suspense>
       </Section>
 
-      {/* Datos de la DB en cada request: cada bloque en su Suspense. */}
+      {/* DB data on every request: each block in its own Suspense. */}
       <Section title={t.dashboard.summary}>
         <Suspense fallback={loading}>
           <Summary />
@@ -174,18 +174,18 @@ async function Summary() {
   );
 }
 
-/** La semana de reparto en curso (sábado a viernes), igual que "Pedidos por zona". */
+/** The current delivery week (Saturday to Friday), same as "Orders by zone". */
 async function ThisWeek() {
   await getUserWithPermission("sales:read-all");
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
 
-  // La semana actual depende de la hora del request, no de la del build.
+  // The current week depends on the request's time, not the build's.
   await connection();
   const period = parseOrderPeriod({});
   const [orders, held, proofs, lotAlerts] = await Promise.all([
     getPeriodOrders(period),
-    // De cualquier semana: esperan que el admin decida.
+    // From any week: they are waiting for the admin to decide.
     db.sale.count({
       where: {
         creditHoldAt: { not: null },
@@ -193,14 +193,14 @@ async function ThisWeek() {
         state: { not: "CANCELED" },
       },
     }),
-    // Comprobantes de transferencia que esperan validación.
+    // Transfer receipts waiting for validation.
     db.sale.count({
       where: {
         transferProofs: { some: { state: "PENDING" } },
         state: { not: "CANCELED" },
       },
     }),
-    // Lotes vencidos y por vencer con stock.
+    // Lots expired and expiring with stock.
     countExpiryAlerts(isoDay(new Date())),
   ]);
   const { zones, totals } = groupOrdersByZone(orders, locale);
@@ -268,7 +268,7 @@ async function ThisWeek() {
               })}
             />
           </div>
-          {/* Las zonas con más pedidos primero: dónde se va a concentrar el reparto. */}
+          {/* Zones with the most orders first: where the delivery will concentrate. */}
           <ul className="mt-3 flex flex-wrap gap-2 text-sm">
             {[...zones]
               .sort((a, b) => b.totals.count - a.totals.count)
@@ -307,7 +307,7 @@ async function Security() {
     count("ACCESS_DENIED"),
   ]);
 
-  // Cada número lleva al visor filtrado por esa acción.
+  // Each number leads to the viewer filtered by that action.
   const link = (action: AuditAction) => `/admin/audit?action=${action}`;
   return (
     <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">

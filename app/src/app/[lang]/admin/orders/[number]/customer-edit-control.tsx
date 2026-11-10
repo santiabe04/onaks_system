@@ -8,7 +8,7 @@ import type { Dictionary } from "@/i18n/dictionaries/es";
 import type { StateChangeFormState } from "@/lib/sale-state-form";
 import { setCustomerCanEdit } from "../actions";
 
-/** Habilitar / quitar al cliente la modificación de un pedido Pendiente. */
+/** Enables / disables the customer's ability to edit a Pending order. */
 export function CustomerEditControl({
   saleId,
   allowed,
@@ -17,7 +17,7 @@ export function CustomerEditControl({
 }: {
   saleId: string;
   allowed: boolean;
-  /** Nombre de quien lo está modificando, si alguien lo hace. */
+  /** Name of whoever is editing it, if someone is. */
   editingBy: string | null;
   t: Dictionary["adminOrders"]["customerEdit"];
 }) {

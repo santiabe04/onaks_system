@@ -10,7 +10,7 @@ import {
 import { fromMilli, QUANTITY_LIMITS, toMilli } from "./quantity";
 import { BULK_MAX_SALES } from "./sale-state-form";
 
-// Puro: listas de picking (qué sacar del depósito para preparar pedidos).
+// Pure: picking lists (what to take from the warehouse to prepare orders).
 
 export const PICKING_NOTES_MAX_LENGTH = 300;
 export const PREPARER_MAX_LENGTH = 80;
@@ -22,8 +22,8 @@ type Messages = Dictionary["picking"]["errors"];
 type PickingReason = (typeof PICKING_SHORTAGE_REASONS)[number];
 
 /**
- * Ubicación en el depósito: sin espacios de más y en mayúsculas ("a-3-2" →
- * "A-3-2"). Vacía = sin ubicación; null si es demasiado larga.
+ * Location in the warehouse: no extra spaces and in uppercase ("a-3-2" →
+ * "A-3-2"). Empty = no location; null if it is too long.
  */
 export function normalizeLocation(raw: string): string | null | "" {
   const value = raw.trim().replace(/\s+/g, " ").toUpperCase();
@@ -31,7 +31,7 @@ export function normalizeLocation(raw: string): string | null | "" {
   return value;
 }
 
-/** Orden natural de ubicaciones ("A-2" antes que "A-10"); sin ubicación, al final. */
+/** Natural order of locations ("A-2" before "A-10"); without a location, at the end. */
 export function compareLocations(a: string | null, b: string | null): number {
   if (a === b) return 0;
   if (a === null) return 1;
@@ -39,7 +39,7 @@ export function compareLocations(a: string | null, b: string | null): number {
   return a.localeCompare(b, "es", { numeric: true, sensitivity: "base" });
 }
 
-/** Lista nueva: depósito, pedidos elegidos (`sale`, repetidos) y comentario. */
+/** New list: warehouse, chosen orders (`sale`, repeated) and comment. */
 export function parsePickingRequest(
   formData: FormData,
   t: Messages,
@@ -51,7 +51,7 @@ export function parsePickingRequest(
   | { ok: false; error: string } {
   const warehouseId = formData.get("warehouseId");
   if (!isCuid(warehouseId)) return { ok: false, error: t.warehouse };
-  // Desde las tablas de pedidos llega "id:ESTADO" (el de la barra masiva).
+  // From the order tables it comes as "id:STATUS" (from the bulk bar).
   const saleIds = [
     ...new Set(
       formData
@@ -95,15 +95,15 @@ export type PickingStop = {
   sku: string;
   unit: string;
   location: string | null;
-  /** Total a sacar ("12", "2.5"). */
+  /** Total to take out ("12", "2.5"). */
   total: string;
-  /** De qué pedidos sale, por número. */
+  /** Which orders it comes from, by number. */
   orders: { saleNumber: number; quantity: string }[];
 };
 
 /**
- * El recorrido: un renglón por producto con el total y de qué pedidos sale,
- * ordenado por ubicación (los sin ubicación al final) y después por nombre.
+ * The route: one line per product with the total and which orders it comes from,
+ * sorted by location (those without a location at the end) and then by name.
  */
 export function pickingRoute(lines: PickingLine[]): PickingStop[] {
   const stops = new Map<string, PickingStop & { milli: bigint }>();
@@ -146,10 +146,10 @@ export type PickedLine = {
 };
 
 /**
- * Lo preparado al confirmar (`picked_<pedido>_<producto>`, y si faltó,
- * `reason_<pedido>_<producto>`): no más de lo pedido, con motivo si faltó.
- * Devuelve las líneas y los faltantes por pedido (para `applyShortages`).
- * Un pedido no puede quedar sin nada: se saca de la lista.
+ * What was prepared on confirmation (`picked_<order>_<product>`, and if something was
+ * missing, `reason_<order>_<product>`): no more than what was ordered, with a reason if it was missing.
+ * Returns the lines and the shortages per order (for `applyShortages`).
+ * An order cannot end up with nothing: it is removed from the list.
  */
 export function parsePicked(
   formData: FormData,
@@ -217,12 +217,12 @@ export function parsePicked(
   return { ok: true, lines, shortages };
 }
 
-/** Comentario de los movimientos de stock de un faltante del picking. */
+/** Comment of the stock movements for a picking shortage. */
 export function pickingComment(listNumber: number, saleNumber: number): string {
   return `Picking #${listNumber} · pedido #${saleNumber}`;
 }
 
-/** Preparador (opcional) al confirmar. */
+/** Preparer (optional) on confirmation. */
 export function parsePreparer(
   formData: FormData,
   t: Messages,

@@ -1,9 +1,9 @@
 import type { ComponentProps, ReactNode } from "react";
 import { buttonClass } from "./button";
 
-// Piezas de formulario sin estado: sirven en Server y Client Components.
+// Stateless form pieces: they work in Server and Client Components.
 
-/** Label + control + errores del campo (los que devuelve la Server Action). */
+/** Label + control + field errors (those returned by the Server Action). */
 export function Field({
   label,
   error,
@@ -31,7 +31,7 @@ export function Input({ className, ...props }: ComponentProps<"input">) {
   );
 }
 
-/** Error general del form (no de un campo). No renderiza nada si no hay. */
+/** General form error (not a field's). Renders nothing if there is none. */
 export function FormError({ messages }: { messages?: string[] | string }) {
   const text = Array.isArray(messages) ? messages.join(". ") : messages;
   if (!text) return null;
@@ -42,7 +42,7 @@ export function FormError({ messages }: { messages?: string[] | string }) {
   );
 }
 
-/** `pending` viene de useActionState: mientras corre la action no se reenvía. */
+/** `pending` comes from useActionState: while the action runs it is not resubmitted. */
 export function SubmitButton({
   pending,
   pendingLabel,

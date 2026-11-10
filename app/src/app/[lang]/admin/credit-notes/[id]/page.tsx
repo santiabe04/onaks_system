@@ -38,7 +38,7 @@ export default async function CreditNotePage({
   const t = await getT();
   return (
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
-      {/* params y la nota son de request: van en Suspense. */}
+      {/* params and the note are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >

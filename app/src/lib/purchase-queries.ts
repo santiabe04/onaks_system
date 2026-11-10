@@ -5,13 +5,13 @@ import { db } from "./db";
 import { suggestQuantity } from "./purchase-order";
 import { fromMilli, toMilli } from "./quantity";
 
-/** OC que todavía esperan mercadería (cuenta como "ya pedido"). */
+/** POs still waiting for goods (counts as "already ordered"). */
 const OPEN_PO_STATES: PurchaseOrderState[] = ["SENT", "PARTIALLY_RECEIVED"];
 
 /**
- * Los productos del proveedor para armar una OC: stock, reservado, mínimo,
- * lo ya pedido en otras OC sin recibir, la sugerencia y, si la OC ya tiene
- * líneas, lo cargado. Los productos borrados no se ofrecen.
+ * The supplier's products to build a PO: stock, reserved, minimum,
+ * what was already ordered on other POs not yet received, the suggestion and, if the PO already has
+ * lines, what was entered. Deleted products are not offered.
  */
 export async function getPurchaseLines(
   supplierId: string,
@@ -78,7 +78,7 @@ export async function getPurchaseLines(
       (rows.find((row) => row.productId === id)?._sum.quantity as
         { toString(): string } | undefined) ?? "0",
     );
-  // Lo pedido que falta llegar (lo recibido de más no resta).
+  // What was ordered and still to arrive (what was received in excess does not subtract).
   const pendingOnOrder = (id: string) =>
     fromMilli(
       onOrder
@@ -121,7 +121,7 @@ export async function getPurchaseLines(
   });
 }
 
-/** Una OC con lo necesario para el detalle y la impresión. */
+/** A PO with what is needed for the detail and the printout. */
 export async function getPurchaseOrder(number: number) {
   return db.purchaseOrder.findUnique({
     where: { number },
@@ -182,7 +182,7 @@ export async function getPurchaseOrder(number: number) {
   });
 }
 
-/** Una factura de proveedor con su OC, líneas y quién la cargó, aprobó o anuló. */
+/** A supplier invoice with its PO, lines and who entered, approved or voided it. */
 export async function getSupplierInvoice(id: string) {
   return db.supplierInvoice.findUnique({
     where: { id },
@@ -226,7 +226,7 @@ export async function getSupplierInvoice(id: string) {
   });
 }
 
-/** Un informe de recepción con su OC, depósito y productos. */
+/** A receiving report with its PO, warehouse and products. */
 export async function getGoodsReceipt(number: number) {
   return db.goodsReceipt.findUnique({
     where: { number },
@@ -266,7 +266,7 @@ const personName = {
   select: { person: { select: { name: true, surname: true } } },
 } as const;
 
-/** Una orden de pago con su proveedor, medios e imputaciones. */
+/** A payment order with its supplier, methods and allocations. */
 export async function getSupplierPayment(number: number) {
   return db.supplierPayment.findUnique({
     where: { number },
@@ -296,7 +296,7 @@ export async function getSupplierPayment(number: number) {
   });
 }
 
-/** Una nota de crédito de proveedor con su factura asociada e imputaciones. */
+/** A supplier credit note with its associated invoice and allocations. */
 export async function getCreditNote(id: string) {
   return db.supplierCreditNote.findUnique({
     where: { id },

@@ -20,15 +20,15 @@ type Product = {
   id: string;
   name: string;
   sku: string;
-  /** Precio neto base. */
+  /** Base net price. */
   price: string;
-  /** Precio fijo en la lista, como para el input ("" si no tiene). */
+  /** Fixed price in the list, as for the input ("" if it has none). */
   fixed: string;
 };
 
 /**
- * Precios fijos de una lista: un input por producto (vacío = base con el
- * ajuste). El buscador solo oculta filas: se guardan todas juntas.
+ * Fixed prices of a list: one input per product (empty = base with the
+ * adjustment). The search only hides rows: all of them are saved together.
  */
 export function FixedPricesForm({
   action,

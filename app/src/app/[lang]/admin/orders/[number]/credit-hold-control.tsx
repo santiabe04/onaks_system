@@ -7,7 +7,7 @@ import { CREDIT_RELEASE_NOTE_MAX_LENGTH } from "@/lib/credit";
 import type { StateChangeFormState } from "@/lib/sale-state-form";
 import { releaseCreditHold } from "../actions";
 
-/** Aprobar un pedido retenido por crédito, con un comentario opcional. */
+/** Approves an order held for credit, with an optional comment. */
 export function CreditHoldControl({
   saleId,
   t,

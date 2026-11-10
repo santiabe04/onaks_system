@@ -1,15 +1,15 @@
 import { dayStart, isoDay } from "./order-period";
 import { fromMilli, toMilli } from "./quantity";
 
-// Puro: período, filtros y cuentas del reporte de ventas y margen. Todo en
-// enteros (centavos y milésimas con BigInt), igual que los totales del pedido.
+// Pure: period, filters and accounts of the sales and margin report. Everything in
+// integers (cents and thousandths with BigInt), like the order totals.
 
 const TZ_OFFSET_MS = -3 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
-/** Hasta un año: alcanza para comparar contra el mismo mes del año anterior. */
+/** Up to one year: enough to compare against the same month of the previous year. */
 export const MAX_REPORT_DAYS = 366;
 
-/** Qué cuenta como venta: lo entregado (por fecha de entrega) o todo lo confirmado. */
+/** What counts as a sale: what was delivered (by delivery date) or everything confirmed. */
 export const REPORT_BASES = ["delivered", "confirmed"] as const;
 export type ReportBasis = (typeof REPORT_BASES)[number];
 
@@ -27,7 +27,7 @@ export type ReportParams = {
   start: Date;
   /** Exclusive. */
   end: Date;
-  /** YYYY-MM-DD de Argentina, inclusive los dos. */
+  /** YYYY-MM-DD in Argentina, both inclusive. */
   from: string;
   to: string;
   basis: ReportBasis;
@@ -49,7 +49,7 @@ function oneOf<T extends string>(
   return values.includes(raw as T) ? (raw as T) : fallback;
 }
 
-/** Primer día del mes (Argentina) de `date`. */
+/** First day of the month (Argentina) of `date`. */
 function monthStart(date: Date): Date {
   const local = new Date(date.getTime() + TZ_OFFSET_MS);
   return new Date(
@@ -57,7 +57,7 @@ function monthStart(date: Date): Date {
   );
 }
 
-/** Primer día del mes siguiente (Argentina). */
+/** First day of the next month (Argentina). */
 function nextMonth(date: Date): Date {
   const local = new Date(date.getTime() + TZ_OFFSET_MS);
   return new Date(
@@ -66,8 +66,8 @@ function nextMonth(date: Date): Date {
 }
 
 /**
- * `?from=&to=&basis=&tab=`. Sin fechas: el mes de `now`. Un rango de más de
- * un año se recorta desde `from`.
+ * `?from=&to=&basis=&tab=`. Without dates: the month of `now`. A range of more than
+ * one year is trimmed from `from`.
  */
 export function parseReportParams(
   params: SearchParams,
@@ -94,7 +94,7 @@ export function parseReportParams(
   };
 }
 
-/** Query string del reporte con cambios (para pestañas, filtros y el CSV). */
+/** The report's query string with changes (for tabs, filters and the CSV). */
 export function reportQuery(
   params: ReportParams,
   changes: Partial<Pick<ReportParams, "from" | "to" | "basis" | "tab">> = {},
@@ -104,8 +104,8 @@ export function reportQuery(
 }
 
 /**
- * Los 12 meses que terminan en el de `to`, como YYYY-MM, y el rango que
- * cubren: la evolución mensual del gráfico.
+ * The 12 months ending with the one of `to`, as YYYY-MM, and the range they
+ * cover: the monthly evolution of the chart.
  */
 export function chartMonths(params: ReportParams): {
   months: string[];
@@ -123,13 +123,13 @@ export function chartMonths(params: ReportParams): {
 }
 
 /**
- * Un ítem vendido o devuelto, con lo que hace falta para agruparlo. Una
- * devolución (`kind: "return"`, de una nota de crédito vigente) resta en la
- * fecha de la nota, con el precio y el costo del pedido original.
+ * A sold or returned item, with what is needed to group it. A return
+ * (`kind: "return"`, from a valid credit note) subtracts on the
+ * note's date, with the price and cost of the original order.
  */
 export type ReportLine = {
   kind: "sale" | "return";
-  /** Solo en las devoluciones: lo que se hizo con la mercadería. */
+  /** Only for returns: what was done with the goods. */
   destination: "RESTOCK" | "WRITE_OFF" | null;
   saleId: string;
   productId: string;
@@ -137,30 +137,30 @@ export type ReportLine = {
   customerId: string;
   cityId: number;
   quantity: { toString(): string };
-  /** Neto unitario cobrado. */
+  /** Unit net price charged. */
   unitPrice: { toString(): string };
-  /** Costo unitario al vender; null si el producto no tenía costo. */
+  /** Unit cost when sold; null if the product had no cost. */
   unitCost: { toString(): string } | null;
 };
 
-/** Una fila del reporte (o los totales). Plata como "1234.50". */
+/** A report row (or the totals). Money as "1234.50". */
 export type ReportRow = {
   key: string;
-  /** Suma de cantidades: solo tiene sentido por producto. */
+  /** Sum of quantities: it only makes sense per product. */
   quantity: string;
-  /** Pedidos distintos con ventas (las devoluciones no suman pedidos). */
+  /** Different orders with sales (returns do not add orders). */
   orders: number;
-  /** Venta neta de devoluciones. */
+  /** Net sales of returns. */
   net: string;
-  /** Lo devuelto en el período (neto, positivo): ya está restado de `net`. */
+  /** What was returned in the period (net, positive): already subtracted from `net`. */
   returned: string;
-  /** Costo de las líneas que tienen costo. */
+  /** Cost of the lines that have a cost. */
   cost: string;
-  /** Venta con costo − costo. */
+  /** Sale with cost − cost. */
   margin: string;
-  /** Margen sobre la venta con costo (0.25 = 25 %); null si no hay costo. */
+  /** Margin on the sale with a cost (0.25 = 25 %); null if there is no cost. */
   marginRate: number | null;
-  /** Venta de líneas sin costo: no entra en el margen. */
+  /** Sale of lines without a cost: it does not enter the margin. */
   uncostedNet: string;
 };
 
@@ -181,7 +181,7 @@ function money(value: bigint): string {
   return `${sign}${abs / HUNDRED}.${String(abs % HUNDRED).padStart(2, "0")}`;
 }
 
-/** precio × cantidad a centavos, mitad hacia arriba (como `lineTotals`). */
+/** price × quantity to cents, half up (like `lineTotals`). */
 function lineCents(price: { toString(): string }, quantity: bigint): bigint {
   return (cents(price) * quantity + HALF_MILLI) / MILLI;
 }
@@ -206,18 +206,18 @@ function toRow(key: string, acc: Accumulator): ReportRow {
     returned: money(acc.returned),
     cost: money(acc.cost),
     margin: money(margin),
-    // Los dos en centavos: el cociente no depende de la unidad.
+    // Both in cents: the quotient does not depend on the unit.
     marginRate: costed > ZERO ? Number(margin) / Number(costed) : null,
     uncostedNet: money(acc.uncosted),
   };
 }
 
 /**
- * Agrupa las líneas por `keyOf` y ordena de mayor a menor venta. Las líneas
- * sin costo suman a la venta pero no al margen (se informan aparte). Las
- * devoluciones restan: lo que vuelve al stock revierte la venta y el costo; lo
- * que se da de baja revierte la venta pero no el costo (la mercadería se
- * perdió, así que la pérdida queda en el margen).
+ * Groups the lines by `keyOf` and sorts from highest to lowest sale. Lines
+ * without a cost add to the sale but not to the margin (they are reported separately). Returns
+ * subtract: what goes back to stock reverses the sale and the cost; what
+ * is written off reverses the sale but not the cost (the goods
+ * were lost, so the loss stays in the margin).
  */
 export function summarizeBy(
   lines: ReportLine[],
@@ -260,7 +260,7 @@ export function summarizeBy(
     );
 }
 
-/** Totales del período (una sola fila). */
+/** Period totals (a single row). */
 export function reportTotals(lines: ReportLine[]): ReportRow {
   return (
     summarizeBy(lines, () => "")[0] ??

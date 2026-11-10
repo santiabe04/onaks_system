@@ -9,7 +9,7 @@ import { flushOrderNotices } from "@/lib/order-notice-ledger";
 
 export type NoticeActionState = { error?: string };
 
-/** Vuelve a poner en cola un aviso que falló (o quedó en cola) y lo intenta de inmediato. */
+/** Puts a notice that failed (or stayed in the queue) back in the queue and tries it right away. */
 export async function retryOrderNotice(
   noticeId: string,
 ): Promise<NoticeActionState> {

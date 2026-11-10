@@ -23,13 +23,13 @@ export function PaymentSettingsForm({
     TransferSettingsFormState,
     FormData
   >(saveTransferSettings, {});
-  // Con error o recién guardado, lo último que cargó el usuario.
+  // With an error or just saved, the user's last input.
   const values = state.values ?? defaultValues;
   const errors = state.errors;
 
   return (
     <form
-      // key: al guardar, los campos toman lo normalizado (CUIT y CBU sin guiones).
+      // key: when saving, the fields take the normalized values (CUIT and CBU without dashes).
       key={state.savedAt ?? 0}
       action={action}
       className="mt-6 flex flex-col gap-4"

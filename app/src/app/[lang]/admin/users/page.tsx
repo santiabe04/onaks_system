@@ -28,7 +28,7 @@ export default async function AdminUsersPage() {
       </div>
       <p className="mt-2 text-sm opacity-70">{t.users.intro}</p>
 
-      {/* La lista sale de la DB en cada request: va en Suspense (cacheComponents). */}
+      {/* The list comes from the DB on every request: it goes in Suspense (cacheComponents). */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -43,7 +43,7 @@ async function AdminsTable() {
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
 
-  // Usuarios internos (admins y repartidores): personas sin cliente.
+  // Internal users (admins and drivers): people without a customer.
   const persons = await db.person.findMany({
     where: { customerId: null, deletedAt: null },
     orderBy: [{ surname: "asc" }, { name: "asc" }],

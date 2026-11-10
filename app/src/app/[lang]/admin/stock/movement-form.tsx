@@ -22,7 +22,7 @@ type Props = {
   defaultValues: MovementValues;
   products: Option[];
   warehouses: Option[];
-  /** Saldos del producto preseleccionado, ya formateados ("Central: 12"). */
+  /** Balances of the preselected product, already formatted ("Central: 12"). */
   balances?: string;
   cancelHref: string;
   t: Dictionary["stock"];
@@ -50,11 +50,11 @@ export function MovementForm({
     MovementFormState,
     FormData
   >(createMovement, {});
-  // Si hubo error, se muestra lo último que cargó el usuario.
+  // If there was an error, the user's last input is shown.
   const values = state.values ?? defaultValues;
   const errors = state.errors;
-  // El tipo cambia qué campos se ven; el select no es controlado (tras una
-  // action React resetea el form a los defaultValue).
+  // The type changes which fields are shown; the select is not controlled (after an
+  // action React resets the form to the defaultValues).
   const [type, setType] = useState(asType(values.type));
   const isTransfer = type === "TRANSFER";
   const isAdjustment = type === "ADJUSTMENT";

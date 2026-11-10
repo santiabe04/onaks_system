@@ -11,7 +11,7 @@ import {
   type ProofReviewState,
 } from "./proof-actions";
 
-/** Validar (asienta el cobro) o rechazar (con motivo) un comprobante en revisión. */
+/** Validate (records the payment) or reject (with a reason) a receipt under review. */
 export function ProofReviewForm({
   proofId,
   suggestedAmount,
@@ -19,7 +19,7 @@ export function ProofReviewForm({
   t,
 }: {
   proofId: string;
-  /** Lo que falta cobrar del pedido, ya formateado para el input. */
+  /** What is left to collect on the order, already formatted for the input. */
   suggestedAmount: string;
   today: string;
   t: Dictionary["transfer"];

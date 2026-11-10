@@ -19,7 +19,7 @@ describe("parseCartQuantity", () => {
 
 describe("lineTotals", () => {
   it("neto por cantidad y el IVA sobre ese neto", () => {
-    // 2 bolsas de alimento de $25.000 con IVA 10,5%.
+    // 2 bags of food at $25.000 with VAT 10.5%.
     expect(
       lineTotals({
         price: "25000",
@@ -35,7 +35,7 @@ describe("lineTotals", () => {
   });
 
   it("redondea a centavos con cantidades a granel", () => {
-    // 1,25 kg a $4.000,99: neto 5001,2375 → 5001,24; IVA 21% = 1050,26.
+    // 1,25 kg at $4.000,99: net 5001,2375 → 5001,24; VAT 21% = 1050,26.
     expect(
       lineTotals({
         price: "4000.99",

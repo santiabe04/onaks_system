@@ -8,8 +8,8 @@ import { type Allocation, summarizeSupplierAccount } from "./supplier-account";
 type Client = PrismaClient | Prisma.TransactionClient;
 
 /**
- * Bloquea al proveedor hasta el fin de la transacción: todo lo que mueve su
- * cuenta (OP, notas de crédito, imputaciones, anular facturas) pasa de a uno.
+ * Locks the supplier until the end of the transaction: everything that moves its
+ * account (PO, credit notes, allocations, voiding invoices) goes one at a time.
  */
 export async function lockSupplier(
   tx: Prisma.TransactionClient,
@@ -28,7 +28,7 @@ const allocationSelect = {
   createdAt: true,
 } as const;
 
-/** La cuenta de un proveedor: sus comprobantes y el resumen (`summarizeSupplierAccount`). */
+/** A supplier's account: its vouchers and the summary (`summarizeSupplierAccount`). */
 export async function loadSupplierAccount(
   client: Client,
   supplierId: string,
@@ -109,7 +109,7 @@ export async function loadSupplierAccount(
   return { invoices, payments, creditNotes, summary };
 }
 
-/** Facturas con saldo, de la más vieja a la más nueva (para imputar). */
+/** Invoices with a balance, from the oldest to the newest (to allocate). */
 export function openInvoices(
   account: Awaited<ReturnType<typeof loadSupplierAccount>>,
 ) {
@@ -122,7 +122,7 @@ export function openInvoices(
     .sort((a, b) => a.dueOn.localeCompare(b.dueOn));
 }
 
-/** Guarda las imputaciones de una OP o una nota de crédito, auditadas en el comprobante. */
+/** Saves the allocations of a PO or a credit note, audited on the voucher. */
 export async function writeAllocations(
   tx: Prisma.TransactionClient,
   document:

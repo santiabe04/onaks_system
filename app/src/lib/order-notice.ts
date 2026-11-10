@@ -3,9 +3,9 @@ import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { SALE_FLOW } from "./sale-state";
 
-// Puro: avisos al cliente por los cambios de estado de su pedido (mail y WhatsApp).
+// Pure: customer notices about the status changes of their order (email and WhatsApp).
 
-/** Los estados que se avisan: confirmado, en preparación, en reparto y entregado. */
+/** The statuses that are notified: confirmed, being prepared, out for delivery and delivered. */
 export const NOTICE_EVENTS = [
   "PENDING",
   "PREPARING",
@@ -14,7 +14,7 @@ export const NOTICE_EVENTS = [
 ] as const satisfies readonly SaleState[];
 export type NoticeEvent = (typeof NOTICE_EVENTS)[number];
 
-/** Intentos de envío antes de dejar el aviso como fallido. */
+/** Send attempts before the notice is left as failed. */
 export const NOTICE_MAX_ATTEMPTS = 3;
 
 export function isNoticeEvent(state: string): state is NoticeEvent {
@@ -26,9 +26,9 @@ function step(state: SaleState): number {
 }
 
 /**
- * ¿Este cambio de estado se avisa? Solo hacia adelante y a uno de los estados
- * de la lista (volver atrás para corregir no manda nada). Un pedido nuevo
- * (`from` null) avisa que quedó confirmado.
+ * Is this status change notified? Only forward, and to one of the statuses
+ * in the list (going back to fix something sends nothing). A new order
+ * (`from` null) notifies that it was confirmed.
  */
 export function noticeFor(
   from: SaleState | null,
@@ -40,8 +40,8 @@ export function noticeFor(
 }
 
 /**
- * El aviso que corresponde mostrar para un estado en el botón de WhatsApp:
- * Listo para despachar sigue siendo "en preparación" y Finalizado "entregado".
+ * The notice that applies to show for a status on the WhatsApp button:
+ * Ready to ship is still "being prepared" and Finished "delivered".
  */
 export function noticeForDisplay(state: SaleState): NoticeEvent | null {
   if (isNoticeEvent(state)) return state;
@@ -51,16 +51,16 @@ export function noticeForDisplay(state: SaleState): NoticeEvent | null {
 }
 
 export type NoticeVars = {
-  /** Nombre de quien recibe. */
+  /** Name of the recipient. */
   name: string;
   number: number;
-  /** Nombre del sistema o de la distribuidora, para la firma. */
+  /** Name of the system or the distributor, for the signature. */
   app: string;
 };
 
 type Messages = Dictionary["notices"];
 
-/** Asunto y cuerpo del mail (texto plano) de un aviso. */
+/** Subject and body of the email (plain text) of a notice. */
 export function buildNotice(
   event: NoticeEvent,
   t: Messages,
@@ -74,7 +74,7 @@ export function buildNotice(
   };
 }
 
-/** El mensaje corto de WhatsApp de un estado. */
+/** The short WhatsApp message for a status. */
 export function buildWhatsappText(
   event: NoticeEvent,
   t: Messages,
@@ -85,9 +85,9 @@ export function buildWhatsappText(
 }
 
 /**
- * Teléfono para wa.me: solo dígitos, con el 54 de Argentina. "11 5555-1234" →
- * "5491155551234" (los celulares llevan un 9 después del 54); null si no
- * alcanza para ser un número.
+ * Phone for wa.me: digits only, with Argentina's 54. "11 5555-1234" →
+ * "5491155551234" (mobiles carry a 9 after the 54); null if it does not
+ * make up a number.
  */
 export function whatsappPhone(raw: string): string | null {
   let digits = raw.replace(/\D/g, "");
@@ -97,7 +97,7 @@ export function whatsappPhone(raw: string): string | null {
   } else if (digits.startsWith("0")) {
     digits = digits.slice(1);
   }
-  // Prefijo de celular viejo: 0 11 15 5555-1234 → el 15 sobra.
+  // Old mobile prefix: 0 11 15 5555-1234 → the 15 is dropped.
   digits = digits.replace(/^9/, "");
   const withoutFifteen = /^(\d{2,4})15(\d{6,8})$/.exec(digits);
   if (
@@ -110,7 +110,7 @@ export function whatsappPhone(raw: string): string | null {
   return `549${digits}`;
 }
 
-/** Link que abre WhatsApp con el mensaje armado (sin API). */
+/** Link that opens WhatsApp with the message filled in (no API). */
 export function whatsappLink(phone: string, text: string): string | null {
   const number = whatsappPhone(phone);
   if (!number) return null;

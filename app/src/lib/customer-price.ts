@@ -1,21 +1,21 @@
 import { lineTotals } from "./cart";
 
-// Puro: el precio neto que paga cada cliente. Lo usan el server (catálogo,
-// carrito, pedidos) y el form del pedido cargado por el admin. En enteros.
+// Pure: the net price each customer pays. Used by the server (catalog,
+// cart, orders) and by the admin's order-entry form. In integers.
 
 type Numeric = { toString(): string } | string;
 
-/** Lo que define el precio de un cliente. */
+/** What defines a customer's price. */
 export type Pricing = {
-  /** Ajuste de su lista sobre el precio base, como fracción (0 sin lista). */
+  /** Adjustment of their list over the base price, as a fraction (0 with no list). */
   adjustment: string;
-  /** Descuento propio del cliente sobre el precio de su lista, como fracción. */
+  /** The customer's own discount over their list price, as a fraction. */
   discount: string;
-  /** Precio neto fijo por producto en su lista (pisa el ajuste). */
+  /** Fixed net price per product in their list (overrides the adjustment). */
   overrides: Record<string, string>;
 };
 
-/** Sin lista ni descuento: el precio base (admins, clientes sin lista). */
+/** No list and no discount: the base price (admins, customers with no list). */
 export const BASE_PRICING: Pricing = {
   adjustment: "0",
   discount: "0",
@@ -40,12 +40,12 @@ function money(cents: bigint): string {
   return `${cents / HUNDRED}.${String(cents % HUNDRED).padStart(2, "0")}`;
 }
 
-/** precio × (1 + fracción), redondeado a centavos (mitad hacia arriba). */
+/** price × (1 + fraction), rounded to cents (half up). */
 function applyRate(price: Numeric, rate: bigint): string {
   return money((scaled(price, 2) * (SCALE + rate) + HALF) / SCALE);
 }
 
-/** Precio neto de la lista del cliente: el fijo del producto o base ± ajuste. */
+/** The customer's list net price: the product's fixed price or base ± adjustment. */
 export function listPrice(
   productId: string,
   basePrice: Numeric,
@@ -56,7 +56,7 @@ export function listPrice(
   return applyRate(basePrice, scaled(pricing.adjustment, 4));
 }
 
-/** Precio neto que paga el cliente: el de su lista menos su descuento. */
+/** Net price the customer pays: their list price minus their discount. */
 export function customerPrice(
   productId: string,
   basePrice: Numeric,
@@ -68,7 +68,7 @@ export function customerPrice(
   );
 }
 
-/** Bonificación neta de un pedido: lo que hubiera costado a precio base menos lo que costó. */
+/** Net discount of an order: what it would have cost at base price minus what it cost. */
 export function saleDiscount(
   lines: { listPrice: Numeric; price: Numeric; quantity: Numeric }[],
 ): string {

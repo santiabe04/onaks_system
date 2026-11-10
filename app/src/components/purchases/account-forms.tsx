@@ -36,10 +36,10 @@ const ZERO = BigInt(0);
 export type OpenInvoiceRow = {
   id: string;
   label: string;
-  /** Ya formateado. */
+  /** Already formatted. */
   due: string;
   overdue: boolean;
-  /** Saldo como decimal ("35000.00") y formateado. */
+  /** Balance as a decimal ("35000.00") and formatted. */
   outstanding: string;
   outstandingLabel: string;
 };
@@ -47,16 +47,16 @@ export type OpenInvoiceRow = {
 type Fields = ReturnType<typeof useFieldValues>;
 type PaymentTexts = Dictionary["supplierPayments"];
 
-/** Centavos de lo tipeado (en blanco o inválido, 0). */
+/** Cents of what was typed (blank or invalid, 0). */
 function cents(raw: string): bigint {
   const parsed = raw.trim() ? parseDecimalInput(raw, PRICE_LIMITS) : null;
   return parsed === null ? ZERO : toCents(parsed);
 }
 
 /**
- * Cuánto se imputa a cada factura (`alloc_<factura>`), con lo imputado y lo
- * que queda a cuenta en vivo, y un botón que reparte lo disponible empezando
- * por la factura preferida (la de la nota de crédito) y siguiendo por la más vieja.
+ * How much is allocated to each invoice (`alloc_<invoice>`), with what is allocated and
+ * what stays on account live, and a button that spreads what is available starting
+ * with the preferred invoice (the one of the credit note) and then the oldest.
  */
 function AllocationTable({
   invoices,
@@ -67,7 +67,7 @@ function AllocationTable({
   t,
 }: {
   invoices: OpenInvoiceRow[];
-  /** Centavos disponibles para imputar. */
+  /** Cents available to allocate. */
   available: bigint;
   fields: Fields;
   preferId?: string;
@@ -169,7 +169,7 @@ function AllocationTable({
   );
 }
 
-/** Nueva orden de pago: fecha, medios (varios) e imputación a facturas. */
+/** New payment order: date, methods (several) and allocation to invoices. */
 export function PaymentForm({
   supplierId,
   invoices,
@@ -188,7 +188,7 @@ export function PaymentForm({
     FormData
   >(createSupplierPayment.bind(null, supplierId), {});
   const fields = useFieldValues({ paidOn: today, "method@0": "TRANSFER" });
-  // Ids estables de los medios; los campos se numeran por posición al enviar.
+  // Stable ids of the methods; the fields are numbered by position on submit.
   const [rows, setRows] = useState([0]);
   const [nextId, setNextId] = useState(1);
   const format = formatters(locale);
@@ -339,7 +339,7 @@ export function PaymentForm({
   );
 }
 
-/** Nueva nota de crédito: comprobante, factura asociada, importes e imputación. */
+/** New credit note: voucher, associated invoice, amounts and allocation. */
 export function CreditNoteForm({
   supplierId,
   invoices,
@@ -352,7 +352,7 @@ export function CreditNoteForm({
 }: {
   supplierId: string;
   invoices: OpenInvoiceRow[];
-  /** Facturas sin anular del proveedor, para asociar. */
+  /** The supplier's non-voided invoices, to associate. */
   invoiceOptions: { id: string; label: string }[];
   invoiceId: string;
   today: string;
@@ -452,7 +452,7 @@ export function CreditNoteForm({
   );
 }
 
-/** Imputa lo que quedó a cuenta de una OP o nota de crédito ya cargada. */
+/** Allocates what was left on account of a PO or credit note already entered. */
 export function AllocateForm({
   action,
   invoices,
@@ -466,7 +466,7 @@ export function AllocateForm({
     formData: FormData,
   ) => Promise<{ error?: string }>;
   invoices: OpenInvoiceRow[];
-  /** Disponible como decimal ("10000.00"). */
+  /** Available as a decimal ("10000.00"). */
   available: string;
   title: string;
   locale: Locale;

@@ -20,7 +20,7 @@ export default async function NewCityPage({
   return (
     <main className="mx-auto w-full max-w-md p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.locations.newCityTitle}</h1>
-      {/* Las provincias salen de la DB y `?state=` de la URL. */}
+      {/* The provinces come from the DB and `?state=` from the URL. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -42,7 +42,7 @@ async function NewForm({
     orderBy: { name: "asc" },
     select: { id: true, name: true },
   });
-  // "Agregar localidad" desde una provincia llega con ?state=ID.
+  // "Add city" from a province arrives with ?state=ID.
   const requested = parseLocationId((await searchParams).state);
   const stateId = states.some((s) => s.id === requested)
     ? String(requested)

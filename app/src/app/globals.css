@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 /*
- * Tema: sin `data-theme` en <html> sigue al sistema; con "light" o "dark" lo
- * fuerza (lo pone el script de `lib/theme` antes del primer paint).
+ * Theme: without `data-theme` on <html> it follows the system; with "light" or "dark" it
+ * forces it (set by the script in `lib/theme` before the first paint).
  */
 @custom-variant dark {
   &:where([data-theme="dark"], [data-theme="dark"] *) {
@@ -38,7 +38,7 @@
   color-scheme: dark;
 }
 
-/* En papel, siempre claro: el tema oscuro gasta tinta y se lee mal. */
+/* On paper, always light: the dark theme uses ink and reads poorly. */
 @media print {
   :root,
   :root[data-theme="dark"] {

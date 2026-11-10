@@ -18,7 +18,7 @@ export type LedgerError =
   | "lotRequired"
   | "lotInvalid";
 
-/** Error esperable al registrar un movimiento; la action lo muestra en el form. */
+/** Expected error when recording a movement; the action shows it in the form. */
 export class StockLedgerError extends Error {
   constructor(readonly code: LedgerError) {
     super(code);
@@ -26,8 +26,8 @@ export class StockLedgerError extends Error {
 }
 
 /**
- * Bloquea el saldo de un producto en un depósito hasta el fin de la
- * transacción y lo devuelve. Si todavía no existe, lo crea en 0.
+ * Locks a product's balance in a warehouse until the end of the
+ * transaction and returns it. If it does not exist yet, it creates it at 0.
  */
 async function lockBalance(
   tx: Prisma.TransactionClient,
@@ -45,14 +45,14 @@ async function lockBalance(
   return row.quantity;
 }
 
-// --- Lotes -----------------------------------------------------------------
-// Solo los productos que controlan vencimiento (`tracks_expiry`) llevan lotes.
-// Una salida toma primero del lote que vence antes (FEFO) y lo que los lotes no
-// cubren sale del stock sin lote; cada tramo es un movimiento con su `lot_id`.
+// --- Lots -----------------------------------------------------------------
+// Only products that track expiry (`tracks_expiry`) carry lots.
+// An outflow takes first from the lot that expires first (FEFO) and what the lots do not
+// cover leaves from the stock with no lot; each leg is a movement with its `lot_id`.
 
-/** Un tramo de un movimiento: de qué lote (null = sin lote) y cuánto, con signo. */
+/** One leg of a movement: which lot (null = no lot) and how much, with sign. */
 type Part = { lotId: string | null; quantity: bigint };
-/** Lote y vencimiento (YYYY-MM-DD) de lo que se recibe o se revierte. */
+/** Lot and expiry (YYYY-MM-DD) of what is received or reversed. */
 export type LotKey = { code: string; expiresOn: string };
 
 const day = (value: string) => new Date(`${value}T00:00:00Z`);
@@ -69,7 +69,7 @@ async function trackedProducts(
   return new Set(rows.map((row) => row.id));
 }
 
-/** Los lotes de un producto en un depósito, bloqueados (siempre en el mismo orden). */
+/** The lots of a product in a warehouse, locked (always in the same order). */
 async function lockLots(
   tx: Prisma.TransactionClient,
   productId: string,
@@ -122,7 +122,7 @@ async function shiftLot(
     WHERE "id" = ${lotId}`;
 }
 
-/** Salida de `amount` (positivo): primero lo que vence antes, el resto sin lote. */
+/** Outflow of `amount` (positive): first what expires first, the rest with no lot. */
 async function takeParts(
   tx: Prisma.TransactionClient,
   productId: string,
@@ -141,7 +141,7 @@ async function takeParts(
   return parts;
 }
 
-/** Vuelve a los lotes de donde el pedido sacó la mercadería (lo demás, sin lote). */
+/** Returns to the lots the order took the goods from (the rest, with no lot). */
 async function saleReturnParts(
   tx: Prisma.TransactionClient,
   saleId: string,
@@ -169,9 +169,9 @@ async function saleReturnParts(
 }
 
 /**
- * Una devolución de un cliente vuelve a los lotes de donde salió el pedido,
- * descontando lo que otras notas del mismo pedido ya devolvieron (lo demás,
- * sin lote).
+ * A customer return goes back to the lots the order left from,
+ * deducting what other notes of the same order already returned (the rest,
+ * with no lot).
  */
 async function noteReturnParts(
   tx: Prisma.TransactionClient,
@@ -221,8 +221,8 @@ async function noteReturnParts(
 }
 
 /**
- * Saca de los lotes donde esa nota dejó mercadería (dar de baja lo devuelto o
- * anular la devolución); lo que no tenga lote sale del stock sin lote.
+ * Takes from the lots where that note left goods (writing off what was returned or
+ * voiding the return); what has no lot leaves from the stock with no lot.
  */
 async function noteHeldParts(
   tx: Prisma.TransactionClient,
@@ -249,7 +249,7 @@ async function noteHeldParts(
   return parts;
 }
 
-/** Revierte un ingreso: saca del lote que se recibió (lo que ya no esté, del stock sin lote). */
+/** Reverses an entry: takes it from the lot that was received (what is no longer there, from the stock with no lot). */
 async function reversalParts(
   tx: Prisma.TransactionClient,
   productId: string,
@@ -271,8 +271,8 @@ async function reversalParts(
 }
 
 /**
- * Escribe los tramos de un movimiento sobre un saldo ya bloqueado: lotes,
- * movimientos con saldo corrido, auditoría y el saldo final del producto.
+ * Writes the legs of a movement on an already locked balance: lots,
+ * movements with running balance, audit and the product's final balance.
  */
 async function writeParts(
   tx: Prisma.TransactionClient,
@@ -293,7 +293,7 @@ async function writeParts(
     >;
   },
 ): Promise<void> {
-  // Un tramo en cero sobra, salvo que sea el único (el movimiento existe igual).
+  // A zero leg is redundant, unless it is the only one (the movement exists anyway).
   const parts =
     target.parts.length > 1
       ? target.parts.filter((part) => part.quantity !== BigInt(0))
@@ -333,9 +333,9 @@ async function writeParts(
 }
 
 /**
- * Registra un movimiento manual: valida producto y depósitos, bloquea los
- * saldos, calcula las patas (`planMovement`) y escribe saldo + movimiento +
- * auditoría. Todo dentro de la transacción que recibe.
+ * Records a manual movement: validates product and warehouses, locks the
+ * balances, calculates the legs (`planMovement`) and writes balance + movement +
+ * audit. All inside the transaction it receives.
  */
 export async function recordMovement(
   tx: Prisma.TransactionClient,
@@ -351,8 +351,8 @@ export async function recordMovement(
   const warehouseIds = [input.warehouseId, input.toWarehouseId].filter(
     (id): id is string => id !== null,
   );
-  // FOR SHARE: mientras dura el movimiento nadie puede desactivar el depósito
-  // (la desactivación toma el lock exclusivo de la fila para chequear el stock).
+  // FOR SHARE: while the movement runs nobody can deactivate the warehouse
+  // (deactivation takes the row's exclusive lock to check the stock).
   const active = await tx.$queryRaw<{ id: string }[]>`
     SELECT "id" FROM "warehouses"
     WHERE "id" = ANY(${warehouseIds}) AND "is_active" = true
@@ -361,7 +361,7 @@ export async function recordMovement(
     throw new StockLedgerError("warehouseInactive");
   }
 
-  // Siempre en el mismo orden: dos transferencias cruzadas no se bloquean entre sí.
+  // Always in the same order: two crossed transfers do not block each other.
   const balances = new Map<string, string>();
   for (const id of [...warehouseIds].sort()) {
     balances.set(id, await lockBalance(tx, input.productId, id));
@@ -375,13 +375,13 @@ export async function recordMovement(
 
   const transferId = input.type === "TRANSFER" ? randomUUID() : null;
   const tracked = (await trackedProducts(tx, [input.productId])).size > 0;
-  // Lo que salió de cada lote en una transferencia llega al mismo lote del destino.
+  // What left each lot in a transfer arrives at the same lot of the destination.
   let moved: { key: LotKey; quantity: bigint }[] = [];
   for (const leg of legs) {
     const delta = toMilli(leg.quantity);
     let parts: Part[] = [{ lotId: null, quantity: delta }];
     if (tracked && leg.type === "ENTRY") {
-      // Un ingreso a mano de un producto con vencimiento dice de qué lote es.
+      // A manual entry of a product with expiry says which lot it is.
       if (!input.lot) throw new StockLedgerError("lotRequired");
       const lotId = await upsertLot(
         tx,
@@ -436,9 +436,9 @@ export async function recordMovement(
 }
 
 /**
- * Saca del saldo lo que no estaba (ajuste por inventario de una diferencia,
- * no de un conteo): bloquea el saldo y escribe saldo + movimiento ADJUSTMENT
- * negativo + auditoría. El depósito tiene que estar activo.
+ * Takes out of the balance what was not there (inventory adjustment of a difference,
+ * not of a count): locks the balance and writes balance + negative ADJUSTMENT
+ * movement + audit. The warehouse must be active.
  */
 export async function recordStockCorrection(
   tx: Prisma.TransactionClient,
@@ -470,13 +470,13 @@ export async function recordStockCorrection(
 export type LinkedStockLine = {
   productId: string;
   warehouseId: string;
-  /** Variación con signo: negativa al descontar, positiva al ingresar. */
+  /** Signed change: negative when deducting, positive when entering. */
   quantity: string;
-  /** Lote y vencimiento de lo que ingresa o se revierte en una recepción. */
+  /** Lot and expiry of what comes in or is reversed on a receipt. */
   lot?: LotKey;
 };
 
-/** El documento que mueve el stock: un pedido, un informe de recepción o una devolución. */
+/** The document that moves the stock: an order, a receiving report or a return. */
 type MovementLink =
   | { type: "SALE" | "SALE_RETURN"; saleId: string; comment: string }
   | {
@@ -487,16 +487,16 @@ type MovementLink =
   | {
       type: "CUSTOMER_RETURN" | "CUSTOMER_RETURN_REVERSAL" | "WRITE_OFF";
       customerCreditNoteId: string;
-      /** El pedido de la nota: de sus lotes salió lo que se devuelve. */
+      /** The note's order: what is returned left from its lots. */
       noteSaleId: string | null;
       comment: string;
     };
 
 /**
- * Mueve el stock de un documento: bloquea los saldos en orden, escribe saldo
- * + movimiento (con el documento) + auditoría. Los depósitos tienen que estar
- * activos; el producto puede estar pausado o borrado (el documento ya existe).
- * El stock puede quedar negativo.
+ * Moves the stock of a document: locks the balances in order, writes balance
+ * + movement (with the document) + audit. The warehouses must be
+ * active; the product may be paused or deleted (the document already exists).
+ * Stock may end up negative.
  */
 async function recordLinkedMovements(
   tx: Prisma.TransactionClient,
@@ -507,7 +507,7 @@ async function recordLinkedMovements(
   if (lines.length === 0) return;
 
   const warehouseIds = [...new Set(lines.map((line) => line.warehouseId))];
-  // FOR SHARE: igual que en recordMovement, nadie desactiva el depósito mientras tanto.
+  // FOR SHARE: same as in recordMovement, nobody deactivates the warehouse meanwhile.
   const active = await tx.$queryRaw<{ id: string }[]>`
     SELECT "id" FROM "warehouses"
     WHERE "id" = ANY(${warehouseIds}) AND "is_active" = true
@@ -516,7 +516,7 @@ async function recordLinkedMovements(
     throw new StockLedgerError("warehouseInactive");
   }
 
-  // Mismo orden siempre (producto, depósito): dos documentos no se bloquean entre sí.
+  // Always the same order (product, warehouse): two documents do not block each other.
   const sorted = [...lines].sort(
     (a, b) =>
       a.productId.localeCompare(b.productId) ||
@@ -605,7 +605,7 @@ async function recordLinkedMovements(
   }
 }
 
-/** Descuenta (SALE) o devuelve (SALE_RETURN) el stock de un pedido. */
+/** Deducts (SALE) or returns (SALE_RETURN) an order's stock. */
 export async function recordSaleMovements(
   tx: Prisma.TransactionClient,
   sale: { id: string; number: number },
@@ -622,8 +622,8 @@ export async function recordSaleMovements(
 }
 
 /**
- * Ingresa (PURCHASE_RECEIPT, cantidades positivas) o revierte
- * (PURCHASE_RECEIPT_REVERSAL, negativas) lo de un informe de recepción.
+ * Enters (PURCHASE_RECEIPT, positive quantities) or reverses
+ * (PURCHASE_RECEIPT_REVERSAL, negative) what a receiving report did.
  */
 export async function recordReceiptMovements(
   tx: Prisma.TransactionClient,
@@ -645,9 +645,9 @@ export async function recordReceiptMovements(
 }
 
 /**
- * Mueve el stock de una devolución de un cliente: ingresa lo devuelto
- * (CUSTOMER_RETURN, positivas), lo da de baja (WRITE_OFF, negativas) o revierte
- * el ingreso al anularla (CUSTOMER_RETURN_REVERSAL, negativas).
+ * Moves the stock of a customer return: enters what was returned
+ * (CUSTOMER_RETURN, positive), writes it off (WRITE_OFF, negative) or reverses
+ * the entry on voiding it (CUSTOMER_RETURN_REVERSAL, negative).
  */
 export async function recordCreditNoteMovements(
   tx: Prisma.TransactionClient,
@@ -670,10 +670,10 @@ export async function recordCreditNoteMovements(
 }
 
 /**
- * Cambia de qué lote sale lo que un pedido ya descontó: devuelve `quantity` al
- * lote de origen y la saca del de destino, dos movimientos del pedido (el
- * saldo del producto no cambia). El origen tiene que seguir teniendo al menos
- * esa cantidad tomada por el pedido y el destino alcanzarla.
+ * Changes which lot what an order already deducted comes from: returns `quantity` to
+ * the source lot and takes it out of the destination one, two movements of the order (the
+ * product's balance does not change). The source must still have at least
+ * that quantity taken by the order and the destination must cover it.
  */
 export async function reassignSaleLot(
   tx: Prisma.TransactionClient,

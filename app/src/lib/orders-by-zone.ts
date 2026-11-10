@@ -1,8 +1,8 @@
 import type { PaymentMethod } from "@/generated/prisma/enums";
 import { fromMilli, toMilli } from "./quantity";
 
-// Puro: agrupa los pedidos de un período por zona de reparto (la localidad de
-// la dirección de entrega). Todo en enteros: centavos y milésimas.
+// Pure: groups the orders of a period by delivery zone (the city of
+// the delivery address). Everything in integers: cents and thousandths.
 
 type Numeric = { toString(): string } | string;
 
@@ -15,20 +15,20 @@ export type ZoneOrderInput = {
   items: {
     quantity: Numeric;
     unitWeight: Numeric;
-    /** Puede faltar: el volumen del producto es opcional. */
+    /** It can be missing: the product's volume is optional. */
     unitVolume: Numeric | null;
   }[];
 };
 
 export type Totals = {
   count: number;
-  /** Plata con 2 decimales ("1234.50"). */
+  /** Money with 2 decimals ("1234.50"). */
   total: string;
   byPaymentMethod: Partial<Record<PaymentMethod, string>>;
-  /** kg y litros, sin ceros de más ("31.25"). */
+  /** kg and liters, without extra zeros ("31.25"). */
   weight: string;
   volume: string;
-  /** Algún producto no tiene volumen cargado: el total de volumen se queda corto. */
+  /** Some product has no volume entered: the volume total falls short. */
   missingVolume: boolean;
 };
 
@@ -54,7 +54,7 @@ function money(value: bigint): string {
   return `${value / HUNDRED}.${String(value % HUNDRED).padStart(2, "0")}`;
 }
 
-/** cantidad × valor unitario, en milésimas redondeadas. */
+/** quantity × unit value, in rounded thousandths. */
 function product(quantity: Numeric, unit: Numeric): bigint {
   return (toMilli(quantity) * toMilli(unit) + HALF_MILLI) / MILLI;
 }
@@ -112,8 +112,8 @@ function toTotals(acc: Accumulator): Totals {
 }
 
 /**
- * Zonas ordenadas por nombre de localidad (y provincia, por si se repite),
- * con sus pedidos en el orden recibido y los totales de cada una y del período.
+ * Zones sorted by city name (and province, in case it repeats),
+ * with their orders in the order received and the totals of each one and of the period.
  */
 export function groupOrdersByZone<T extends ZoneOrderInput>(
   orders: T[],
@@ -167,7 +167,7 @@ export function groupOrdersByZone<T extends ZoneOrderInput>(
   return { zones: result, totals: toTotals(all) };
 }
 
-/** Cuánto se pidió de un producto en estos pedidos ("0" si en ninguno). */
+/** How much of a product was ordered in these orders ("0" if in none). */
 export function productQuantity(
   orders: {
     items: { productId: string; quantity: { toString(): string } }[];

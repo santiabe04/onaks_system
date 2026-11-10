@@ -38,7 +38,7 @@ export function StateChangeForm({
     StateChangeFormState,
     FormData
   >(changeSaleState.bind(null, saleId), {});
-  // Solo para mostrar los depósitos y avisos del destino elegido.
+  // Only to show the warehouses and notices of the chosen destination.
   const [to, setTo] = useState<SaleState | "">("");
   const target = targets.find((option) => option.state === to);
 
@@ -47,7 +47,7 @@ export function StateChangeForm({
   }
 
   return (
-    // key: después de guardar, el form vuelve a empezar con el estado nuevo.
+    // key: after saving, the form starts over with the new state.
     <form
       key={`${current}-${state.savedAt ?? 0}`}
       action={action}

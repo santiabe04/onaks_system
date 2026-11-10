@@ -37,7 +37,7 @@ export default async function OrderPage({
       <Link href="/orders" className="text-sm hover:underline">
         ← {t.orders.title}
       </Link>
-      {/* params y la query a la DB son de request: van en Suspense. */}
+      {/* params and the DB query are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -62,7 +62,7 @@ async function Order({
   if (number === null) notFound();
   const created = (await searchParams).created === "1";
 
-  // Un pedido de otra empresa se ve igual que uno que no existe.
+  // An order from another company looks the same as one that does not exist.
   const sale = await db.sale.findFirst({
     where: { number, address: { customerId: user.customerId ?? "" } },
     include: {
@@ -88,7 +88,7 @@ async function Order({
   });
   if (!sale) notFound();
 
-  // Devoluciones vigentes de este pedido (el cliente no ve las anuladas).
+  // Valid returns for this order (the customer does not see the voided ones).
   const creditNotes = await db.customerCreditNote.findMany({
     where: { saleId: sale.id, voidedAt: null },
     orderBy: { number: "asc" },
@@ -103,7 +103,7 @@ async function Order({
     },
   });
 
-  // Pago por transferencia: datos de cobro (mientras se debe) y comprobantes.
+  // Transfer payment: payment details (while there is a balance due) and receipts.
   const isTransfer = sale.paymentMethod === "TRANSFER";
   const [settings, proofRows] = isTransfer
     ? await Promise.all([

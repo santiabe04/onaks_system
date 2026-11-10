@@ -2,8 +2,8 @@ import "server-only";
 import { db } from "@/lib/db";
 
 /**
- * Usuarios internos activos para vincular a un repartidor: los que todavía no
- * están vinculados y, al editar, el que ya tiene.
+ * Active internal users to link to a driver: those not yet
+ * linked and, when editing, the one already linked.
  */
 export async function getDriverUserOptions(
   roles: { ADMIN: string; DRIVER: string },

@@ -170,7 +170,7 @@ describe("parseReceiptLines", () => {
         },
       ],
     });
-    // No suman, una fila sin cantidad entre varias, o un lote repetido.
+    // They do not add up, a row without a quantity among several, or a repeated lot.
     for (const fields of [
       {
         ...row(0, "a1", "2027-01-10", "4"),

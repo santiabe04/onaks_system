@@ -2,9 +2,9 @@ import "server-only";
 import { db } from "./db";
 
 /**
- * Último costo de compra (neto) de cada producto: el más reciente entre sus
- * proveedores. Los que no tienen costo cargado no aparecen. Acepta una
- * transacción para tomar la foto al crear el pedido.
+ * Last purchase cost (net) of each product: the most recent among its
+ * suppliers. Products with no cost loaded do not appear. Accepts a
+ * transaction to take the snapshot when the order is created.
  */
 export async function latestCosts(
   productIds: string[],
@@ -21,7 +21,7 @@ export async function latestCosts(
   });
   const costs: Record<string, string> = {};
   for (const row of rows) {
-    // Ordenadas del más nuevo al más viejo: queda el primero de cada producto.
+    // Sorted from newest to oldest, so each product's first one is kept.
     costs[row.productId] ??= row.lastCost!.toString();
   }
   return costs;

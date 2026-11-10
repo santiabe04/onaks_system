@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { login, ready } from "./helpers";
 
-// Circuito de compras con el proveedor de alimentos de la demo: orden de
-// compra → informe de recepción (llega de menos) → factura (sin diferencias)
-// → orden de pago imputada a la factura.
+// Purchasing flow with the demo's food supplier: purchase order →
+// receiving report (less arrived) → invoice (no differences)
+// → payment order allocated to the invoice.
 test("orden de compra, recepción, factura y orden de pago", async ({
   page,
 }) => {
@@ -19,13 +19,13 @@ test("orden de compra, recepción, factura y orden de pago", async ({
     await expect(page).toHaveURL(/\/admin\/purchases\/\d+$/);
     await ready(page);
 
-    // Solo este producto (la sugerencia depende de lo que pidieron los
-    // otros tests): se vacían las demás cantidades.
+    // Only this product (the suggestion depends on what the
+    // other tests ordered): the other quantities are cleared.
     for (const input of await page.getByLabel(/^Cantidad /).all()) {
       await input.fill("");
     }
     await page.getByLabel(`Cantidad ${product}`).fill("10");
-    // El costo viene precargado con el último del proveedor ($ 19.950).
+    // The cost is pre-filled with the supplier's last one ($ 19.950).
     await expect(page.getByLabel(`Costo neto ${product}`)).toHaveValue("19950");
     await page.getByRole("button", { name: "Guardar borrador" }).click();
     await expect(page.getByText("Borrador guardado")).toBeVisible();
@@ -60,7 +60,7 @@ test("orden de compra, recepción, factura y orden de pago", async ({
     await ready(page);
     await page.getByLabel("Punto de venta").fill("7");
     await page.getByLabel("Número", { exact: true }).fill("4321");
-    // Se precarga lo recibido sin facturar (8) al costo de la OC.
+    // The received quantity not yet invoiced (8) is pre-filled at the PO cost.
     await expect(page.getByLabel(`Cantidad ${product}`)).toHaveValue("8");
     await page.getByLabel("Total de la factura").fill("176358");
     await page.getByRole("button", { name: "Cargar factura" }).click();

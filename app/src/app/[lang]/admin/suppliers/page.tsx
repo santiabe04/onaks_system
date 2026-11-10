@@ -29,7 +29,7 @@ export default async function SuppliersPage({
         </Link>
       </div>
 
-      {/* La búsqueda viene de la URL y la lista de la DB: van en Suspense. */}
+      {/* The search comes from the URL and the list from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -49,7 +49,7 @@ async function SuppliersTable({
 
   const raw = (await searchParams).q;
   const q = (Array.isArray(raw) ? raw[0] : raw)?.trim().slice(0, 100) || "";
-  // Busca por nombre o por CUIT (con o sin guiones).
+  // Searches by name or CUIT (with or without dashes).
   const contains = { contains: q, mode: "insensitive" as const };
   const where: Prisma.SupplierWhereInput = q
     ? {
@@ -63,7 +63,7 @@ async function SuppliersTable({
       }
     : {};
 
-  // Los proveedores son pocos: sin paginación.
+  // There are few suppliers: no pagination.
   const suppliers = await db.supplier.findMany({
     where,
     orderBy: [{ isActive: "desc" }, { legalName: "asc" }],

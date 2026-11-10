@@ -16,7 +16,7 @@ import {
 
 const CONTROL = "rounded border border-current/20 bg-transparent px-3 py-2";
 
-/** Cobro (o reintegro, si hay saldo a favor) de la cuenta corriente. */
+/** Payment (or refund, if there is a credit balance) of the customer account. */
 export function PaymentForm({
   customerId,
   saleId = null,
@@ -27,13 +27,13 @@ export function PaymentForm({
   methods,
 }: {
   customerId: string;
-  /** Pedido desde el que se carga (referencia). */
+  /** Order it was entered from (reference). */
   saleId?: string | null;
-  /** Monto precargado ("30000,5"), p. ej. lo que falta del pedido. */
+  /** Preloaded amount ("30000,5"), e.g. what is left of the order. */
   suggestedAmount?: string;
-  /** Saldo a favor formateado; sin él no se ofrece reintegro. */
+  /** Formatted credit balance; without it no refund is offered. */
   maxRefund?: string;
-  /** YYYY-MM-DD de Argentina, para precargar la fecha. */
+  /** YYYY-MM-DD in Argentina, to pre-fill the date. */
   today: string;
   t: Dictionary["account"];
   methods: Dictionary["orders"]["paymentMethods"];
@@ -43,13 +43,13 @@ export function PaymentForm({
     {},
   );
   const values = state.values;
-  // Solo para el aviso del reintegro.
+  // Only for the refund notice.
   const [kind, setKind] = useState(values?.kind ?? "PAYMENT");
-  // Sin saldo a favor no hay reintegro, aunque antes se haya elegido.
+  // Without a credit balance there is no refund, even if it was chosen before.
   const refund = Boolean(maxRefund) && kind === "REFUND";
 
   return (
-    // key: después de guardar, el form vuelve a los valores iniciales.
+    // key: after saving, the form goes back to its initial values.
     <form
       key={state.savedAt ?? 0}
       action={action}
@@ -134,7 +134,7 @@ export function PaymentForm({
   );
 }
 
-/** "Anular" con motivo obligatorio, plegado hasta que se lo pide. */
+/** "Void" with a mandatory reason, folded until it is required. */
 export function VoidPaymentForm({
   paymentId,
   t,
