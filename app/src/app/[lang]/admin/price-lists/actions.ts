@@ -16,13 +16,13 @@ import {
   type PriceListValues,
 } from "@/lib/price-list";
 
-// Cada acción verifica el permiso antes que nada: se pueden invocar con un POST
-// directo, sin pasar por la página ni por el proxy.
+// Each action checks the permission first of all: they can be invoked with a direct POST
+// without going through the page or the proxy.
 const PERMISSION = "price-lists:manage";
 const ENTITY = "PRICE_LIST";
 
 const LIST_PATH = "/admin/price-lists";
-// revalidatePath usa la ruta interna: así cubre los dos idiomas.
+// revalidatePath uses the internal route: this way it covers both languages.
 const LIST_ROUTE = "/[lang]/admin/price-lists";
 
 function messages() {
@@ -35,7 +35,7 @@ function prismaErrorCode(error: unknown): string | undefined {
     : undefined;
 }
 
-/** Errores conocidos de Prisma → estado del form; el resto se relanza. */
+/** Known Prisma errors → form state; the rest is rethrown. */
 function formError(
   error: unknown,
   values: PriceListValues,
@@ -47,10 +47,10 @@ function formError(
   throw error;
 }
 
-/** La lista ya no existe: corta la transacción. */
+/** The list no longer exists: aborts the transaction. */
 class NotFoundError extends Error {}
 
-/** Cambia lo que ven los clientes: catálogo, carrito y pedido nuevo. */
+/** Changes what customers see: catalog, cart and new orders. */
 function revalidatePrices() {
   revalidatePath("/[lang]", "layout");
 }
@@ -84,7 +84,7 @@ export async function createPriceList(
   }
 
   revalidatePath(LIST_ROUTE, "page");
-  // Siguiente paso natural: los precios fijos, si hacen falta.
+  // Natural next step: the fixed prices, if needed.
   redirect(`${LIST_PATH}/${id}`);
 }
 
@@ -96,7 +96,7 @@ export async function updatePriceList(
   const user = await requirePermission(PERMISSION);
   const t = messages();
 
-  // El id viene bindeado desde el cliente: no confiar en el tipo.
+  // The id is bound from the client: do not trust the type.
   if (!isCuid(id)) return { errors: { form: [t.invalid] } };
 
   const result = validatePriceListForm(formData, t);
@@ -129,8 +129,8 @@ export async function updatePriceList(
 export type FixedPricesState = { error?: string; saved?: boolean };
 
 /**
- * Guarda los precios fijos de la lista que vienen en el form: con precio se
- * crea o actualiza, vacío se quita. Se audita una vez con lo que cambió.
+ * Saves the fixed prices of the list that come in the form: with a price it is
+ * created or updated, empty removes it. Audited once with what changed.
  */
 export async function saveFixedPrices(
   id: string,
@@ -150,7 +150,7 @@ export async function saveFixedPrices(
 
   try {
     await db.$transaction(async (tx) => {
-      // Bloquea la lista: dos admins guardando a la vez no se pisan a medias.
+      // Locks the list: two admins saving at the same time do not overwrite each other halfway.
       const [list] = await tx.$queryRaw<{ id: string }[]>`
         SELECT "id" FROM "price_lists" WHERE "id" = ${id} FOR UPDATE`;
       if (!list) throw new NotFoundError();
@@ -212,7 +212,7 @@ export async function saveFixedPrices(
   return { saved: true };
 }
 
-// Sin parámetro de estado previo: useActionState lo pasa pero no se usa.
+// No previous-state parameter: useActionState passes it but it is not used.
 export async function deletePriceList(id: string): Promise<DeleteState> {
   const user = await requirePermission(PERMISSION);
   const t = messages();
@@ -234,9 +234,9 @@ export async function deletePriceList(id: string): Promise<DeleteState> {
     });
   } catch (error) {
     const code = prismaErrorCode(error);
-    // P2003: la tienen asignada clientes (también los dados de baja).
+    // P2003: customers are assigned to it (including the deactivated ones).
     if (code === "P2003") return { error: t.inUse };
-    // P2025: ya estaba borrada; alcanza con refrescar la lista.
+    // P2025: it was already deleted; refreshing the list is enough.
     if (code !== "P2025") throw error;
   }
 

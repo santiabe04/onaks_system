@@ -33,7 +33,7 @@ export default async function AuditPage({
   return (
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.audit.title}</h1>
-      {/* Los filtros vienen de la URL y la lista de la DB: van en Suspense. */}
+      {/* The filters come from the URL and the list from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -69,7 +69,7 @@ async function AuditContent({
       take: AUDIT_PAGE_SIZE,
       include: { actor: { select: { person: personSelect } } },
     }),
-    // Para el filtro, solo usuarios que tienen algún registro.
+    // For the filter, only users that have some record.
     db.user.findMany({
       where: { auditLogs: { some: {} } },
       select: { id: true, person: personSelect },
@@ -167,7 +167,7 @@ async function AuditContent({
   );
 }
 
-// Formulario GET: los filtros quedan en la URL, se pueden compartir y recargar.
+// GET form: the filters stay in the URL, so they can be shared and reloaded.
 function FiltersForm({
   t,
   filters,
@@ -269,8 +269,8 @@ type LogDetail = {
 };
 
 function Detail({ t, log }: { t: Dictionary["audit"]; log: LogDetail }) {
-  // En un UPDATE solo interesa lo que cambió; en un alta, cómo quedó; en una
-  // baja, cómo era. En el resto (logins, etc.) los datos del evento.
+  // In an UPDATE only what changed matters; on a create, how it ended up; in a
+  // delete, how it was. For the rest (logins, etc.) the event's data.
   const rows =
     log.action === "UPDATE"
       ? changedFields(log.before, log.after)

@@ -13,7 +13,7 @@ import {
 } from "@/lib/order-notice";
 import { getOrderRecipient } from "@/lib/order-notice-ledger";
 
-/** Avisos al cliente de un pedido: lo enviado por mail y el botón de WhatsApp. */
+/** Customer notices for an order: what was sent by email and the WhatsApp button. */
 export async function OrderNotices({
   sale,
   canManage,

@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { login, numberFromUrl, ready } from "./helpers";
 
-// Avisos al cliente: un pedido nuevo deja en cola el mail de "confirmado" para
-// la persona de la empresa (el SMTP de prueba no existe, así que queda en cola
-// con su error y se puede reintentar) y el pedido ofrece el botón de WhatsApp.
+// Customer notices: a new order queues the "confirmed" email for
+// the company's person (the test SMTP does not exist, so it stays in the queue
+// with its error and can be retried) and the order offers the WhatsApp button.
 test("avisos al cliente: mail en cola con reintento y botón de WhatsApp", async ({
   page,
 }) => {
@@ -39,7 +39,7 @@ test("avisos al cliente: mail en cola con reintento y botón de WhatsApp", async
     const row = section.getByRole("row").filter({ hasText: "sanroque@" });
     await expect(row).toContainText("Pendiente");
     await expect(row).toContainText("En cola");
-    // El primer intento corre después de responder: se recarga hasta que lo registre.
+    // The first attempt runs after responding: it reloads until it is recorded.
     await expect(async () => {
       await page.reload();
       await expect(row).toContainText(/ECONNREFUSED|connect/i);

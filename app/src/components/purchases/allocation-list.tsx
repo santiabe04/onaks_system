@@ -4,7 +4,7 @@ import type { Dictionary } from "@/i18n/dictionaries/es";
 import type { formatters } from "@/i18n/format";
 import { formatInvoiceNumber } from "@/lib/supplier-invoice";
 
-/** A qué facturas se imputó una OP o una nota de crédito. */
+/** Which invoices a PO or credit note was allocated to. */
 export function AllocationList({
   allocations,
   t,
@@ -23,7 +23,7 @@ export function AllocationList({
   }[];
   t: Dictionary["supplierPayments"];
   format: ReturnType<typeof formatters>;
-  /** En la impresión van sin links. */
+  /** In print they go without links. */
   links?: boolean;
 }) {
   if (allocations.length === 0) return null;

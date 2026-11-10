@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { login, pageAs, ready } from "./helpers";
 
-// Lista de precios con un precio fijo, asignada a Veterinaria San Roque con un
-// descuento propio: el cliente ve su precio y el base tachado.
+// Price list with a fixed price, assigned to Veterinaria San Roque with a
+// customer's own discount: the customer sees their price and the base crossed out.
 test("el admin arma una lista, se la asigna a un cliente y el cliente ve su precio", async ({
   page,
   browser,
@@ -13,7 +13,7 @@ test("el admin arma una lista, se la asigna a un cliente y el cliente ve su prec
   await page.getByLabel("Ajuste sobre el precio base (%)").fill("-5");
   await page.getByRole("button", { name: "Crear" }).click();
 
-  // Sigue en la lista nueva: precio fijo para la pelota.
+  // Still on the new list: fixed price for the ball.
   await expect(
     page.getByRole("heading", { name: "Editar lista de precios" }),
   ).toBeVisible();
@@ -35,8 +35,8 @@ test("el admin arma una lista, se la asigna a un cliente y el cliente ve su prec
     page.getByText("Precios: Veterinarias e2e · descuento 10%"),
   ).toBeVisible();
 
-  // Pelota: fijo $ 1.500 − 10 % = $ 1.350 neto + IVA 21 % = $ 1.633,50; el
-  // base ($ 1.800 + IVA) tachado.
+  // Ball: fixed $ 1.500 − 10 % = $ 1.350 net + VAT 21 % = $ 1.633,50; the
+  // base ($ 1.800 + VAT) crossed out.
   const client = await pageAs(browser, "sanroque");
   await client.goto("/?q=pelota");
   const card = client

@@ -16,15 +16,15 @@ import {
 } from "@/lib/fleet";
 import { isCuid } from "@/lib/ids";
 
-// Repartidores y vehículos: datos del reparto. Sin borrado: se desactivan
-// (después van a quedar referenciados por las hojas de ruta).
+// Drivers and vehicles: delivery data. No deletion: they are deactivated
+// (later they will be referenced by route sheets).
 const PERMISSION = "routes:manage";
 
 function messages() {
   return getActionDictionary().fleet.errors;
 }
 
-/** Un dato inválido que se descubre con la DB (duplicado, usuario no apto). */
+/** An invalid value discovered through the DB (duplicate, unsuitable user). */
 class FleetError extends Error {
   constructor(
     readonly field: string,
@@ -48,11 +48,11 @@ function isNotFound(error: unknown): boolean {
   );
 }
 
-// --- Repartidores ---
+// --- Drivers ---
 
 const DRIVERS_PATH = "/admin/drivers";
 
-/** El usuario vinculado tiene que ser interno (Admin o Repartidor), activo y libre. */
+/** The linked user must be internal (Admin or Driver), active and free. */
 async function checkDriverUser(
   tx: Prisma.TransactionClient,
   userId: string | null,
@@ -140,7 +140,7 @@ export async function saveDriver(
   redirect(DRIVERS_PATH);
 }
 
-// --- Vehículos ---
+// --- Vehicles ---
 
 const VEHICLES_PATH = "/admin/vehicles";
 
@@ -171,7 +171,7 @@ export async function saveVehicle(
 
   try {
     await db.$transaction(async (tx) => {
-      // Nombre y patente únicos: se avisa en el campo que corresponde.
+      // Name and plate are unique: the error is shown on the matching field.
       const others = await tx.vehicle.findMany({
         where: {
           id: id ? { not: id } : undefined,
@@ -217,7 +217,7 @@ export async function saveVehicle(
       }
     });
   } catch (error) {
-    // Una carrera entre el chequeo y el insert: el índice único lo frena.
+    // A race between the check and the insert: the unique index stops it.
     if (isUniqueError(error)) {
       return { errors: { name: [t.duplicateName] }, values: result.values };
     }

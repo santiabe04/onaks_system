@@ -8,9 +8,9 @@ import {
 import type { OrderPeriod } from "./order-period";
 
 /**
- * Pedidos de un período listos para `groupOrdersByZone`, con los filtros de
- * la lista (sin estados elegidos, los cancelados quedan fuera: no se reparten).
- * Lo usan la pantalla por zona, el CSV y el dashboard.
+ * Orders of a period ready for `groupOrdersByZone`, with the filters of
+ * the list (without chosen statuses, canceled orders are left out: they are not delivered).
+ * Used by the by-zone screen, the CSV and the dashboard.
  */
 export async function getPeriodOrders(
   period: Pick<OrderPeriod, "start" | "end">,

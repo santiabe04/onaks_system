@@ -6,7 +6,7 @@ import { isValidCuit, normalizeCuit } from "./cuit";
 import { parseDecimalInput, PRICE_LIMITS } from "./decimal-input";
 import { isCuid } from "./ids";
 
-// Puro: validación de proveedores y de los productos que proveen.
+// Pure: validation of suppliers and the products they supply.
 
 export const SUPPLIER_LIMITS = {
   legalName: 120,
@@ -29,12 +29,12 @@ function text(t: Messages, max: number) {
   return z.string().trim().max(max, interpolate(t.tooLong, { max }));
 }
 
-/** Opcional: vacío se guarda como null, no como "". */
+/** Optional: empty is stored as null, not as "". */
 function optional(t: Messages, max: number) {
   return text(t, max).transform((value) => value || null);
 }
 
-// --- Proveedor ---
+// --- Supplier ---
 
 export type SupplierValues = {
   legalName: string;
@@ -65,7 +65,7 @@ function supplierSchema(t: Messages) {
           t.legalNameRequired,
         ),
         tradeName: optional(t, SUPPLIER_LIMITS.tradeName),
-        // Se guarda sin guiones: "30-50001091-2" → "30500010912".
+        // Stored without dashes: "30-50001091-2" → "30500010912".
         cuit: z
           .string()
           .transform(normalizeCuit)
@@ -93,7 +93,7 @@ function supplierSchema(t: Messages) {
         }),
         isActive: z.boolean(),
       })
-      // Dirección y localidad van juntas: una sin la otra no sirve para retirar.
+      // Address and city go together: one without the other is no use for pickup.
       .superRefine((data, ctx) => {
         if (data.address && data.cityId === null) {
           ctx.addIssue({
@@ -131,7 +131,7 @@ export function validateSupplierForm(
     contactPhone: read(formData, "contactPhone"),
     address: read(formData, "address"),
     cityId: read(formData, "cityId"),
-    // Checkbox: solo viene en el form si está tildado.
+    // Checkbox: only comes in the form if it is ticked.
     isActive: formData.get("isActive") === "on",
   };
   const parsed = supplierSchema(t).safeParse(values);
@@ -142,7 +142,7 @@ export function validateSupplierForm(
   };
 }
 
-// --- Producto del proveedor ---
+// --- Supplier product ---
 
 export type SupplierProductValues = {
   productId: string;
@@ -153,14 +153,14 @@ export type SupplierProductValues = {
 export type SupplierProductFormState = {
   errors?: Partial<Record<keyof SupplierProductValues | "form", string[]>>;
   values?: SupplierProductValues;
-  /** Para limpiar el form después de guardar bien. */
+  /** To clear the form after a successful save. */
   savedAt?: number;
 };
 
 export type SupplierProductInput = {
   productId: string;
   supplierCode: string | null;
-  /** Costo neto; null si todavía no se conoce. */
+  /** Net cost; null if it is not yet known. */
   lastCost: string | null;
 };
 

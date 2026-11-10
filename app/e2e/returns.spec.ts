@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { login, pageAs, ready } from "./helpers";
 
-// Corre después de delivery.spec: el pedido #3 (Veterinaria San Roque) ya está
-// entregado con 1 bolsa de cachorro ($ 31.492,50 con IVA) y 2 de gato adulto
-// ($ 21.879,00 c/u), y debe $ 25.250,50 después del cobro.
+// Runs after delivery.spec: order #3 (Veterinaria San Roque) is already
+// delivered with 1 puppy bag ($ 31.492,50 with VAT) and 2 adult cat bags
+// ($ 21.879,00 each), and owes $ 25.250,50 after the payment.
 test("el admin registra una devolución y una nota por importe, y el cliente las ve", async ({
   page,
   browser,
@@ -26,7 +26,7 @@ test("el admin registra una devolución y una nota por importe, y el cliente las
         name: "Qué se hace Alimento gato adulto 7,5 kg",
       })
       .selectOption({ label: "Se da de baja (vencido o roto)" });
-    // 31.492,50 + 21.879,00, con el IVA del pedido.
+    // 31.492,50 + 21.879,00, with the order's VAT.
     await expect(
       page.getByText("Se acredita en total: $ 53.371,50"),
     ).toBeVisible();
@@ -42,15 +42,15 @@ test("el admin registra una devolución y una nota por importe, y el cliente las
   });
 
   await test.step("la cuenta pasa a saldo a favor y se puede cargar un ajuste", async () => {
-    // El detalle del pedido ya enlaza a la cuenta: se va con carga completa. Con
-    // clics encadenados, Next deja montada (oculta) la pantalla anterior y el
-    // segundo clic puede quedar atado al link de la pantalla que se va, que
-    // nunca vuelve a verse (el clic reintenta hasta el timeout del test).
+    // The order detail already links to the account: it leaves with a full load. With
+    // chained clicks, Next keeps the previous screen mounted (hidden) and the
+    // second click can end up attached to the link of the screen that is leaving, which
+    // is never seen again (the click retries until the test timeout).
     const accountHref = await page
       .getByRole("link", { name: "Ver cuenta corriente" })
       .getAttribute("href");
     await page.goto(accountHref!);
-    // Debía $ 25.250,50 y se acreditan $ 53.371,50.
+    // Owed $ 25.250,50 and $ 53.371,50 are credited.
     await expect(
       page.getByText("Saldo a favor $ 28.121,00").first(),
     ).toBeVisible();
@@ -61,7 +61,7 @@ test("el admin registra una devolución y una nota por importe, y el cliente las
 
     await ready(page);
     await page.getByLabel("Importe (con IVA)").fill("1000");
-    // Next deja montada (oculta) la pantalla anterior: solo la visible.
+    // Next keeps the previous screen mounted (hidden): only the visible one.
     await page
       .getByLabel("Motivo", { exact: true })
       .filter({ visible: true })
@@ -72,7 +72,7 @@ test("el admin registra una devolución y una nota por importe, y el cliente las
       .filter({ hasText: "Nota de crédito #2 · Ajuste" });
     await expect(row).toBeVisible();
 
-    // Se anula con motivo: queda en el historial pero ya no suma.
+    // Voided with a reason: it stays in the history but no longer counts.
     await row.getByText("Anular").click();
     await row.getByLabel("Motivo de la anulación").fill("Error de carga");
     await row.getByRole("button", { name: "Confirmar anulación" }).click();
@@ -107,7 +107,7 @@ test("el admin registra una devolución y una nota por importe, y el cliente las
       .filter({ hasText: "Devoluciones de este pedido" });
     await expect(section).toContainText("NC #1 · Devolución");
     await expect(section).toContainText("Alimento perro cachorro 15 kg");
-    // El motivo y lo que se hizo con la mercadería son internos.
+    // The reason and what was done with the goods are internal.
     await expect(section).not.toContainText("Producto vencido");
     await expect(section).not.toContainText("se da de baja");
     await client.context().close();
@@ -115,9 +115,9 @@ test("el admin registra una devolución y una nota por importe, y el cliente las
 
   await test.step("los reportes descuentan lo devuelto", async () => {
     await page.goto("/admin/reports");
-    // Se entregó $ 68.100 (1 cachorro + 2 de gato) y se devolvió $ 48.300: el
-    // cachorro vuelve al stock (revierte venta y costo) y el gato se da de baja
-    // (revierte la venta pero el costo queda: $ 27.720 y margen negativo).
+    // $ 68.100 was delivered (1 puppy + 2 cat) and $ 48.300 was returned: the
+    // puppy goes back to stock (reverses sale and cost) and the cat is written off
+    // (reverses the sale but the cost stays: $ 27.720 and negative margin).
     const totals = page.locator("dl").first();
     await expect(totals).toContainText("$ 19.800,00");
     await expect(totals).toContainText("$ 48.300,00");
@@ -138,7 +138,7 @@ test("el admin registra una devolución y una nota por importe, y el cliente las
     await section.getByRole("button", { name: "Confirmar anulación" }).click();
     await expect(section).toContainText("Anulada: Devolución mal cargada");
 
-    // Solo lo que se había repuesto al stock se saca; lo dado de baja no se toca.
+    // Only what had been put back into stock is removed; what was written off is not touched.
     await page.goto("/admin/stock");
     await page
       .getByRole("row")

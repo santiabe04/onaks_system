@@ -5,9 +5,9 @@ import { fromCents, toCents } from "./account";
 import { isCuid } from "./ids";
 import { toMilli } from "./quantity";
 
-// Puro: reglas de las hojas de ruta.
+// Pure: route sheet rules.
 
-/** Solo se reparten los pedidos listos para despachar. */
+/** Only orders ready to ship are delivered. */
 export const ROUTE_SALE_STATE: SaleState = "READY_TO_SHIP";
 
 export const ROUTE_NOTES_MAX_LENGTH = 300;
@@ -15,8 +15,8 @@ export const ROUTE_NOTES_MAX_LENGTH = 300;
 type Numeric = { toString(): string } | string;
 
 /**
- * El orden de las paradas después de mover una hacia arriba (-1) o abajo
- * (+1). Si ya está en la punta, queda igual.
+ * The order of the stops after moving one up (-1) or down
+ * (+1). If it is already at the end, it stays the same.
  */
 export function moveStop(
   order: string[],
@@ -36,7 +36,7 @@ export type CapacityCheck = {
   overVolume: boolean;
 };
 
-/** Si la carga se pasa de la capacidad del vehículo (la que esté cargada). */
+/** If the load exceeds the vehicle's capacity (the one that is entered). */
 export function checkCapacity(
   load: { weight: Numeric; volume: Numeric },
   vehicle: {
@@ -57,15 +57,15 @@ export function checkCapacity(
 export type StopToCollect = {
   stopId: string;
   customerId: string;
-  /** Lo que falta cobrar de este pedido (ya descontado el saldo a favor). */
+  /** What is still to collect on this order (already deducting the credit balance). */
   salePending: Numeric;
-  /** Saldo del cliente: positivo debe (pedidos entregados), negativo a favor. */
+  /** Customer balance: positive owes (delivered orders), negative credit. */
   customerBalance: Numeric;
 };
 
 /**
- * Cuánto cobrar en cada parada: lo que falta del pedido más la deuda anterior
- * del cliente, que se suma una sola vez (en su primera parada de la hoja).
+ * How much to collect at each stop: what is missing on the order plus the customer's
+ * previous debt, which is added only once (at their first stop on the sheet).
  */
 export function amountsToCollect(
   stops: StopToCollect[],
@@ -90,7 +90,7 @@ export function amountsToCollect(
   return result;
 }
 
-// --- Formulario de la hoja (fecha, repartidor, vehículo, comentario) ---
+// --- Sheet form (date, driver, vehicle, comment) ---
 
 type Messages = Dictionary["routes"]["errors"];
 

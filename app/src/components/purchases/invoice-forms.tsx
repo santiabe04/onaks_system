@@ -31,25 +31,25 @@ export type InvoiceFormLine = {
   sku: string;
   unit: string;
   allowsDecimals: boolean;
-  /** Alícuota de la OC (fracción), para los totales en vivo. */
+  /** PO tax rate (as a fraction), for the live totals. */
   taxRate: string;
-  /** Ya formateados para mostrar. */
+  /** Already formatted for display. */
   received: string;
   invoicedBefore: string;
   pending: string;
   orderCost: string;
-  /** Valores iniciales de los inputs (separador decimal del idioma). */
+  /** Initial values of the inputs (the language's decimal separator). */
   quantity: string;
   unitCost: string;
 };
 
-/** Lo tipeado como decimal (en blanco = 0); null si no es un número válido. */
+/** What was typed as a decimal (blank = 0); null if it is not a valid number. */
 function typed(raw: string, limits = PRICE_LIMITS): string | null {
   if (!raw.trim()) return "0";
   return parseDecimalInput(raw, limits);
 }
 
-/** La factura del proveedor: comprobante, líneas, percepciones y total impreso. */
+/** The supplier invoice: voucher, lines, perceptions and printed total. */
 export function InvoiceForm({
   orderId,
   lines,
@@ -80,7 +80,7 @@ export function InvoiceForm({
   const format = formatters(locale);
   const c = t.columns;
 
-  // Totales en vivo con la misma cuenta que el server (solo para mostrar).
+  // Live totals with the same calculation as the server (for display only).
   const parsedLines = lines.map((line) => ({
     quantity: typed(value(`qty_${line.productId}`), QUANTITY_LIMITS),
     unitCost: typed(value(`cost_${line.productId}`)),

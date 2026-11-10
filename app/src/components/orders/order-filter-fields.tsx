@@ -8,8 +8,8 @@ import type { Dictionary } from "@/i18n/dictionaries/es";
 import type { OrderFilterOptions } from "@/lib/order-filter-options";
 import type { ZoneFilters } from "@/lib/order-filters";
 
-// Server Component: los campos de filtros de pedidos que comparten la lista y
-// la vista por zona. El <form> (GET) y el botón los pone cada pantalla.
+// Server Component: the order filter fields shared by the list and the
+// by-zone view. Each screen provides the <form> (GET) and the button.
 
 const CONTROL = "rounded border border-current/20 bg-transparent px-3 py-2";
 
@@ -22,7 +22,7 @@ export function OrderFilterFields({
   filters: ZoneFilters;
   options: OrderFilterOptions;
   t: Dictionary;
-  /** Campos propios de la pantalla (número, fechas), al principio de la grilla. */
+  /** Fields specific to the screen (number, dates), at the start of the grid. */
   children?: ReactNode;
 }) {
   const l = t.adminOrdersList;
@@ -94,7 +94,7 @@ export function OrderFilterFields({
   );
 }
 
-/** Un campo más de la grilla (número, fechas…), con el mismo estilo. */
+/** One more field in the grid (number, dates…), with the same style. */
 export function FilterInput({
   label,
   ...props
@@ -135,7 +135,7 @@ function Select({
   );
 }
 
-/** Varios valores a la vez; ninguno marcado = todos. */
+/** Several values at once; none checked = all. */
 function Checkboxes({
   legend,
   name,

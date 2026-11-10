@@ -11,7 +11,7 @@ import { TempPassword } from "./user-controls";
 
 type Props = {
   t: Dictionary["users"];
-  /** Etiquetas y errores de persona: son los mismos campos que en clientes. */
+  /** Person labels and errors: they are the same fields as for customers. */
   person: Dictionary["customers"];
   common: Dictionary["common"];
 };
@@ -24,7 +24,7 @@ export function AdminForm({ t, person, common }: Props) {
     {},
   );
 
-  // Creado: se muestra la contraseña generada (una sola vez) en lugar del form.
+  // Created: the generated password is shown (only once) instead of the form.
   if (state.password) {
     return (
       <div className="mt-6 flex flex-col items-start gap-4">

@@ -1,6 +1,6 @@
 import type { UserType } from "@/generated/prisma/enums";
 
-// Puro y sin dependencias de Next: lo usan la capa de auth, la UI y los tests.
+// Pure and with no Next dependencies: used by the auth layer, the UI and the tests.
 
 export const PERMISSIONS = [
   "measurement-units:manage",
@@ -30,7 +30,7 @@ export const PERMISSIONS = [
 
 export type Permission = (typeof PERMISSIONS)[number];
 
-// Con dos roles fijos alcanza un mapa en código: un rol nuevo se agrega acá.
+// With two fixed roles a map in code is enough: a new role is added here.
 export const ROLE_PERMISSIONS: Record<UserType, readonly Permission[]> = {
   ADMIN: [
     "measurement-units:manage",
@@ -52,13 +52,13 @@ export const ROLE_PERMISSIONS: Record<UserType, readonly Permission[]> = {
     "audit:read",
     "dashboard:read",
     "routes:manage",
-    // Un admin también puede repartir (empresas chicas).
+    // An admin can also deliver (small companies).
     "routes:deliver",
     "purchases:manage",
     "reports:read",
   ],
   CLIENT: ["catalog:read", "sales:create"],
-  // Solo carga las entregas de sus hojas de ruta.
+  // Only loads the deliveries of their route sheets.
   DRIVER: ["routes:deliver"],
 };
 
@@ -67,8 +67,8 @@ export function can(role: UserType, permission: Permission): boolean {
 }
 
 /**
- * Pertenencia: el admin ve todo; el cliente solo lo de su empresa.
- * Para pedidos, direcciones, etc. que cuelgan de un `customer_id`.
+ * Ownership: the admin sees everything; the customer only what belongs to their company.
+ * For orders, addresses, etc. that hang from a `customer_id`.
  */
 export function canAccessCustomer(
   user: { role: UserType; customerId: string | null },

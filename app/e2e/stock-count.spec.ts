@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { login, ready } from "./helpers";
 
-// Un conteo de inventario del Depósito Sur: se carga a ciegas por SKU (un
-// código inexistente se rechaza y los escaneos del mismo producto suman), un
-// admin revisa la diferencia y al aprobar queda un ajuste en el historial.
+// An inventory count of the South warehouse: it is entered blind by SKU (an
+// unknown code is rejected and scans of the same product add up), an
+// admin reviews the difference and approving it leaves an adjustment in the history.
 test("conteo de inventario: carga a ciegas, revisión y ajuste", async ({
   page,
 }) => {

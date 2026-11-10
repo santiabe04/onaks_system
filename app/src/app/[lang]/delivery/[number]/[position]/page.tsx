@@ -26,7 +26,7 @@ export default async function DeliveryStopPage({
   const t = await getT();
   return (
     <main className="mx-auto w-full max-w-3xl p-4">
-      {/* params y la parada son de request: van en Suspense. */}
+      {/* params and the stop are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >

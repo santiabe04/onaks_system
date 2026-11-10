@@ -17,7 +17,7 @@ import { PO_NOTES_MAX_LENGTH } from "@/lib/purchase-order";
 
 const CONTROL = "rounded border border-current/20 bg-transparent px-2 py-1";
 
-/** Elegir el proveedor y crear el borrador. */
+/** Choose the supplier and create the draft. */
 export function NewPurchaseForm({
   suppliers,
   t,
@@ -65,18 +65,18 @@ export type EditorLine = {
   supplierCode: string | null;
   unit: string;
   allowsDecimals: boolean;
-  /** Ya formateados para mostrar. */
+  /** Already formatted for display. */
   stock: string;
   reserved: string;
   minStock: string;
   onOrder: string;
   suggested: string;
-  /** Valores iniciales de los inputs (separador decimal del idioma). */
+  /** Initial values of the inputs (the language's decimal separator). */
   quantity: string;
   unitCost: string;
 };
 
-/** El borrador: fecha esperada, comentario y cantidad / costo por producto. */
+/** The draft: expected date, comment and quantity / cost per product. */
 export function PurchaseEditor({
   orderId,
   lines,
@@ -208,8 +208,8 @@ export function PurchaseEditor({
 }
 
 /**
- * Copia un texto (la OC para WhatsApp) al portapapeles. Si el navegador no
- * deja (permisos, http), muestra el texto para copiarlo a mano.
+ * Copies a text (the PO for WhatsApp) to the clipboard. If the browser
+ * does not allow it (permissions, http), it shows the text to copy by hand.
  */
 export function CopyTextButton({
   text,

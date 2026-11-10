@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { login, numberFromUrl, pageAs, ready } from "./helpers";
 
-// Un pedido que llega por teléfono: el admin lo carga para Veterinaria San
-// Roque y el cliente lo ve en Mis pedidos como hecho por la distribuidora.
+// An order that comes in by phone: the admin enters it for Veterinaria San
+// Roque and the customer sees it in My orders as placed by the distributor.
 test("el admin carga un pedido por un cliente y el cliente lo ve", async ({
   page,
   browser,
@@ -14,8 +14,8 @@ test("el admin carga un pedido por un cliente y el cliente lo ve", async ({
   await page.getByLabel("Buscar cliente (nombre o CUIT)").fill("san roque");
   await page
     .getByRole("combobox", { name: "Cliente" })
-    .selectOption({ index: 1 }); // el único que queda con la búsqueda
-  // Tiene una sola dirección: queda elegida sola.
+    .selectOption({ index: 1 }); // the only one left with the search
+  // It has only one address: it is picked automatically.
   await expect(page.getByRole("radio", { name: /Consultorio/ })).toBeChecked();
 
   await page
@@ -27,7 +27,7 @@ test("el admin carga un pedido por un cliente y el cliente lo ve", async ({
     .getByRole("button", { name: "Agregar" })
     .click();
   await page.getByLabel("Cantidad Pelota de goma").fill("3");
-  // 3 × $ 1.800 neto + IVA 21 %.
+  // 3 × $ 1.800 net + VAT 21 %.
   await expect(page.getByText("$ 6.534,00").first()).toBeVisible();
 
   await page.getByLabel("Comentario (opcional)").fill("Pedido telefónico e2e");

@@ -170,7 +170,7 @@ describe("parsePicked", () => {
   });
 
   it("pide motivo, no deja pasarse y no deja un pedido vacío", () => {
-    // Todo preparado, salvo lo que se pisa.
+    // Everything prepared, except what is overwritten.
     const full = (overrides: [string, string][]) =>
       form(
         Object.entries({

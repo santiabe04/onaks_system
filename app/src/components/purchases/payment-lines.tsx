@@ -16,7 +16,7 @@ type Line = {
   withholdingType: WithholdingType | null;
 };
 
-/** Los medios de una OP: medio, datos (número, banco, fecha, tipo) e importe. */
+/** The methods of a PO: method, details (number, bank, date, type) and amount. */
 export function PaymentLines({
   lines,
   total,

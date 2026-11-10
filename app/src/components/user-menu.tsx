@@ -6,9 +6,9 @@ import { getT } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
 
 /**
- * Nombre del usuario y botón de salir. Lee la sesión: va dentro de un <Suspense>.
- * Sin sesión (o con otro rol que `role`) redirige; la protección real de los
- * datos igual está en cada página y Server Action.
+ * User name and logout button. Reads the session: it goes inside a <Suspense>.
+ * Without a session (or with another role than `role`) it redirects; the real protection of the
+ * data is still in each page and Server Action.
  */
 export async function UserMenu({ role }: { role?: UserType }) {
   const [user, t] = await Promise.all([getCurrentUser(role), getT()]);
@@ -19,7 +19,7 @@ export async function UserMenu({ role }: { role?: UserType }) {
       <Link href={CHANGE_PASSWORD_PATH} className="hover:underline">
         {t.userMenu.changePassword}
       </Link>
-      {/* Logout por POST: un link GET lo dispararía cualquier prefetch. */}
+      {/* Logout by POST: a GET link would be triggered by any prefetch. */}
       <form action={logout}>
         <button type="submit" className="hover:underline">
           {t.userMenu.logout}

@@ -19,7 +19,7 @@ export default async function SupplierDebtsPage() {
   return (
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.supplierAccount.debtsTitle}</h1>
-      {/* Las cuentas salen de la DB y dependen de hoy: van en Suspense. */}
+      {/* The accounts come from the DB and depend on today: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -44,7 +44,7 @@ async function Debts() {
   const a = t.supplierAccount;
 
   await connection();
-  // Solo los proveedores con algún comprobante; son pocos, se arma cada cuenta.
+  // Only suppliers with some voucher; there are few, so each account is built.
   const suppliers = await db.supplier.findMany({
     where: {
       OR: [
@@ -67,7 +67,7 @@ async function Debts() {
     .filter(({ summary }) =>
       COLUMNS.some((column) => toCents(summary[column]) !== BigInt(0)),
     )
-    // Primero lo vencido, después la deuda más grande.
+    // Overdue first, then the largest debt.
     .sort(
       (x, y) =>
         Number(toCents(y.summary.overdue) - toCents(x.summary.overdue)) ||

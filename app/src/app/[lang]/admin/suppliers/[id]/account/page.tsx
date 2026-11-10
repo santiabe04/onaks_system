@@ -30,7 +30,7 @@ export default async function SupplierAccountPage({
   const t = await getT();
   return (
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
-      {/* params y la cuenta son de request: van en Suspense. */}
+      {/* params and the account are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -46,7 +46,7 @@ type Row = {
   order: number;
   concept: string;
   href: string;
-  /** Centavos: positivo suma deuda, negativo la baja; 0 si no cuenta. */
+  /** Cents: positive adds debt, negative lowers it; 0 if it does not count. */
   amount: bigint;
   tag?: string;
   struck?: boolean;
@@ -68,14 +68,14 @@ async function Account({ params }: { params: Promise<{ id: string }> }) {
   if (!supplier) notFound();
   const name = supplier.tradeName ?? supplier.legalName;
 
-  // Vencido y por vencer dependen de hoy.
+  // Overdue and due soon depend on today.
   await connection();
   const account = await loadSupplierAccount(db, supplier.id);
   const { summary } = account;
   const open = openInvoices(account);
 
-  // Facturas aprobadas suman; OP y notas de crédito restan; lo anulado y lo
-  // observado se muestra pero no cuenta.
+  // Approved invoices add; payments and credit notes subtract; voided and
+  // flagged items are shown but do not count.
   const rows: Row[] = [
     ...account.invoices.map((invoice) => ({
       key: `i-${invoice.id}`,
@@ -117,7 +117,7 @@ async function Account({ params }: { params: Promise<{ id: string }> }) {
       struck: note.annulledAt !== null,
     })),
   ].sort((x, y) => x.day.localeCompare(y.day) || x.order - y.order);
-  // Saldo acumulado fila por fila.
+  // Running balance row by row.
   const withBalance = rows.reduce<(Row & { balance: bigint })[]>(
     (acc, row) => [
       ...acc,

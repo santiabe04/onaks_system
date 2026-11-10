@@ -8,8 +8,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.changePassword.title };
 }
 
-// Sin UserMenu: getCurrentUser redirige acá mismo si el cambio está pendiente.
-// El acceso lo controlan el proxy y la Server Action.
+// No UserMenu: getCurrentUser redirects here itself if the change is pending.
+// Access is controlled by the proxy and the Server Action.
 export default async function ChangePasswordPage() {
   const t = await getT();
 

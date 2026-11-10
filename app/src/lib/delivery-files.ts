@@ -4,16 +4,16 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
-// Firmas y fotos de remitos en disco: UPLOADS_DIR/deliveries/<uuid>.webp.
-// A diferencia de las imágenes del catálogo NO son públicas: se sirven solo
-// con sesión (ver app/media/deliveries). Entran en los backups del volumen.
+// Signatures and receipt photos on disk: UPLOADS_DIR/deliveries/<uuid>.webp.
+// Unlike the catalog images they are NOT public: they are served only
+// with a session (see app/media/deliveries). They are included in the volume backups.
 
 export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
-// Lado mayor de la foto: se lee bien un remito, sin ocupar de más.
+// Longer side of the photo: a receipt reads well without taking up too much room.
 const MAX_SIDE = 1600;
 const ACCEPTED_FORMATS = new Set(["jpeg", "png", "webp", "heif"]);
 const MAX_INPUT_PIXELS = 50_000_000;
-// La firma llega como PNG en base64 desde el canvas (unos pocos KB).
+// The signature arrives as a base64 PNG from the canvas (a few KB).
 const MAX_SIGNATURE_BYTES = 512 * 1024;
 const SIGNATURE_PREFIX = "data:image/png;base64,";
 
@@ -27,8 +27,8 @@ export type DeliveryImageResult =
   { ok: true; data: Buffer } | { ok: false; error: "tooLarge" | "invalid" };
 
 /**
- * Foto del remito: el formato se lee del contenido, se endereza según EXIF,
- * se achica y se guarda como WebP sin metadatos.
+ * Receipt photo: the format is read from the content, rotated according to EXIF,
+ * shrunk and saved as WebP without metadata.
  */
 export async function processDeliveryPhoto(
   file: File,
@@ -58,7 +58,7 @@ export async function processDeliveryPhoto(
   }
 }
 
-/** Firma dibujada en pantalla ("data:image/png;base64,…"), sobre fondo blanco. */
+/** Signature drawn on screen ("data:image/png;base64,…"), on a white background. */
 export async function processSignature(
   dataUrl: string,
 ): Promise<DeliveryImageResult> {
@@ -82,7 +82,7 @@ export async function processSignature(
   }
 }
 
-/** Guarda con un nombre al azar (no adivinable) y lo devuelve. */
+/** Saves under a random (non-guessable) name and returns it. */
 export async function saveDeliveryFile(data: Buffer): Promise<string> {
   const dir = deliveriesDir();
   await mkdir(dir, { recursive: true });
@@ -91,7 +91,7 @@ export async function saveDeliveryFile(data: Buffer): Promise<string> {
   return fileName;
 }
 
-/** El archivo, o null si el nombre no es uno nuestro o no existe. */
+/** The file, or null if the name is not ours or it does not exist. */
 export async function readDeliveryFile(
   fileName: string,
 ): Promise<Buffer | null> {

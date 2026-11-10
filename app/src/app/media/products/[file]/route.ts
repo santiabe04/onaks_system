@@ -1,8 +1,8 @@
 import { readProductImage } from "@/lib/product-image";
 
-// Fuera de `[lang]`: tiene extensión, así que el proxy no la toca. Las imágenes
-// son públicas (son las del catálogo) y nunca cambian: cada cambio genera un
-// archivo con otro nombre, por eso se cachean para siempre.
+// Outside `[lang]`: it has an extension, so the proxy does not touch it. The images
+// are public (they are the catalog's) and never change: each change generates a
+// file with another name, which is why they are cached forever.
 export async function GET(
   _request: Request,
   { params }: RouteContext<"/media/products/[file]">,

@@ -1,14 +1,14 @@
 import { parseDecimalInput } from "./decimal-input";
 import { fromMilli, QUANTITY_LIMITS, toMilli } from "./quantity";
 
-// Puro: cantidades del carrito y totales del pedido. Todo en enteros (BigInt)
-// para no tener errores de coma flotante en la plata.
+// Pure: cart quantities and order totals. Everything in integers (BigInt)
+// to avoid floating-point errors with money.
 
 type Numeric = { toString(): string } | string;
 
 /**
- * "2", "1,5" → cantidad normalizada, o null si no es válida: mayor a 0, con
- * hasta 3 decimales si la unidad los admite (kg, litros) y entera si no ("u").
+ * "2", "1,5" → normalized quantity, or null if it is not valid: greater than 0, with
+ * up to 3 decimals if the unit allows them (kg, liters) and whole if not ("u").
  */
 export function parseCartQuantity(
   raw: string,
@@ -23,12 +23,12 @@ export function parseCartQuantity(
 }
 
 export type CartLine = {
-  /** Precio neto unitario. */
+  /** Unit net price. */
   price: Numeric;
-  /** Alícuota como fracción (0.105). */
+  /** Tax rate as a fraction (0.105). */
   rate: Numeric;
   quantity: Numeric;
-  /** Peso unitario en kg. */
+  /** Unit weight in kg. */
   weight: Numeric;
 };
 
@@ -43,7 +43,7 @@ const HALF_RATE = BigInt(5000);
 const RATE_SCALE = BigInt(10_000);
 const HUNDRED = BigInt(100);
 
-/** a / b redondeado a la mitad hacia arriba (a y b positivos). */
+/** a / b rounded half up (a and b positive). */
 function divRound(a: bigint, b: bigint, half: bigint): bigint {
   return (a + half) / b;
 }
@@ -64,8 +64,8 @@ function money(value: bigint): string {
 }
 
 function lineCents(line: CartLine) {
-  // Neto de la línea = precio × cantidad, a centavos; el IVA se calcula sobre
-  // ese neto. Así lo que se guarda en el pedido coincide con lo que se mostró.
+  // Line net = price × quantity, to cents; the VAT is calculated on
+  // that net. So what is stored in the order matches what was shown.
   const net = divRound(
     cents(line.price) * toMilli(line.quantity),
     MILLI,
@@ -80,7 +80,7 @@ export function lineTotals(line: CartLine): LineTotals {
   return { net: money(net), tax: money(tax), total: money(net + tax) };
 }
 
-/** Totales del carrito (y del pedido): suma de las líneas ya redondeadas. */
+/** Cart totals (and order totals): sum of the already rounded lines. */
 export function cartTotals(lines: CartLine[]): CartTotals {
   let net = ZERO;
   let tax = ZERO;

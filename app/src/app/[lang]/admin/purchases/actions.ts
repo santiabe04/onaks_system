@@ -17,14 +17,14 @@ import {
   PO_CANCELABLE,
 } from "@/lib/purchase-order";
 
-// Órdenes de compra: se arman en borrador, se marcan enviadas y se cancelan
-// mientras no llegó nada (lo recibido lo cargan los informes de recepción).
+// Purchase orders: they are built as drafts, marked as sent, and canceled
+// as long as nothing has arrived (receipts are entered by the receiving reports).
 const PERMISSION = "purchases:manage";
 const ENTITY = "PURCHASE_ORDER";
 
 export type PurchaseActionState = { error?: string; savedAt?: number };
 
-/** Corta la transacción con un mensaje para el admin. */
+/** Aborts the transaction with a message for the admin. */
 class PurchaseError extends Error {}
 
 function messages() {
@@ -47,14 +47,14 @@ function revalidatePurchases() {
   revalidatePath("/[lang]/admin", "layout");
 }
 
-/** Bloquea la OC hasta el fin de la transacción y la devuelve. */
+/** Locks the PO until the end of the transaction and returns it. */
 async function lockOrder(tx: Prisma.TransactionClient, orderId: string) {
   const order = await lockPurchaseOrder(tx, orderId);
   if (!order) throw new PurchaseError(messages().notFound);
   return order;
 }
 
-/** Algo recibido (por los informes de recepción) impide cancelar o volver atrás. */
+/** Something received (through the receiving reports) prevents canceling or going back. */
 async function hasReceived(tx: Prisma.TransactionClient, orderId: string) {
   const received = await tx.purchaseOrderItem.count({
     where: { purchaseOrderId: orderId, receivedQuantity: { gt: 0 } },
@@ -62,7 +62,7 @@ async function hasReceived(tx: Prisma.TransactionClient, orderId: string) {
   return received > 0;
 }
 
-/** Borrador nuevo para un proveedor; se completa en su pantalla. */
+/** New draft for a supplier; it is completed on its screen. */
 export async function createPurchaseOrder(
   _prev: PurchaseActionState,
   formData: FormData,
@@ -99,8 +99,8 @@ export async function createPurchaseOrder(
 }
 
 /**
- * Guarda el borrador: fecha esperada, comentario y líneas (cantidad y costo
- * neto). La alícuota de IVA se toma del producto en este momento (foto).
+ * Saves the draft: expected date, comment and lines (quantity and net
+ * cost). The VAT rate is taken from the product at this moment (snapshot).
  */
 export async function savePurchaseOrder(
   orderId: string,
@@ -193,7 +193,7 @@ export async function savePurchaseOrder(
   return { savedAt: Date.now() };
 }
 
-/** Cambio de estado simple (enviar, volver a borrador, cancelar), auditado. */
+/** Simple status change (send, back to draft, cancel), audited. */
 async function changeState(
   orderId: string,
   check: (
@@ -226,7 +226,7 @@ async function changeState(
   return {};
 }
 
-/** Se mandó al proveedor (por mail o WhatsApp): queda como pedida. */
+/** Sent to the supplier (by email or WhatsApp): it is recorded as ordered. */
 export async function sendPurchaseOrder(
   orderId: string,
 ): Promise<PurchaseActionState> {
@@ -244,7 +244,7 @@ export async function sendPurchaseOrder(
   );
 }
 
-/** Para corregirla, mientras no llegó nada. */
+/** To correct it, as long as nothing has arrived. */
 export async function backToDraft(
   orderId: string,
 ): Promise<PurchaseActionState> {

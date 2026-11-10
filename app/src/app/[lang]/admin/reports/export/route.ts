@@ -6,8 +6,8 @@ import { csvNumber, toCsv } from "@/lib/csv";
 import { parseReportParams } from "@/lib/sales-report";
 import { getSalesReport } from "@/lib/sales-report-queries";
 
-// La pestaña del reporte (mismos parámetros que la pantalla) en CSV, para
-// Excel. El margen % va como fracción con 4 decimales (0,2500 = 25 %).
+// The report tab (same parameters as the screen) in CSV, for
+// Excel. The margin % is a fraction with 4 decimals (0.2500 = 25 %).
 export async function GET(request: NextRequest) {
   await requirePermission("reports:read");
   const t = getActionDictionary().salesReport;

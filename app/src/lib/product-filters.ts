@@ -1,13 +1,13 @@
 import type { Prisma } from "@/generated/prisma/client";
 
-// Puro: filtros de la lista de productos del admin a partir de la URL.
+// Pure: filters for the admin's product list, from the URL.
 
 export const PRODUCT_PAGE_SIZE = 50;
 
 export type ProductStatus = "all" | "active" | "paused";
 
 export type ProductFilters = {
-  /** Busca en nombre, SKU y código de barras. */
+  /** Searches by name, SKU and barcode. */
   q?: string;
   category?: number;
   status: ProductStatus;
@@ -21,7 +21,7 @@ function first(value: string | string[] | undefined): string | undefined {
   return raw?.trim() || undefined;
 }
 
-/** Lo que no se entiende se ignora: una URL editada a mano no rompe la página. */
+/** What is not understood is ignored: a hand-edited URL does not break the page. */
 export function parseProductFilters(params: SearchParams): ProductFilters {
   const q = first(params.q);
   const category = Number(first(params.category));
@@ -36,8 +36,8 @@ export function parseProductFilters(params: SearchParams): ProductFilters {
 }
 
 /**
- * `categoryIds`: la categoría elegida y sus descendientes (filtrar por
- * "Alimentos" incluye "Perros › Cachorros"). Los borrados nunca aparecen.
+ * `categoryIds`: the chosen category and its descendants (filtering by
+ * "Food" includes "Dogs › Puppies"). Deleted ones never appear.
  */
 export function productWhere(
   filters: ProductFilters,
@@ -57,7 +57,7 @@ export function productWhere(
   };
 }
 
-/** Query string con los mismos filtros y otra página (para los links). */
+/** Query string with the same filters and another page (for the links). */
 export function productQuery(filters: ProductFilters, page: number): string {
   const params = new URLSearchParams();
   if (filters.q) params.set("q", filters.q);

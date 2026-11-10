@@ -20,13 +20,13 @@ import {
 } from "@/lib/transfer-proof-files";
 import { STATE_COMMENT_MAX_LENGTH } from "@/lib/sale-state-form";
 
-// Lo que el cliente puede hacer con un pedido de su empresa mientras está
-// Pendiente: cancelarlo y, si el admin lo habilitó, modificarlo (vuelve al
-// carrito y se confirma de nuevo con el mismo número).
+// What the customer can do with an order from their company while it is
+// Pending: cancel it and, if the admin enabled it, edit it (it goes back to the
+// cart and is confirmed again with the same number).
 
 export type OrderActionState = { error?: string };
 
-/** Corta la transacción con un mensaje para el cliente. */
+/** Aborts the transaction with a message for the customer. */
 class OrderActionError extends Error {}
 
 type LockedSale = {
@@ -38,8 +38,8 @@ type LockedSale = {
 };
 
 /**
- * Bloquea la cuenta de la empresa y el pedido (mismo orden que cobros y
- * cambios de estado) y lo devuelve si es de la empresa del usuario.
+ * Locks the company's account and the order (same order as payments and
+ * status changes) and returns it if it belongs to the user's company.
  */
 async function lockOwnSale(
   tx: Prisma.TransactionClient,
@@ -78,7 +78,7 @@ async function run(
   }
 }
 
-/** El cliente cancela un pedido Pendiente (también si lo estaba modificando). */
+/** The customer cancels a Pending order (also if it was being edited). */
 export async function cancelOwnOrder(
   saleId: string,
   _prev: OrderActionState,
@@ -124,10 +124,10 @@ export async function cancelOwnOrder(
 }
 
 /**
- * Empieza a modificar un pedido habilitado: sus productos se suman al carrito
- * y, al confirmar, reemplazan los del pedido (mismo número).
+ * Starts editing an enabled order: its products are added to the cart
+ * and, on confirmation, replace the order's (same number).
  */
-// Sin parámetro de estado previo: useActionState lo pasa pero no se usa.
+// No previous-state parameter: useActionState passes it but it is not used.
 export async function startOrderEdit(
   saleId: string,
 ): Promise<OrderActionState> {
@@ -139,7 +139,7 @@ export async function startOrderEdit(
       const sale = await lockOwnSale(tx, user, saleId, t);
       if (sale.state !== "PENDING") throw new OrderActionError(t.notPending);
       if (!sale.customerCanEdit) throw new OrderActionError(t.notEditable);
-      // Ya lo estaba modificando: solo hay que ir al carrito.
+      // Already editing it: just go to the cart.
       if (sale.editingPersonId === user.personId) return;
       if (sale.editingPersonId) throw new OrderActionError(t.editedByOther);
       const other = await tx.sale.findFirst({
@@ -191,8 +191,8 @@ export async function startOrderEdit(
   redirect("/cart");
 }
 
-/** Deja de modificar: el pedido queda como estaba (el carrito no se toca). */
-// Sin parámetro de estado previo: useActionState lo pasa pero no se usa.
+/** Stops editing: the order stays as it was (the cart is not touched). */
+// No previous-state parameter: useActionState passes it but it is not used.
 export async function discardOrderEdit(
   saleId: string,
 ): Promise<OrderActionState> {
@@ -223,10 +223,10 @@ export async function discardOrderEdit(
 }
 
 /**
- * Repite un pedido de la empresa: suma sus productos y cantidades al carrito
- * con los precios y la lista de hoy (no se copia nada del precio viejo). Lo
- * que hoy no se puede comprar se omite y se avisa en el carrito. El cliente
- * revisa y confirma en el checkout, como siempre.
+ * Repeats a company order: adds its products and quantities to the cart
+ * at today's prices and list (nothing is copied from the old price). What
+ * cannot be bought today is skipped and reported in the cart. The customer
+ * reviews and confirms at checkout, as always.
  */
 export async function repeatOrder(saleId: string): Promise<OrderActionState> {
   const user = await requirePermission("sales:create");
@@ -234,7 +234,7 @@ export async function repeatOrder(saleId: string): Promise<OrderActionState> {
   const customerId = user.customerId;
   if (!customerId || !isCuid(saleId)) return { error: t.notFound };
 
-  // De la empresa del usuario: uno ajeno se ve igual que uno que no existe.
+  // From the user's company: another company's looks the same as one that does not exist.
   const sale = await db.sale.findFirst({
     where: { id: saleId, address: { customerId } },
     select: {
@@ -285,7 +285,7 @@ export async function repeatOrder(saleId: string): Promise<OrderActionState> {
     ),
   );
 
-  // El header muestra la cantidad del carrito.
+  // The header shows the cart quantity.
   revalidatePath("/[lang]", "layout");
   redirect(
     `/cart?${new URLSearchParams({
@@ -297,10 +297,10 @@ export async function repeatOrder(saleId: string): Promise<OrderActionState> {
 }
 
 /**
- * El cliente sube el comprobante de la transferencia de un pedido de su
- * empresa. El archivo se guarda antes de la transacción (y se borra si falla);
- * con el pedido bloqueado se vuelve a comprobar que todavía se pueda subir uno
- * y que no haya otro esperando revisión.
+ * The customer uploads the transfer receipt for an order of their
+ * company. The file is saved before the transaction (and deleted if it fails);
+ * with the order locked, it is checked again that one can still be uploaded
+ * and that there is no other one awaiting review.
  */
 export async function uploadTransferProof(
   saleId: string,
@@ -324,7 +324,7 @@ export async function uploadTransferProof(
 
   try {
     await db.$transaction(async (tx) => {
-      // Mismo orden de bloqueo que cobros y cambios de estado: cuenta y pedido.
+      // Same lock order as payments and status changes: account and order.
       await lockAccount(tx, customerId);
       const [sale] = await tx.$queryRaw<
         {
@@ -364,7 +364,7 @@ export async function uploadTransferProof(
     throw error;
   }
 
-  // El detalle del pedido (y el aviso del admin) cambian.
+  // The order detail (and the admin's notice) change.
   revalidatePath("/[lang]", "layout");
   return {};
 }

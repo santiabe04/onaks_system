@@ -5,10 +5,10 @@ import type { Shortage } from "@/lib/partial-delivery";
 
 type Numeric = { toString(): string };
 
-/** Lo que se guarda en `route_stops.shortages`. */
+/** What is saved in `route_stops.shortages`. */
 type ShortageRecord = Shortage & { name: string; unit: string };
 
-/** Lo que se cargó en una parada: para el repartidor y para el admin. */
+/** What was loaded at a stop: for the driver and for the admin. */
 export function StopRecordSummary({
   stop,
   t,
@@ -26,7 +26,7 @@ export function StopRecordSummary({
     notDeliveredReason: string | null;
     latitude: Numeric | null;
     longitude: Numeric | null;
-    /** Entrega parcial (ver `applyShortages`). */
+    /** Partial delivery (see `applyShortages`). */
     shortages: unknown;
     payment: {
       amount: Numeric;
@@ -73,7 +73,7 @@ export function StopRecordSummary({
                   delivered: format.number(shortage.delivered),
                   ordered: format.number(shortage.ordered),
                   unit: shortage.unit,
-                  // En una parada solo hay RETURNED o WRITTEN_OFF.
+                  // A stop only has RETURNED or WRITTEN_OFF.
                   reason:
                     t.shortageReasons[
                       shortage.reason as keyof typeof t.shortageReasons
@@ -95,7 +95,7 @@ export function StopRecordSummary({
       <div className="flex flex-wrap gap-3">
         {stop.signatureFile && (
           <figure>
-            {/* eslint-disable-next-line @next/next/no-img-element -- archivo privado, servido con sesión */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- private file, served with a session */}
             <img
               src={`/media/deliveries/${stop.signatureFile}`}
               alt={t.signature}
@@ -109,7 +109,7 @@ export function StopRecordSummary({
         {stop.photoFile && (
           <figure>
             <a href={`/media/deliveries/${stop.photoFile}`} target="_blank">
-              {/* eslint-disable-next-line @next/next/no-img-element -- archivo privado, servido con sesión */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- private file, served with a session */}
               <img
                 src={`/media/deliveries/${stop.photoFile}`}
                 alt={t.photoLabel}

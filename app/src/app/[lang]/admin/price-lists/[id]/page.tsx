@@ -24,7 +24,7 @@ export default async function EditPriceListPage({
   return (
     <main className="mx-auto w-full max-w-4xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.priceLists.editTitle}</h1>
-      {/* params y la query a la DB son de request: van en Suspense. */}
+      {/* params and the DB query are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -46,7 +46,7 @@ async function EditPriceList({ params }: { params: Promise<{ id: string }> }) {
       where: { id },
       include: { items: { select: { productId: true, price: true } } },
     }),
-    // Todos los no borrados: un pausado puede volver a venderse.
+    // All non-deleted: a paused one can be sold again.
     db.product.findMany({
       where: { deletedAt: null },
       orderBy: { name: "asc" },
@@ -65,7 +65,7 @@ async function EditPriceList({ params }: { params: Promise<{ id: string }> }) {
           action={updatePriceList.bind(null, priceList.id)}
           defaultValues={{
             name: priceList.name,
-            // Con el separador decimal del idioma: "-10" o "2,5".
+            // With the language's decimal separator: "-10" or "2,5".
             adjustment: format.number(fractionToPercent(priceList.adjustment)),
           }}
           submitLabel={t.common.save}

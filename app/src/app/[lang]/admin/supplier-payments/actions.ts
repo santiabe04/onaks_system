@@ -22,15 +22,15 @@ import {
   writeAllocations,
 } from "@/lib/supplier-account-ledger";
 
-// Órdenes de pago a proveedores: uno o varios medios, imputadas a facturas
-// aprobadas (lo que sobra queda a cuenta y se imputa después). Se anulan con
-// motivo y dejan de contar. Todo con el proveedor bloqueado.
+// Supplier payment orders: one or more methods, allocated to approved invoices
+// (what is left over stays on account and is allocated later). They are voided with a
+// reason and stop counting. Everything with the supplier locked.
 const PERMISSION = "purchases:manage";
 const ENTITY = "SUPPLIER_PAYMENT";
 
 export type SupplierPaymentActionState = { error?: string };
 
-/** Corta la transacción con un mensaje para el admin. */
+/** Aborts the transaction with a message for the admin. */
 class PaymentError extends Error {}
 
 function messages() {
@@ -53,7 +53,7 @@ function revalidateAccounts() {
   revalidatePath("/[lang]/admin", "layout");
 }
 
-/** Bloquea al proveedor de la OP y después la OP; la devuelve. */
+/** Locks the payment order's supplier and then the order; returns it. */
 async function lockPayment(tx: Prisma.TransactionClient, paymentId: string) {
   const t = messages();
   if (!isCuid(paymentId)) throw new PaymentError(t.notFound);
@@ -73,7 +73,7 @@ async function lockPayment(tx: Prisma.TransactionClient, paymentId: string) {
   return payment;
 }
 
-/** Nueva OP: medios, total e imputación a facturas del proveedor. */
+/** New payment order: methods, total and allocation to the supplier's invoices. */
 export async function createSupplierPayment(
   supplierId: string,
   _prev: SupplierPaymentActionState,
@@ -140,7 +140,7 @@ export async function createSupplierPayment(
   redirect(`/admin/supplier-payments/${number}`);
 }
 
-/** Imputa lo que quedó a cuenta de una OP a facturas con saldo. */
+/** Allocates what was left on account of a payment order to invoices with a balance. */
 export async function allocateSupplierPayment(
   paymentId: string,
   _prev: SupplierPaymentActionState,
@@ -178,7 +178,7 @@ export async function allocateSupplierPayment(
   return {};
 }
 
-/** Anula una OP: el pago y sus imputaciones dejan de contar. */
+/** Voids a payment order: the payment and its allocations stop counting. */
 export async function annulSupplierPayment(
   paymentId: string,
   _prev: SupplierPaymentActionState,

@@ -8,8 +8,8 @@ import { db } from "@/lib/db";
 const RECENT_PAYMENTS = 5;
 
 /**
- * Saldo de la empresa y sus últimos pagos, para el cliente. Sin datos
- * internos: ni quién cargó el cobro ni los anulados.
+ * The company's balance and its latest payments, for the customer. No
+ * internal data: neither who entered the payment nor the voided ones.
  */
 export async function MyAccount({
   customerId,
@@ -58,7 +58,7 @@ export async function MyAccount({
             <li key={payment.id} className="flex justify-between gap-4">
               <span>
                 {format.date(
-                  // `paid_on` es una fecha sin hora: se muestra el mismo día.
+                  // `paid_on` is a date without time: it is shown on the same day.
                   new Date(
                     `${payment.paidOn.toISOString().slice(0, 10)}T12:00:00-03:00`,
                   ),

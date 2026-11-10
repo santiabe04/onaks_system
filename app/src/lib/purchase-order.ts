@@ -5,7 +5,7 @@ import { parseDecimalInput } from "./decimal-input";
 import { isoDay } from "./order-period";
 import { fromMilli, QUANTITY_LIMITS, toMilli } from "./quantity";
 
-// Puro: órdenes de compra (OC) a proveedores.
+// Pure: purchase orders (PO) to suppliers.
 
 export const PO_NOTES_MAX_LENGTH = 300;
 const MONEY_LIMITS = { maxDecimals: 2, maxIntegerDigits: 10 };
@@ -14,14 +14,14 @@ const ZERO = BigInt(0);
 
 type Numeric = { toString(): string } | string;
 
-/** Se edita solo en borrador; se cancela o vuelve a borrador mientras no llegó nada. */
+/** Only edited as a draft; it is canceled or goes back to draft as long as nothing has arrived. */
 export const PO_EDITABLE: PurchaseOrderState[] = ["DRAFT"];
 export const PO_CANCELABLE: PurchaseOrderState[] = ["DRAFT", "SENT"];
 
 /**
- * Cuánto pedir: lo que falta para llegar al mínimo y cubrir lo reservado por
- * pedidos, descontando el stock y lo ya pedido en otras OC sin recibir. Sin
- * decimales, se redondea para arriba (no se piden 2,4 bolsas).
+ * How much to order: what is missing to reach the minimum and cover what is reserved by
+ * orders, deducting the stock and what was already ordered on other POs not yet received. Without
+ * decimals, rounded up (2.4 bags are not ordered).
  */
 export function suggestQuantity(input: {
   minStock: Numeric | null;
@@ -44,15 +44,15 @@ export type PurchaseLine = {
   productId: string;
   /** "12", "2.5". */
   quantity: string;
-  /** Costo neto unitario ("1234.5"). */
+  /** Unit net cost ("1234.5"). */
   unitCost: string;
 };
 
 type Messages = Dictionary["purchases"]["errors"];
 
 /**
- * Las líneas del form (`qty_<producto>`, `cost_<producto>`): sin cantidad (o
- * 0) el producto no va. Con cantidad, el costo es obligatorio.
+ * The form lines (`qty_<product>`, `cost_<product>`): without a quantity (or
+ * 0) the product is not included. With a quantity, the cost is mandatory.
  */
 export function parsePurchaseLines(
   formData: FormData,
@@ -88,7 +88,7 @@ export function parsePurchaseLines(
 }
 
 export type PurchaseHeader = {
-  /** YYYY-MM-DD o null. */
+  /** YYYY-MM-DD or null. */
   expectedDate: string | null;
   notes: string | null;
 };
@@ -123,9 +123,9 @@ export function parsePurchaseHeader(
 }
 
 /**
- * La OC como texto para mandar por WhatsApp: proveedor, número, productos con
- * el código del proveedor y la fecha esperada. Sin precios: el proveedor ya
- * los tiene (y así se puede reenviar sin exponer el costo pactado).
+ * The PO as text to send by WhatsApp: supplier, number, products with
+ * the supplier's code and the expected date. Without prices: the supplier already
+ * has them (and so it can be resent without exposing the agreed cost).
  */
 export function purchaseOrderText(
   order: {
@@ -167,7 +167,7 @@ export function purchaseOrderText(
   return lines.join("\n");
 }
 
-/** Hoy (Argentina) como YYYY-MM-DD, para el mínimo del input de fecha. */
+/** Today (Argentina) as YYYY-MM-DD, for the minimum of the date input. */
 export function todayIso(now: Date = new Date()): string {
   return isoDay(now);
 }

@@ -23,14 +23,14 @@ import {
   StateChangeError,
 } from "@/lib/sale-state-change";
 
-// Hojas de ruta: armado (paradas y orden) y salida. Mientras está Armando se
-// cambia todo; al salir, los pedidos pasan a En reparto.
+// Route sheets: building (stops and order) and departure. While Preparing,
+// everything can change; on departure, the orders move to On the road.
 const PERMISSION = "routes:manage";
 const ENTITY = "ROUTE_SHEET";
 
 export type RouteActionState = { error?: string };
 
-/** Corta la transacción con un mensaje para el admin. */
+/** Aborts the transaction with a message for the admin. */
 class RouteError extends Error {}
 
 function messages() {
@@ -38,7 +38,7 @@ function messages() {
 }
 
 function revalidateRoutes() {
-  // Hojas, pedidos (estados) y la vista del repartidor.
+  // Sheets, orders (statuses) and the driver's view.
   revalidatePath("/[lang]", "layout");
 }
 
@@ -52,7 +52,7 @@ async function run(work: () => Promise<void>): Promise<RouteActionState> {
   }
 }
 
-/** Bloquea la hoja hasta el fin de la transacción y devuelve su estado. */
+/** Locks the sheet until the end of the transaction and returns its status. */
 async function lockSheet(
   tx: Prisma.TransactionClient,
   sheetId: string,
@@ -72,7 +72,7 @@ async function lockDraft(tx: Prisma.TransactionClient, sheetId: string) {
   return sheet;
 }
 
-/** Repartidor y vehículo tienen que existir y estar activos. */
+/** Driver and vehicle must exist and be active. */
 async function checkFleet(
   tx: Prisma.TransactionClient,
   input: RouteSheetInput,
@@ -102,8 +102,8 @@ function sheetData(input: RouteSheetInput) {
 }
 
 /**
- * Suma pedidos a la hoja, al final. Tienen que estar Listos para despachar y
- * no estar en otra hoja abierta (se bloquean los pedidos para chequearlo).
+ * Adds orders to the sheet, at the end. They must be Ready to ship and
+ * not be on another open sheet (the orders are locked to check it).
  */
 async function addSalesToSheet(
   tx: Prisma.TransactionClient,
@@ -147,7 +147,7 @@ async function addSalesToSheet(
     _max: { position: true },
   });
   let position = last._max.position ?? 0;
-  // En el orden en que se eligieron (el de la pantalla).
+  // In the order they were chosen (the screen's order).
   for (const id of saleIds) {
     if (!sales.some((sale) => sale.id === id)) continue;
     position += 1;
@@ -161,14 +161,14 @@ function readSaleIds(formData: FormData): string[] {
   const ids: string[] = [];
   for (const raw of formData.getAll("sale")) {
     if (typeof raw !== "string") continue;
-    // Desde la vista por zona llega "id:ESTADO"; desde la hoja, solo el id.
+    // From the by-zone view it comes as "id:STATUS"; from the sheet, only the id.
     const id = raw.split(":")[0];
     if (isCuid(id) && !ids.includes(id)) ids.push(id);
   }
   return ids;
 }
 
-/** Hoja nueva, vacía: después se le agregan pedidos. */
+/** New, empty sheet: orders are added to it afterwards. */
 export async function createRouteSheet(
   _prev: RouteSheetFormState,
   formData: FormData,
@@ -207,7 +207,7 @@ export async function createRouteSheet(
   redirect(`/admin/routes/${number}`);
 }
 
-/** Desde "Por zona": hoja nueva con los pedidos marcados. */
+/** From "By zone": new sheet with the marked orders. */
 export async function createRouteSheetFromSales(
   _prev: RouteSheetFormState,
   formData: FormData,
@@ -249,7 +249,7 @@ export async function createRouteSheetFromSales(
   redirect(`/admin/routes/${number}`);
 }
 
-/** Fecha, repartidor, vehículo y comentario, mientras se arma. */
+/** Date, driver, vehicle and comment, while it is being built. */
 export async function updateRouteSheet(
   sheetId: string,
   _prev: RouteSheetFormState,
@@ -313,7 +313,7 @@ export async function addStops(
   return state;
 }
 
-/** Quita una parada y renumera las demás. */
+/** Removes a stop and renumbers the others. */
 export async function removeStop(
   sheetId: string,
   stopId: string,
@@ -373,7 +373,7 @@ export async function moveStopAction(
   return state;
 }
 
-/** Posiciones 1, 2, 3… después de quitar una parada. */
+/** Positions 1, 2, 3… after removing a stop. */
 async function renumber(tx: Prisma.TransactionClient, sheetId: string) {
   const stops = await tx.routeStop.findMany({
     where: { routeSheetId: sheetId },
@@ -389,8 +389,8 @@ async function renumber(tx: Prisma.TransactionClient, sheetId: string) {
 }
 
 /**
- * Cambia el estado de todos los pedidos de la hoja en una transacción (todos
- * o ninguno), en orden de cliente para no cruzar bloqueos con otra hoja.
+ * Changes the status of all the orders on the sheet in one transaction (all
+ * or none), in customer order so as not to cross locks with another sheet.
  */
 async function moveSales(
   tx: Prisma.TransactionClient,
@@ -438,7 +438,7 @@ async function moveSales(
   }
 }
 
-/** Sale a repartir: los pedidos pasan a En reparto. */
+/** Departs for delivery: the orders move to On the road. */
 export async function departRouteSheet(
   sheetId: string,
 ): Promise<RouteActionState> {
@@ -472,7 +472,7 @@ export async function departRouteSheet(
   return state;
 }
 
-/** Vuelve a Armando: los pedidos vuelven a Listo para despachar. */
+/** Back to Preparing: the orders go back to Ready to ship. */
 export async function undoDeparture(
   sheetId: string,
 ): Promise<RouteActionState> {
@@ -481,7 +481,7 @@ export async function undoDeparture(
     db.$transaction(async (tx) => {
       const sheet = await lockSheet(tx, sheetId);
       if (sheet.state !== "OUT") throw new RouteError(messages().notOut);
-      // Con paradas ya cargadas, los pedidos no están todos En reparto.
+      // With stops already loaded, not all orders are On the road.
       const recorded = await tx.routeStop.count({
         where: { routeSheetId: sheet.id, status: { not: "PENDING" } },
       });
@@ -516,7 +516,7 @@ export async function undoDeparture(
   return state;
 }
 
-/** Borra una hoja que se está armando (los pedidos quedan como están). */
+/** Deletes a sheet being built (the orders stay as they are). */
 export async function deleteRouteSheet(
   sheetId: string,
 ): Promise<RouteActionState> {
@@ -544,9 +544,9 @@ export async function deleteRouteSheet(
 }
 
 /**
- * Cierra la hoja cuando volvió el repartidor: todas las paradas cargadas y
- * la rendición del efectivo cobrado (lo esperado se calcula acá, con la hoja
- * bloqueada, para que no cambie entre que se ve y se cierra).
+ * Closes the sheet when the driver is back: all stops loaded and
+ * the cash count of the collected money (the expected amount is calculated here, with the sheet
+ * locked, so it does not change between viewing it and closing it).
  */
 export async function closeRouteSheet(
   sheetId: string,

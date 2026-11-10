@@ -1,18 +1,18 @@
 import type { NextConfig } from "next";
 
-// Cabeceras de seguridad para todas las respuestas. Sin CSP por ahora: el
-// script inline del tema necesitaría un nonce por request.
+// Security headers for all responses. No CSP for now: the
+// inline theme script would need a nonce per request.
 const SECURITY_HEADERS = [
-  // Nadie puede meter la app en un iframe (clickjacking).
+  // Nobody can put the app in an iframe (clickjacking).
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  // La cámara (foto del remito) y el GPS (parada) solo para la propia app.
+  // The camera (receipt photo) and the GPS (stop) only for the app itself.
   {
     key: "Permissions-Policy",
     value: "camera=(self), geolocation=(self), microphone=(), payment=()",
   },
-  // HTTPS siempre (en producción va detrás de Caddy). Por http el navegador la ignora.
+  // HTTPS always (in production it sits behind Caddy). Over http the browser ignores it.
   ...(process.env.NODE_ENV === "production"
     ? [
         {
@@ -24,21 +24,21 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
-  // Genera .next/standalone: un server.js mínimo para la imagen de Docker.
+  // Generates .next/standalone: a minimal server.js for the Docker image.
   output: "standalone",
   cacheComponents: true,
-  // No anunciar el framework en cada respuesta.
+  // Do not announce the framework in every response.
   poweredByHeader: false,
-  // La app lee archivos de UPLOADS_DIR con rutas dinámicas y el tracing de
-  // `standalone` copiaba la carpeta local entera (firmas incluidas) a la imagen.
+  // The app reads files from UPLOADS_DIR with dynamic paths, and the tracing of
+  // `standalone` used to copy the whole local folder (signatures included) into the image.
   outputFileTracingExcludes: { "**": ["./uploads/**/*"] },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
   experimental: {
     serverActions: {
-      // Fotos de remito de hasta 8 MB (las de celular no se achican antes) +
-      // la firma y el overhead del multipart. Las de producto son de hasta 5 MB.
+      // Receipt photos up to 8 MB (phone photos are not shrunk beforehand) +
+      // the signature and the multipart overhead. Product images are up to 5 MB.
       bodySizeLimit: "10mb",
     },
   },

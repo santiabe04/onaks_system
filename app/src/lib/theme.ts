@@ -1,5 +1,5 @@
-// Preferencia de tema por navegador (localStorage). "system" no guarda nada en
-// <html>: los estilos siguen a `prefers-color-scheme`.
+// Browser theme preference (localStorage). "system" stores nothing in
+// <html>: the styles follow `prefers-color-scheme`.
 
 export const THEMES = ["light", "dark", "system"] as const;
 export type Theme = (typeof THEMES)[number];
@@ -12,8 +12,8 @@ export function parseTheme(value: unknown): Theme {
 }
 
 /**
- * Corre en <head> antes del primer paint, así una página con tema forzado no
- * parpadea con el del sistema. try/catch: localStorage puede estar bloqueado.
+ * Runs in <head> before the first paint, so a page with a forced theme does not
+ * flicker with the system's. try/catch: localStorage may be blocked.
  */
 export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem(${JSON.stringify(
   THEME_STORAGE_KEY,

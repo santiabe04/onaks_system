@@ -12,7 +12,7 @@ type LotOption = { id: string; label: string };
 
 const CONTROL = "rounded border border-current/20 bg-transparent px-2 py-1";
 
-/** Pasa una cantidad de un lote a otro en un pedido de una lista abierta. */
+/** Moves a quantity from one lot to another in an order on an open list. */
 export function LotChangeForm({
   listId,
   saleId,
@@ -24,9 +24,9 @@ export function LotChangeForm({
   listId: string;
   saleId: string;
   productId: string;
-  /** Los lotes de donde sale hoy lo del pedido. */
+  /** The lots the order's goods come from today. */
   assigned: LotOption[];
-  /** Los lotes con stock del producto en el depósito. */
+  /** The lots with stock of the product in the warehouse. */
   available: LotOption[];
   t: Dictionary["picking"];
 }) {

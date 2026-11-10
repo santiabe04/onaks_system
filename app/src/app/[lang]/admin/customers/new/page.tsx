@@ -17,7 +17,7 @@ export default async function NewCustomerPage() {
   return (
     <main className="mx-auto w-full max-w-xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.customers.newTitle}</h1>
-      {/* Las listas de precios salen de la DB: va en Suspense. */}
+      {/* The price lists come from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >

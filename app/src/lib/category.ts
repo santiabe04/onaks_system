@@ -2,10 +2,10 @@ import { z } from "zod";
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 
-// Puro: validación y reglas del árbol de categorías (las usan las actions, las
-// páginas y los tests).
+// Pure: validation and rules of the category tree (used by the actions, the
+// pages and the tests).
 
-/** La raíz es el nivel 1. */
+/** The root is level 1. */
 export const MAX_CATEGORY_DEPTH = 3;
 export const CATEGORY_NAME_MAX_LENGTH = 50;
 
@@ -13,7 +13,7 @@ export type CategoryRow = { id: number; name: string; parentId: number | null };
 
 export type CategoryNode = CategoryRow & {
   depth: number;
-  /** Nombres desde la raíz: ["Limpieza", "Pisos"]. */
+  /** Names from the root: ["Limpieza", "Pisos"]. */
   path: string[];
   childCount: number;
 };
@@ -28,7 +28,7 @@ function childrenByParent(rows: CategoryRow[]) {
   return map;
 }
 
-/** El árbol aplanado en orden de lectura: cada categoría seguida de sus hijas, por nombre. */
+/** The tree flattened in reading order: each category followed by its children, by name. */
 export function flattenCategoryTree(rows: CategoryRow[]): CategoryNode[] {
   const byParent = childrenByParent(rows);
   const result: CategoryNode[] = [];
@@ -53,7 +53,7 @@ export function flattenCategoryTree(rows: CategoryRow[]): CategoryNode[] {
   return result;
 }
 
-/** Ids de todas las descendientes (sin incluir a la categoría). */
+/** IDs of all the descendants (not including the category itself). */
 export function descendantIds(rows: CategoryRow[], id: number): Set<number> {
   const byParent = childrenByParent(rows);
   const result = new Set<number>();
@@ -73,7 +73,7 @@ function depthOf(rows: CategoryRow[], id: number): number {
   const byId = new Map(rows.map((row) => [row.id, row]));
   let depth = 0;
   let current = byId.get(id);
-  // El tope evita un loop infinito si la DB tuviera un ciclo.
+  // The cap avoids an infinite loop if the DB had a cycle.
   while (current && depth <= rows.length) {
     depth++;
     current =
@@ -82,7 +82,7 @@ function depthOf(rows: CategoryRow[], id: number): number {
   return depth;
 }
 
-/** Niveles que ocupa la categoría con sus descendientes (1 si no tiene hijas). */
+/** Levels the category occupies with its descendants (1 if it has no children). */
 function subtreeHeight(rows: CategoryRow[], id: number): number {
   const byParent = childrenByParent(rows);
   const height = (nodeId: number, guard: number): number =>
@@ -99,9 +99,9 @@ function subtreeHeight(rows: CategoryRow[], id: number): number {
 export type ParentError = "parentNotFound" | "cycle" | "tooDeep";
 
 /**
- * Si `parentId` sirve como padre de la categoría `id` (null si es nueva):
- * que exista, que no sea ella misma ni una descendiente, y que el subárbol
- * entero siga dentro de los 3 niveles.
+ * Whether `parentId` can serve as the parent of category `id` (null if it is new):
+ * that it exists, that it is not itself or a descendant, and that the whole
+ * subtree stays within the 3 levels.
  */
 export function checkParent(
   rows: CategoryRow[],
@@ -123,8 +123,8 @@ export function checkParent(
 }
 
 /**
- * Categorías que se pueden elegir como padre de `id` (null si es nueva). Las
- * que tienen productos quedan afuera: solo las finales pueden tenerlos.
+ * Categories that can be chosen as the parent of `id` (null if it is new). Those
+ * that have products are left out: only leaf categories can have them.
  */
 export function parentOptions(
   rows: CategoryRow[],
@@ -137,7 +137,7 @@ export function parentOptions(
   );
 }
 
-// --- Formulario ---
+// --- Form ---
 
 type Messages = Dictionary["categories"]["errors"];
 
@@ -150,10 +150,10 @@ export type CategoryFormState = {
 
 export type CategoryInput = { name: string; parentId: number | null };
 
-// La columna es INTEGER (int4): cualquier cosa fuera de rango no puede existir.
+// The column is INTEGER (int4): anything out of range cannot exist.
 const idSchema = z.coerce.number().int().positive().max(2_147_483_647);
 
-/** Convierte un id de la URL o de un form en número; null si no es válido. */
+/** Converts an id from the URL or a form into a number; null if it is not valid. */
 export function parseCategoryId(raw: unknown): number | null {
   const parsed = idSchema.safeParse(raw);
   return parsed.success ? parsed.data : null;
@@ -169,7 +169,7 @@ function categorySchema(t: Messages) {
         CATEGORY_NAME_MAX_LENGTH,
         interpolate(t.nameTooLong, { max: CATEGORY_NAME_MAX_LENGTH }),
       ),
-    // Vacío = categoría raíz.
+    // Empty = root category.
     parentId: z.string().transform((value, ctx) => {
       if (value === "") return null;
       const id = parseCategoryId(value);

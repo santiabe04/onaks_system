@@ -265,7 +265,7 @@ React resetea un `<form action={...}>` después de cada action. Consecuencias:
 
 ## Convenciones de código
 
-- **Idioma**: código, nombres, commits y PRs en inglés; comentarios y textos de UI en español.
+- **Idioma**: código, comentarios, nombres, commits y PRs en inglés; textos de UI en español.
 - **Comentarios**: explican el porqué (una regla de negocio, un bloqueo, un caso raro), no repiten el
   código. Mirá cómo están escritos los de alrededor y seguí la misma densidad.
 - **Nombres de tablas** en snake_case con `@@map`/`@map`; modelos y campos de Prisma en camelCase.

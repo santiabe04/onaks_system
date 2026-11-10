@@ -1,14 +1,14 @@
-// Puro: el período de pedidos que mira el admin, a partir de la URL.
+// Pure: the order period the admin looks at, from the URL.
 //
-// Por defecto es la semana actual de **sábado a sábado**: las rutas de reparto
-// se planifican el fin de semana con lo que se pidió en la semana. También se
-// puede elegir un rango libre (desde / hasta, inclusive).
+// By default it is the current week from **Saturday to Saturday**: delivery routes
+// are planned over the weekend with what was ordered during the week. A free
+// range can also be chosen (from / to, inclusive).
 
-// Días calendario de Argentina, que no tiene horario de verano: offset fijo.
+// Argentina calendar days, which has no daylight saving time: fixed offset.
 const TZ_OFFSET_MS = -3 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const SATURDAY = 6;
-/** Un rango libre más largo se recorta: la pantalla no es un reporte anual. */
+/** A longer free range is trimmed: the screen is not an annual report. */
 export const MAX_RANGE_DAYS = 93;
 
 export type OrderPeriod = {
@@ -17,10 +17,10 @@ export type OrderPeriod = {
   start: Date;
   /** Exclusive. */
   end: Date;
-  /** YYYY-MM-DD de Argentina: primer y último día que entran. */
+  /** YYYY-MM-DD in Argentina: the first and last day that are included. */
   from: string;
   to: string;
-  /** Solo en modo semana: el sábado de la semana anterior y de la siguiente. */
+  /** Only in week mode: the Saturday of the previous and the next week. */
   previousWeek?: string;
   nextWeek?: string;
 };
@@ -32,22 +32,22 @@ function first(value: string | string[] | undefined): string | undefined {
   return raw?.trim() || undefined;
 }
 
-/** "2026-10-24" → 00:00 de ese día en Argentina. */
+/** "2026-10-24" → 00:00 of that day in Argentina. */
 export function dayStart(raw: string | undefined): Date | undefined {
   if (!raw || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) return undefined;
   const utc = Date.parse(`${raw}T00:00:00Z`);
   if (Number.isNaN(utc)) return undefined;
   const date = new Date(utc - TZ_OFFSET_MS);
-  // Date.parse acepta "2026-02-31": se descarta comparando con el original.
+  // Date.parse accepts "2026-02-31": it is discarded by comparing with the original.
   return isoDay(date) === raw ? date : undefined;
 }
 
-/** El día de Argentina de un instante, como YYYY-MM-DD. */
+/** The Argentina day of an instant, as YYYY-MM-DD. */
 export function isoDay(date: Date): string {
   return new Date(date.getTime() + TZ_OFFSET_MS).toISOString().slice(0, 10);
 }
 
-/** 00:00 (Argentina) del sábado en que empieza la semana de `date`. */
+/** 00:00 (Argentina) of the Saturday on which the week of `date` begins. */
 export function weekStart(date: Date): Date {
   const local = new Date(date.getTime() + TZ_OFFSET_MS);
   const daysSinceSaturday = (local.getUTCDay() - SATURDAY + 7) % 7;
@@ -73,8 +73,8 @@ function week(start: Date): OrderPeriod {
 }
 
 /**
- * `?from=&to=` → rango libre; `?week=YYYY-MM-DD` → la semana que contiene ese
- * día; nada (o algo que no se entiende) → la semana de `now`.
+ * `?from=&to=` → free range; `?week=YYYY-MM-DD` → the week that contains that
+ * day; nothing (or something not understood) → the week of `now`.
  */
 export function parseOrderPeriod(
   params: SearchParams,
@@ -83,7 +83,7 @@ export function parseOrderPeriod(
   let from = dayStart(first(params.from));
   let to = dayStart(first(params.to));
   if (from || to) {
-    // Con un solo extremo, el otro es el mismo día.
+    // With only one end, the other is the same day.
     from ??= to!;
     to ??= from;
     if (to < from) [from, to] = [to, from];
@@ -100,7 +100,7 @@ export function parseOrderPeriod(
   return week(weekStart(dayStart(first(params.week)) ?? now));
 }
 
-/** Query string que reproduce el período (vacío para la semana actual). */
+/** Query string that reproduces the period (empty for the current week). */
 export function periodQuery(period: OrderPeriod, now: Date = new Date()) {
   if (period.mode === "range") {
     return `?${new URLSearchParams({ from: period.from, to: period.to })}`;

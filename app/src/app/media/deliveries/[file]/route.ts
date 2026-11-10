@@ -3,8 +3,8 @@ import { db } from "@/lib/db";
 import { readDeliveryFile } from "@/lib/delivery-files";
 import { can } from "@/lib/permissions";
 
-// Firmas y fotos de remitos: NO son públicas. Las ve quien gestiona pedidos;
-// un repartidor, solo las de sus propias hojas de ruta.
+// Signatures and receipt photos: NOT public. Seen by whoever manages orders;
+// a driver, only the ones from their own route sheets.
 export async function GET(
   _request: Request,
   { params }: RouteContext<"/media/deliveries/[file]">,

@@ -1,15 +1,15 @@
 import { expect, test } from "@playwright/test";
 import { login, numberFromUrl, pageAs, ready } from "./helpers";
 
-// PNG de 1×1 píxel y un PDF mínimo: alcanza para que el servidor los acepte.
+// 1×1 pixel PNG and a minimal PDF: enough for the server to accept them.
 const PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
   "base64",
 );
 const PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n");
 
-// Corre al final (orden alfabético): el cliente paga un pedido nuevo por
-// transferencia, el admin rechaza el primer comprobante y valida el segundo.
+// Runs last (alphabetical order): the customer pays a new order by
+// transfer, the admin rejects the first receipt and validates the second.
 test("el cliente paga por transferencia y el admin revisa los comprobantes", async ({
   page,
   browser,
@@ -24,7 +24,7 @@ test("el cliente paga por transferencia y el admin revisa los comprobantes", asy
       .getByLabel("Titular de la cuenta")
       .fill("Onaks Distribuidora SRL");
     await page.getByLabel("CUIT del titular").fill("30-71234567-1");
-    // Con un CBU de verificadores incorrectos no guarda.
+    // With an incorrect check-digit CBU it does not save.
     await page.getByLabel(/^CBU/).fill("0170099220000000123450");
     await page.getByRole("button", { name: "Guardar" }).click();
     await expect(page.getByText(/CBU inválido/)).toBeVisible();
@@ -114,7 +114,7 @@ test("el cliente paga por transferencia y el admin revisa los comprobantes", asy
       });
     await client.getByRole("button", { name: "Enviar comprobante" }).click();
     await expect(client.getByText("En revisión")).toBeVisible();
-    // Mientras hay uno en revisión no se sube otro.
+    // While one is under review, another cannot be uploaded.
     await expect(
       client.getByRole("button", { name: "Enviar comprobante" }),
     ).toHaveCount(0);

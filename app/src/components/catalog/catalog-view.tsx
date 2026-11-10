@@ -10,7 +10,7 @@ import { FavoriteButton } from "./favorite-button";
 
 type View = "cards" | "list";
 
-// Preferencia por navegador, como el tema.
+// Browser preference, like the theme.
 const STORAGE_KEY = "onaks-catalog-view";
 const CHANGE_EVENT = "onaks-catalog-view-change";
 
@@ -35,14 +35,14 @@ function saveView(view: View) {
   try {
     localStorage.setItem(STORAGE_KEY, view);
   } catch {
-    // Sin localStorage la elección vale hasta recargar.
+    // Without localStorage the choice lasts until reload.
   }
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
-/** Selector tarjetas / lista. */
+/** Cards / list selector. */
 export function ViewToggle({ t }: { t: Dictionary["catalog"] }) {
-  // En el server no hay preferencia: se renderiza "cards" y se corrige al hidratar.
+  // On the server there is no preference: "cards" is rendered and corrected on hydration.
   const view = useSyncExternalStore(subscribe, readView, () => "cards");
   return (
     <div
@@ -70,7 +70,7 @@ export function ViewToggle({ t }: { t: Dictionary["catalog"] }) {
   );
 }
 
-/** Los productos de la página, en tarjetas o en lista según la preferencia. */
+/** The products of the page, as cards or as a list depending on the preference. */
 export function CatalogView({
   items,
   canBuy,
@@ -79,14 +79,14 @@ export function CatalogView({
   favorites,
 }: {
   items: CatalogItem[];
-  /** Solo los clientes compran: el admin ve el catálogo sin "Agregar". */
+  /** Only customers buy: the admin sees the catalog without "Add". */
   canBuy: boolean;
   t: Dictionary["catalog"];
   cart: Dictionary["cart"];
   favorites: Dictionary["favorites"];
 }) {
   const view = useSyncExternalStore(subscribe, readView, () => "cards");
-  // El form queda fuera del link: un form dentro de un <a> no es HTML válido.
+  // The form is outside the link: a form inside an <a> is not valid HTML.
   const add = (item: CatalogItem, compact?: boolean) =>
     canBuy && (
       <div className="flex items-start gap-2">
@@ -121,7 +121,7 @@ export function CatalogView({
                   {item.sku} · {item.unitLine}
                 </p>
               </div>
-              {/* El neto puede partirse en dos renglones: en celular deja lugar al nombre. */}
+              {/* The net price may wrap onto two lines: on mobile it leaves room for the name. */}
               <div className="max-w-[45%] shrink-0 text-right">
                 {item.baseFinalPrice && (
                   <p className="text-xs whitespace-nowrap line-through opacity-60">
@@ -180,7 +180,7 @@ export function CatalogView({
   );
 }
 
-/** Foto del producto; sin foto, un recuadro. `size` fija la miniatura de la lista. */
+/** Product photo; without a photo, a box. `size` sets the list thumbnail. */
 function Thumb({
   item,
   size,

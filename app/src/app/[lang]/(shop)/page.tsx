@@ -41,7 +41,7 @@ export default async function CatalogPage({
 
   return (
     <main className="mx-auto w-full max-w-6xl p-4 sm:p-4 sm:p-8">
-      {/* Los filtros vienen de la URL y los productos de la DB: van en Suspense. */}
+      {/* The filters come from the URL and the products from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -64,13 +64,13 @@ async function Catalog({
     getCatalogCategories(),
     db.category.findMany({ select: { id: true, name: true, parentId: true } }),
   ]);
-  // Filtrar por una categoría incluye sus subcategorías.
+  // Filtering by a category includes its subcategories.
   const categoryIds = filters.category
     ? [filters.category, ...descendantIds(rows, filters.category)]
     : undefined;
   const where = catalogWhere(filters, categoryIds, user.customerId);
   const canBuy = can(user.role, "sales:create");
-  // "Lo que más pedís": solo en la portada del catálogo, sin búsqueda ni filtros.
+  // "What you order most": only on the catalog front page, without search or filters.
   const showMostOrdered =
     canBuy &&
     user.customerId !== null &&
@@ -237,8 +237,8 @@ async function Catalog({
 }
 
 /**
- * Árbol de categorías: columna a la izquierda en escritorio, desplegable en
- * celular. Cambiar de categoría conserva la búsqueda y vuelve a la página 1.
+ * Category tree: a column on the left on desktop, a dropdown on
+ * mobile. Changing category keeps the search and goes back to page 1.
  */
 function CategoryMenu({
   categories,

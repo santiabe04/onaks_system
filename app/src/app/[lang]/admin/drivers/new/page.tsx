@@ -16,7 +16,7 @@ export default async function NewDriverPage() {
   return (
     <main className="mx-auto w-full max-w-md p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.fleet.newDriver}</h1>
-      {/* Los usuarios salen de la DB: van en Suspense. */}
+      {/* The users come from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >

@@ -3,9 +3,9 @@ import { finalPrice } from "./price";
 
 describe("finalPrice", () => {
   it("suma el IVA al neto", () => {
-    // Alimento balanceado adulto 15 kg, IVA 10,5%.
+    // Adult balanced food 15 kg, VAT 10,5%.
     expect(finalPrice("25000", "0.105")).toBe("27625.00");
-    // Correa extensible, IVA 21%.
+    // Extendable leash, VAT 21%.
     expect(finalPrice("8500.50", "0.21")).toBe("10285.61");
   });
 

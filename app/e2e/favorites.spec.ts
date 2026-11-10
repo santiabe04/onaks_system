@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { login } from "./helpers";
 
-// Corre después de delivery.spec (alfabético): el pedido #3 de Veterinaria San
-// Roque ya está entregado con 1 bolsa de cachorro y 2 de gato adulto, y el
-// admin le cargó antes un pedido con una pelota de goma. Usa a San Roque
-// porque ningún otro spec depende de su carrito.
+// Runs after delivery.spec (alphabetical): order #3 of Veterinaria San
+// Roque is already delivered with 1 puppy bag and 2 adult cat bags, and the
+// admin had earlier entered an order with a rubber ball. It uses San Roque
+// because no other spec depends on its cart.
 test("favoritos de la empresa, lo que más pidió y repetir un pedido", async ({
   page,
 }) => {
@@ -22,7 +22,7 @@ test("favoritos de la empresa, lo que más pidió y repetir un pedido", async ({
   await test.step("marcar un favorito con el corazón", async () => {
     await page.goto("/?q=pelota");
     const heart = page.getByRole("button", { name: "Marcar como favorito" });
-    // El corazón cambia al instante: esperar a que el server lo guarde.
+    // The heart changes instantly: wait until the server saves it.
     const saved = page.waitForResponse((r) => r.request().method() === "POST");
     await heart.click();
     await saved;
@@ -34,7 +34,7 @@ test("favoritos de la empresa, lo que más pidió y repetir un pedido", async ({
   await test.step("el filtro muestra solo los favoritos y los suma al carrito", async () => {
     await page.goto("/?favorites=1");
     await expect(page.getByText("Pelota de goma").first()).toBeVisible();
-    // Con el filtro no se muestra la sección de más pedidos.
+    // With the filter, the most-ordered section is not shown.
     await expect(page.getByText("Lo que más pedís")).toHaveCount(0);
 
     await page
@@ -45,7 +45,7 @@ test("favoritos de la empresa, lo que más pidió y repetir un pedido", async ({
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Carrito (1)" })).toBeVisible();
 
-    // Una segunda vez no suma de más: ya está en el carrito.
+    // A second time does not add extra: it is already in the cart.
     await page
       .getByRole("button", { name: "Agregar todos al carrito" })
       .click();
@@ -68,10 +68,10 @@ test("favoritos de la empresa, lo que más pidió y repetir un pedido", async ({
     ).toBeVisible();
     await expect(page.getByText("Alimento perro cachorro 15 kg")).toBeVisible();
     await expect(page.getByText("Alimento gato adulto 7,5 kg")).toBeVisible();
-    // La pelota ya estaba y los dos productos nuevos se suman.
+    // The ball was already there and the two new products are added.
     await expect(page.getByRole("link", { name: "Carrito (3)" })).toBeVisible();
 
-    // También desde el detalle del pedido: las cantidades se acumulan.
+    // Also from the order detail: the quantities add up.
     await page.goto("/orders/3");
     await page.getByRole("button", { name: "Repetir pedido" }).click();
     await expect(

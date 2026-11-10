@@ -58,7 +58,7 @@ export default async function OrdersByZonePage({
   return (
     <main className="mx-auto w-full max-w-6xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.adminOrders.title}</h1>
-      {/* El período viene de la URL y los pedidos de la DB: van en Suspense. */}
+      {/* The period comes from the URL and the orders from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -77,19 +77,19 @@ async function OrdersByZone({
   const canManage = can(user.role, "sales:manage");
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
-  // La semana actual depende de la hora del request, no de la del build.
+  // The current week depends on the request's time, not the build's.
   await connection();
   const now = new Date();
   const params = await searchParams;
   const period = parseOrderPeriod(params, now);
-  // Los mismos filtros que la lista, salvo número y fechas (el período manda).
+  // The same filters as the list, except number and dates (the period prevails).
   const filters = parseOrderFilters(params);
   const filterParams = zoneFilterParams(filters);
 
   const [orders, options, warehouses, fleet] = await Promise.all([
     getPeriodOrders(period, filters),
     getOrderFilterOptions(),
-    // Para el cambio masivo: depósitos activos.
+    // For the bulk change: active warehouses.
     db.warehouse.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" },
@@ -107,12 +107,12 @@ async function OrdersByZone({
       unit: product.measurementUnit.name,
     });
 
-  /** Período + filtros en una URL: navegar entre semanas no pierde los filtros. */
+  /** Period + filters in one URL: moving between weeks does not lose the filters. */
   const withFilters = (base: [string, string][]) => {
     const query = new URLSearchParams([...base, ...filterParams]).toString();
     return query ? `?${query}` : "";
   };
-  // El CSV y el form de filtros siempre llevan el período explícito.
+  // The CSV and the filter form always carry the explicit period.
   const periodParams: [string, string][] =
     period.mode === "range"
       ? [
@@ -146,7 +146,7 @@ async function OrdersByZone({
           key={withFilters(periodParams)}
           className="mt-3 flex flex-col gap-4"
         >
-          {/* El período elegido viaja con los filtros. */}
+          {/* The chosen period travels with the filters. */}
           {periodParams.map(([name, value]) => (
             <input key={name} type="hidden" name={name} value={value} />
           ))}
@@ -368,7 +368,7 @@ async function OrdersByZone({
   );
 }
 
-/** "3 pedidos · 91,25 kg · 240 l · $ 92.136,75 (Efectivo $ … · Transferencia $ …)". */
+/** "3 orders · 91,25 kg · 240 l · $ 92.136,75 (Cash $ … · Transfer $ …)". */
 function TotalsLine({
   totals,
   t,
@@ -378,7 +378,7 @@ function TotalsLine({
   totals: Totals;
   t: Dictionary;
   format: ReturnType<typeof formatters>;
-  /** Con el filtro de producto: cuánto se pidió de él. */
+  /** With the product filter: how much of it was ordered. */
   productLine?: string;
 }) {
   const byMethod = Object.entries(totals.byPaymentMethod) as [
@@ -427,7 +427,7 @@ function TotalsLine({
   );
 }
 
-// Formulario GET: el período queda en la URL, se puede compartir y recargar.
+// GET form: the period stays in the URL, so it can be shared and reloaded.
 function PeriodControls({
   period,
   isCurrent,
@@ -440,7 +440,7 @@ function PeriodControls({
   isCurrent: boolean;
   t: Dictionary["adminOrders"];
   formatDay: (day: string) => string;
-  /** Arma la URL de un período sin perder los filtros aplicados. */
+  /** Builds the URL of a period without losing the applied filters. */
   withFilters: (base: [string, string][]) => string;
   filterParams: [string, string][];
 }) {
@@ -486,7 +486,7 @@ function PeriodControls({
       <form
         action={PATH}
         className="flex flex-wrap items-end gap-3 text-sm print:hidden"
-        // key: al cambiar de período, los inputs vuelven a sus valores.
+        // key: when the period changes, the inputs go back to their values.
         key={`${period.from}-${period.to}`}
       >
         {filterParams.map(([name, value]) => (
@@ -528,7 +528,7 @@ function PeriodControls({
   );
 }
 
-/** "Pendiente, En preparación · Lanús · Piedras sanitarias 4 kg": en pantalla y en papel. */
+/** "Pending, In preparation · Lanús · Piedras sanitarias 4 kg": on screen and on paper. */
 function describeFilters(
   filters: ZoneFilters,
   options: OrderFilterOptions,

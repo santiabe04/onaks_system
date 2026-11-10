@@ -18,7 +18,7 @@ export default async function NewProductPage() {
   return (
     <main className="mx-auto w-full max-w-2xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.products.newTitle}</h1>
-      {/* Las opciones salen de la DB: va en Suspense. */}
+      {/* The options come from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >

@@ -1,7 +1,7 @@
 import type { formatters } from "@/i18n/format";
 
-// Server Component: barras de venta neta y margen por mes, en SVG (sin
-// librería). Los colores van por clase para que cambien con el tema.
+// Server Component: bars of net sales and margin per month, in SVG (no
+// library). The colors go through classes so they change with the theme.
 
 type Month = { month: string; net: string; margin: string };
 
@@ -16,7 +16,7 @@ export function MonthlyChart({
   format,
   labels,
 }: {
-  /** Los 12 meses en orden, con 0 donde no hubo ventas. */
+  /** The 12 months in order, with 0 where there were no sales. */
   data: Month[];
   locale: string;
   format: ReturnType<typeof formatters>;

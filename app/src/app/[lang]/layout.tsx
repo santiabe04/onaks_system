@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-// Fuentes empaquetadas en node_modules: el build no depende de Google Fonts.
+// Fonts bundled in node_modules: the build does not depend on Google Fonts.
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { INTL_LOCALE, LOCALES } from "@/i18n/config";
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: APP_NAME,
 };
 
-// Se prerenderizan los dos idiomas; el proxy elige cuál servir según APP_LOCALE.
+// Both languages are prerendered; the proxy chooses which one to serve based on APP_LOCALE.
 export function generateStaticParams() {
   return LOCALES.map((lang) => ({ lang }));
 }
@@ -22,7 +22,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
   const locale = await getLocale();
 
   return (
-    // suppressHydrationWarning: el script del tema cambia `data-theme` antes de hidratar.
+    // suppressHydrationWarning: the theme script changes `data-theme` before hydration.
     <html
       lang={INTL_LOCALE[locale]}
       className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}

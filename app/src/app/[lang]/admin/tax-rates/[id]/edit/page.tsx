@@ -22,7 +22,7 @@ export default async function EditTaxRatePage({
   return (
     <main className="mx-auto w-full max-w-md p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.taxRates.editTitle}</h1>
-      {/* params y la query a la DB son de request: van en Suspense. */}
+      {/* params and the DB query are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -47,7 +47,7 @@ async function EditForm({ params }: { params: Promise<{ id: string }> }) {
       action={updateTaxRate.bind(null, taxRate.id)}
       defaultValues={{
         name: taxRate.name,
-        // Con el separador decimal del idioma: "10,5" en español.
+        // With the language's decimal separator: "10,5" in Spanish.
         percent: formatters(locale).number(fractionToPercent(taxRate.rate)),
         isActive: taxRate.isActive,
       }}

@@ -30,7 +30,7 @@ export default async function ProductStockPage({
 
   return (
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
-      {/* params y la DB son de request: va en Suspense. */}
+      {/* params and the DB are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -62,7 +62,7 @@ async function ProductStock({
     },
   });
   if (!product) notFound();
-  // El estado de cada lote (vencido, por vencer) depende de la fecha de hoy.
+  // The status of each lot (expired, expiring) depends on today's date.
   await connection();
   const lots = product.tracksExpiry
     ? await listLots(isoDay(new Date()), { productId })
@@ -92,7 +92,7 @@ async function ProductStock({
         },
       },
     }),
-    // Para cargar la ubicación también donde todavía no hay saldo.
+    // To load the location also where there is no balance yet.
     db.warehouse.findMany({
       where: { isActive: true },
       select: { id: true, name: true, isActive: true },

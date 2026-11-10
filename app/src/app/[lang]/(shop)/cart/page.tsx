@@ -25,7 +25,7 @@ export default async function CartPage({
   return (
     <main className="mx-auto w-full max-w-4xl p-4 sm:p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.cart.title}</h1>
-      {/* El carrito sale de la DB en cada request: va en Suspense. */}
+      {/* The cart comes from the DB on every request: it goes in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -35,7 +35,7 @@ export default async function CartPage({
   );
 }
 
-/** "?repeated=3&omitted=1&from=12": lo que dejó "Repetir pedido". */
+/** "?repeated=3&omitted=1&from=12": what "Repeat order" left. */
 function parseRepeatNotice(
   params: Record<string, string | string[] | undefined>,
 ) {
@@ -61,7 +61,7 @@ async function Cart({
 
   const [{ items, available, unavailable }, editing] = await Promise.all([
     getCart(user.personId, user.customerId),
-    // Si está modificando un pedido, el carrito lo va a reemplazar.
+    // If an order is being edited, the cart is going to replace it.
     db.sale.findFirst({
       where: { editingPersonId: user.personId },
       select: { number: true },

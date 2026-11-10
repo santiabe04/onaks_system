@@ -22,15 +22,15 @@ export async function generateMetadata({
   };
 }
 
-// La hoja que se lleva el repartidor: una parada por bloque, con lo que hay
-// que entregar, lo que hay que cobrar y lugar para la firma.
+// The sheet the driver takes: one stop per block, with what
+// must be delivered, what must be collected, and room for the signature.
 export default async function RouteSheetPrintPage({
   params,
 }: PageProps<"/[lang]/admin/routes/[number]/print">) {
   const t = await getT();
   return (
     <main className="mx-auto w-full max-w-4xl p-4 sm:p-8 print:p-0">
-      {/* params y la hoja son de request: van en Suspense. */}
+      {/* params and the sheet are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >

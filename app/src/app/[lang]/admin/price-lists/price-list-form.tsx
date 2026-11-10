@@ -30,7 +30,7 @@ export function PriceListForm({
   common,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
-  // Si hubo error, se muestra lo último que cargó el usuario.
+  // If there was an error, the user's last input is shown.
   const values = state.values ?? defaultValues;
 
   return (
@@ -46,7 +46,7 @@ export function PriceListForm({
       </Field>
 
       <Field label={t.adjustment} error={state.errors?.adjustment}>
-        {/* Texto y no number: acepta coma decimal y signo; el server valida. */}
+        {/* Text and not number: accepts a decimal comma and sign; the server validates it. */}
         <Input
           name="adjustment"
           defaultValue={values.adjustment}

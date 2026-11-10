@@ -25,7 +25,7 @@ export default async function LotsPage({
       </Link>
       <h1 className="mt-4 text-2xl font-semibold">{t.lots.title}</h1>
       <p className="mt-1 text-sm opacity-70">{t.lots.hint}</p>
-      {/* El día de hoy y los lotes son de request: van en Suspense. */}
+      {/* Today's date and the lots are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >

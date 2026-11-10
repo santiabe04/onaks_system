@@ -1,4 +1,4 @@
-// Conventional Commits: release-please decide la versión a partir de estos prefijos.
+// Conventional Commits: release-please decides the version from these prefixes.
 // feat → MINOR · fix → PATCH · feat! / BREAKING CHANGE → MAJOR
 const config = {
   extends: ["@commitlint/config-conventional"],

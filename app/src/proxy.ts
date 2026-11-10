@@ -3,8 +3,8 @@ import { appLocale, localizePath } from "@/i18n/config";
 import { proxyRedirect } from "@/lib/routes";
 import { SESSION_COOKIE, verifySession } from "@/lib/session-token";
 
-// Filtro optimista: evita mostrar pantallas que igual van a rebotar. No consulta
-// la DB, así que un rol o una baja recientes recién se notan en `lib/auth`.
+// Optimistic filter: avoids showing screens that would bounce anyway. It does not query
+// the DB, so a recent role change or deactivation is only noticed in `lib/auth`.
 export async function proxy(request: NextRequest) {
   const session = await verifySession(
     request.cookies.get(SESSION_COOKIE)?.value,
@@ -13,15 +13,15 @@ export async function proxy(request: NextRequest) {
 
   const target = proxyRedirect(pathname, search, session);
   if (!target) {
-    // Las URLs públicas no llevan idioma: se reescriben a `app/[lang]` según
-    // la instalación. Una URL que ya trae prefijo (/es/login) termina en 404.
+    // Public URLs carry no language: they are rewritten to `app/[lang]` according to
+    // the installation. A URL that already has the prefix (/es/login) ends in a 404.
     const url = request.nextUrl.clone();
     url.pathname = localizePath(pathname, appLocale());
     return NextResponse.rewrite(url);
   }
 
   const response = NextResponse.redirect(new URL(target, request.url));
-  // Cookie inválida o vencida: se borra para no verificarla en cada request.
+  // Invalid or expired cookie: it is deleted so as not to verify it on every request.
   if (!session && request.cookies.has(SESSION_COOKIE)) {
     response.cookies.delete(SESSION_COOKIE);
   }
@@ -30,8 +30,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Todo menos assets de Next, archivos con extensión y el health check, que
-    // usan Docker y el CI sin sesión.
+    // Everything except Next assets, files with an extension and the health check, which
+    // Docker and CI use without a session.
     "/((?!_next/static|_next/image|api/health|favicon\\.ico|.*\\.[\\w]+$).*)",
   ],
 };

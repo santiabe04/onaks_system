@@ -12,8 +12,8 @@ export function getDictionary(locale: Locale): Dictionary {
 }
 
 /**
- * Para Server Actions y Route Handlers, donde `next/root-params` no funciona.
- * Coincide con el de la página porque el proxy reescribe con el mismo `APP_LOCALE`.
+ * For Server Actions and Route Handlers, where `next/root-params` does not work.
+ * It matches the page's because the proxy rewrites with the same `APP_LOCALE`.
  */
 export function getActionDictionary(): Dictionary {
   return getDictionary(appLocale());

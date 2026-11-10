@@ -6,7 +6,7 @@ import {
   type OrderActionState,
 } from "@/app/[lang]/(shop)/orders/actions";
 
-/** "Repetir pedido": suma sus productos al carrito con los precios de hoy. */
+/** "Repeat order": adds its products to the cart at today's prices. */
 export function RepeatOrderButton({
   saleId,
   label,

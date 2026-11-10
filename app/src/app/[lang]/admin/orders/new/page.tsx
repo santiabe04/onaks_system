@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.adminOrderNew.title };
 }
 
-// Pedidos que llegan por teléfono o WhatsApp: el admin los carga por el cliente.
+// Orders that come in by phone or WhatsApp: the admin enters them on the customer's behalf.
 export default async function NewOrderPage({
   searchParams,
 }: PageProps<"/[lang]/admin/orders/new">) {
@@ -22,7 +22,7 @@ export default async function NewOrderPage({
     <main className="mx-auto w-full max-w-4xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.adminOrderNew.title}</h1>
       <p className="mt-1 mb-6 text-sm opacity-70">{t.adminOrderNew.hint}</p>
-      {/* Clientes y productos salen de la DB: van en Suspense. */}
+      {/* Customers and products come from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -78,7 +78,7 @@ async function NewOrder({
         measurementUnit: { select: { name: true, allowsDecimals: true } },
       },
     }),
-    // El precio depende del cliente que se elija: van todas las listas.
+    // The price depends on the customer chosen: all the lists are included.
     db.priceList.findMany({
       select: {
         id: true,

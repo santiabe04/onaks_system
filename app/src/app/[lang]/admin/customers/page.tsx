@@ -33,7 +33,7 @@ export default async function CustomersPage({
         </Link>
       </div>
 
-      {/* La búsqueda viene de la URL y la lista de la DB: van en Suspense. */}
+      {/* The search comes from the URL and the list from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -57,7 +57,7 @@ async function CustomersTable({
   const q = raw?.trim().slice(0, 100) || "";
   const page = parsePage(params);
 
-  // Busca por nombre, razón social o CUIT (con o sin guiones).
+  // Searches by name, company name or CUIT (with or without dashes).
   const contains = { contains: q, mode: "insensitive" as const };
   const where: Prisma.CustomerWhereInput = {
     deletedAt: null,
@@ -81,7 +81,7 @@ async function CustomersTable({
       take: PAGE_SIZE,
       include: {
         _count: { select: { persons: { where: { deletedAt: null } } } },
-        // Las zonas de reparto del cliente: localidades de sus direcciones.
+        // The customer's delivery zones: cities of its addresses.
         addresses: {
           where: { deletedAt: null },
           select: { city: { select: { name: true } } },

@@ -7,7 +7,7 @@ import {
 import { isCuid } from "./ids";
 import { dayStart } from "./order-period";
 
-// Puro: filtros de la lista de pedidos del admin, a partir de la URL.
+// Pure: the admin's order list filters, from the URL.
 
 export const ORDERS_PAGE_SIZE = 50;
 
@@ -16,18 +16,18 @@ const MAX_INT = 2_147_483_647;
 
 export type OrderFilters = {
   number?: number;
-  /** Vacío = todos (incluidos los cancelados). */
+  /** Empty = all (including canceled ones). */
   states: SaleState[];
   paymentStates: SalePaymentState[];
   paymentMethod?: PaymentMethod;
   customer?: string;
   city?: number;
   product?: string;
-  /** Solo retenidos por crédito (sin aprobar ni cancelar). */
+  /** Only held for credit (not approved or canceled). */
   held?: boolean;
-  /** Solo con un comprobante de transferencia esperando revisión. */
+  /** Only with a transfer receipt waiting for review. */
   proof?: boolean;
-  /** YYYY-MM-DD de Argentina, inclusive. */
+  /** YYYY-MM-DD in Argentina, inclusive. */
   from?: string;
   to?: string;
   page: number;
@@ -51,7 +51,7 @@ function positiveInt(raw: string | undefined): number | undefined {
   return value >= 1 && value <= MAX_INT ? value : undefined;
 }
 
-/** Los valores repetidos o desconocidos se descartan. */
+/** Repeated or unknown values are discarded. */
 function enumValues<T extends string>(
   values: Record<string, T>,
   raw: string[],
@@ -62,7 +62,7 @@ function enumValues<T extends string>(
   );
 }
 
-/** Lo que no se entiende se ignora: una URL editada a mano no rompe la página. */
+/** What is not understood is ignored: a hand-edited URL does not break the page. */
 export function parseOrderFilters(params: SearchParams): OrderFilters {
   const customer = first(params.customer);
   const product = first(params.product);
@@ -106,7 +106,7 @@ export function orderWhere(filters: OrderFilters): Prisma.SaleWhereInput {
       ? {
           creditHoldAt: { not: null },
           creditReleasedAt: null,
-          // Un retenido cancelado ya no espera nada.
+          // A held order that was canceled no longer waits for anything.
           NOT: { state: "CANCELED" },
         }
       : {}),
@@ -120,19 +120,19 @@ export function orderWhere(filters: OrderFilters): Prisma.SaleWhereInput {
       from || to
         ? {
             gte: from,
-            // `to` es inclusive: hasta el comienzo del día siguiente.
+            // `to` is inclusive: up to the start of the next day.
             lt: to ? new Date(to.getTime() + DAY_MS) : undefined,
           }
         : undefined,
   };
 }
 
-/** Si hay algún filtro aplicado (para mostrar "Limpiar"). */
+/** If any filter is applied (to show "Clear"). */
 export function hasOrderFilters(filters: OrderFilters): boolean {
   return orderQuery({ ...filters, page: 1 }) !== "";
 }
 
-/** Query string con los filtros y la página (sin los valores por defecto). */
+/** Query string with the filters and the page (without the default values). */
 export function orderQuery(filters: OrderFilters, page = filters.page): string {
   const params = new URLSearchParams();
   if (filters.number) params.set("number", String(filters.number));
@@ -154,8 +154,8 @@ export function orderQuery(filters: OrderFilters, page = filters.page): string {
 }
 
 /**
- * Lo que también se aplica a la vista por zona, al CSV y al dashboard: el
- * período lo ponen ellos, así que no van número, fechas ni página.
+ * What also applies to the by-zone view, the CSV and the dashboard: the
+ * period is set by them, so number, dates and page are not included.
  */
 export type ZoneFilters = Pick<
   OrderFilters,
@@ -176,7 +176,7 @@ function onlyZoneFilters(filters: ZoneFilters): OrderFilters {
   };
 }
 
-/** Sin estados elegidos, los cancelados quedan afuera: no se reparten. */
+/** Without chosen statuses, canceled orders are left out: they are not delivered. */
 export function zoneOrderWhere(filters: ZoneFilters): Prisma.SaleWhereInput {
   return {
     ...orderWhere(onlyZoneFilters(filters)),
@@ -184,7 +184,7 @@ export function zoneOrderWhere(filters: ZoneFilters): Prisma.SaleWhereInput {
   };
 }
 
-/** Los filtros como pares para sumar a otra URL (la del período). */
+/** The filters as pairs to add to another URL (the period's). */
 export function zoneFilterParams(filters: ZoneFilters): [string, string][] {
   return [
     ...new URLSearchParams(orderQuery(onlyZoneFilters(filters))).entries(),

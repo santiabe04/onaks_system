@@ -2,7 +2,7 @@ import "server-only";
 import type { CategoryRow } from "./category";
 import { db } from "./db";
 
-/** El árbol completo y qué categorías tienen productos (vigentes). */
+/** The full tree and which categories have (current) products. */
 export async function getCategoryTreeData(): Promise<{
   rows: CategoryRow[];
   withProducts: Set<number>;

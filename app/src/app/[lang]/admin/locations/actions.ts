@@ -16,12 +16,12 @@ import {
   type StateFormState,
 } from "@/lib/location";
 
-// Cada acción verifica el permiso antes que nada: se pueden invocar con un POST
-// directo, sin pasar por la página ni por el proxy.
+// Each action checks the permission first of all: they can be invoked with a direct POST
+// without going through the page or the proxy.
 const PERMISSION = "locations:manage";
 
 const LIST_PATH = "/admin/locations";
-// revalidatePath usa la ruta interna: así cubre los dos idiomas.
+// revalidatePath uses the internal route: this way it covers both languages.
 const LIST_ROUTE = "/[lang]/admin/locations";
 
 function messages() {
@@ -34,7 +34,7 @@ function prismaErrorCode(error: unknown): string | undefined {
     : undefined;
 }
 
-// --- Provincias ---
+// --- Provinces ---
 
 export async function createState(
   _prev: StateFormState,
@@ -78,7 +78,7 @@ export async function updateState(
   const user = await requirePermission(PERMISSION);
   const t = messages();
 
-  // El id viene bindeado desde el cliente: no confiar en el tipo.
+  // The id is bound from the client: do not trust the type.
   const stateId = parseLocationId(id);
   if (stateId === null) return { errors: { form: [t.invalid] } };
 
@@ -87,7 +87,7 @@ export async function updateState(
 
   try {
     await db.$transaction(async (tx) => {
-      // findUniqueOrThrow tira P2025 si ya no existe, igual que el update.
+      // findUniqueOrThrow throws P2025 if it no longer exists, just like the update.
       const before = await tx.state.findUniqueOrThrow({
         where: { id: stateId },
       });
@@ -139,9 +139,9 @@ export async function deleteState(id: number): Promise<DeleteState> {
     });
   } catch (error) {
     const code = prismaErrorCode(error);
-    // P2003: tiene localidades (FK RESTRICT).
+    // P2003: it has cities (FK RESTRICT).
     if (code === "P2003") return { error: t.stateHasCities };
-    // P2025: ya estaba borrada; alcanza con refrescar la lista.
+    // P2025: it was already deleted; refreshing the list is enough.
     if (code !== "P2025") throw error;
   }
 
@@ -149,9 +149,9 @@ export async function deleteState(id: number): Promise<DeleteState> {
   return {};
 }
 
-// --- Localidades ---
+// --- Cities ---
 
-/** Errores conocidos de una localidad → estado del form; el resto se relanza. */
+/** Known errors of a city → form state; the rest is rethrown. */
 function cityFormError(
   error: unknown,
   values: CityFormState["values"],
@@ -159,7 +159,7 @@ function cityFormError(
   const t = messages();
   const code = prismaErrorCode(error);
   if (code === "P2002") return { errors: { name: [t.duplicateCity] }, values };
-  // P2003: la provincia elegida no existe (FK).
+  // P2003: the chosen province does not exist (FK).
   if (code === "P2003") {
     return { errors: { stateId: [t.stateNotFound] }, values };
   }
@@ -254,7 +254,7 @@ export async function deleteCity(id: number): Promise<DeleteState> {
     });
   } catch (error) {
     const code = prismaErrorCode(error);
-    // P2003: la usan depósitos o direcciones de entrega (FK RESTRICT).
+    // P2003: warehouses or delivery addresses use it (FK RESTRICT).
     if (code === "P2003") return { error: t.cityInUse };
     if (code !== "P2025") throw error;
   }

@@ -14,19 +14,19 @@ import { isCuid } from "@/lib/ids";
 import { validateVoidReason } from "@/lib/payment-form";
 import { StockLedgerError } from "@/lib/stock-ledger";
 
-// Notas de crédito por importe y anulaciones de cualquier nota. Mismo permiso
-// que cobros y pedidos. Las devoluciones con productos se registran desde el
-// pedido (`orders/[number]/return`).
+// Credit notes by amount and voids of any note. Same permission
+// as payments and orders. Returns with goods are recorded from the
+// order (`orders/[number]/return`).
 const PERMISSION = "sales:manage";
 
 export type CreditNoteFormState = { error?: string; savedAt?: number };
 
 function revalidateAccount() {
-  // Cuenta, detalle de pedidos, stock, deudores y "Mis pedidos".
+  // Account, order detail, stock, debtors and "My orders".
   revalidatePath("/[lang]", "layout");
 }
 
-/** Nota de crédito por importe: baja lo que debe el cliente, sin mercadería. */
+/** Credit note by amount: lowers what the customer owes, with no goods. */
 export async function registerAdjustment(
   customerId: string,
   _prev: CreditNoteFormState,
@@ -52,7 +52,7 @@ export async function registerAdjustment(
   return { savedAt: Date.now() };
 }
 
-/** Anula una nota de crédito (devolución o ajuste): queda en el historial. */
+/** Voids a credit note (return or adjustment): it stays in the history. */
 export async function voidCustomerCreditNote(
   noteId: string,
   _prev: CreditNoteFormState,

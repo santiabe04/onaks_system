@@ -26,7 +26,7 @@ export default async function OrdersPage({
   return (
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.orders.title}</h1>
-      {/* La página viene de la URL y los pedidos de la DB: van en Suspense. */}
+      {/* The page comes from the URL and the orders from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -41,7 +41,7 @@ async function Orders({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  // Quien compra ve los pedidos de toda su empresa, no solo los propios.
+  // Whoever buys sees the orders of the whole company, not only their own.
   const user = await getUserWithPermission("sales:create");
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);

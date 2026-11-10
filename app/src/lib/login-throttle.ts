@@ -1,18 +1,18 @@
-// Reglas del bloqueo de login, sin DB: las consultas están en `login-attempts`.
+// Login lock rules, no DB: the queries are in `login-attempts`.
 
 export const LOCK_WINDOW_MS = 15 * 60 * 1000;
-/** Fallos desde una misma IP contra un mail. */
+/** Failures from the same IP against an email. */
 export const MAX_FAILURES_PER_MAIL_IP = 5;
-/** Fallos contra un mail desde cualquier IP (ataque distribuido o IP falseada). */
+/** Failures against an email from any IP (distributed attack or a forged IP). */
 export const MAX_FAILURES_PER_MAIL = 20;
 
 export type LockScope = "mail_ip" | "mail";
 export type Lock = { scope: LockScope; until: Date };
 
 /**
- * Hasta cuándo dura el bloqueo, o null si no hay. `failures` son las fechas de
- * los fallos más recientes, de la más nueva a la más vieja: con `max` fallos
- * dentro de la ventana, se libera cuando el `max`-ésimo sale de ella.
+ * Until when the lock lasts, or null if there is none. `failures` are the dates of
+ * the most recent failures, from newest to oldest: with `max` failures
+ * within the window, it is released when the `max`-th one leaves it.
  */
 export function lockedUntil(
   failures: Date[],
@@ -24,7 +24,7 @@ export function lockedUntil(
   return until > now ? until : null;
 }
 
-/** Combina los dos alcances: si los dos bloquean, manda el que dura más. */
+/** Combines the two scopes: if both lock, the one that lasts longer wins. */
 export function pickLock(mailIp: Date | null, mail: Date | null): Lock | null {
   if (mail && (!mailIp || mail >= mailIp))
     return { scope: "mail", until: mail };
@@ -33,9 +33,9 @@ export function pickLock(mailIp: Date | null, mail: Date | null): Lock | null {
 }
 
 /**
- * Hasta cuándo está bloqueado un mail mirando todas las IPs (para el admin,
- * que no sabe desde dónde intentan). `failures` son los fallos posteriores al
- * último login correcto, de cualquier orden.
+ * Until when an email is locked looking at all IPs (for the admin,
+ * who does not know where the attempts come from). `failures` are the failures after the
+ * last successful login, in any order.
  */
 export function mailLockedUntil(
   failures: { ip: string | null; createdAt: Date }[],
@@ -62,7 +62,7 @@ export function mailLockedUntil(
     : new Date(Math.max(...candidates.map((date) => date.getTime())));
 }
 
-/** Minutos que faltan, redondeando para arriba (nunca "0 min"). */
+/** Minutes left, rounding up (never "0 min"). */
 export function minutesUntil(until: Date, now: Date): number {
   return Math.max(1, Math.ceil((until.getTime() - now.getTime()) / 60_000));
 }

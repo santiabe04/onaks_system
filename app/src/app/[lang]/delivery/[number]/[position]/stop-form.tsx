@@ -11,7 +11,7 @@ import { recordStop, type StopActionState } from "../../actions";
 const CONTROL =
   "w-full rounded border border-current/20 bg-transparent px-3 py-3 text-base";
 
-/** Ubicación del celular, si la da en unos segundos (si no, se sigue sin ella). */
+/** Phone location, if it gives it within a few seconds (otherwise it continues without it). */
 function currentPosition(): Promise<GeolocationPosition | null> {
   if (typeof navigator === "undefined" || !navigator.geolocation) {
     return Promise.resolve(null);
@@ -25,7 +25,7 @@ function currentPosition(): Promise<GeolocationPosition | null> {
   });
 }
 
-/** Carga de una parada: entregado (firma o foto, cobro) o no entregado (motivo). */
+/** Loading a stop: delivered (signature or photo, payment) or not delivered (reason). */
 export function StopForm({
   stopId,
   items,
@@ -34,16 +34,16 @@ export function StopForm({
   methods,
 }: {
   stopId: string;
-  /** Productos del pedido, para la entrega parcial. */
+  /** Products of the order, for the partial delivery. */
   items: {
     productId: string;
     name: string;
     unit: string;
-    /** Con el separador decimal del idioma ("1,25"). */
+    /** With the language's decimal separator ("1,25"). */
     quantity: string;
     allowsDecimals: boolean;
   }[];
-  /** Lo que hay que cobrar, para precargar ("29860,5"); vacío si no hay. */
+  /** What has to be collected, to pre-fill ("29860,5"); empty if none. */
   suggestedAmount: string;
   t: Dictionary["delivery"];
   methods: Dictionary["orders"]["paymentMethods"];
@@ -230,8 +230,8 @@ export function StopForm({
 }
 
 /**
- * Firma con el dedo (o el mouse). Se guarda en un input oculto como PNG en
- * base64; vacía, no se manda nada.
+ * Signature with the finger (or the mouse). Saved in a hidden input as a PNG in
+ * base64; if empty, nothing is sent.
  */
 function SignaturePad({
   label,
@@ -244,7 +244,7 @@ function SignaturePad({
   const input = useRef<HTMLInputElement>(null);
   const drawing = useRef(false);
 
-  // Resolución real del canvas = tamaño en pantalla × densidad (se ve nítida).
+  // Real canvas resolution = on-screen size × density (so it looks sharp).
   useEffect(() => {
     const element = canvas.current;
     if (!element) return;

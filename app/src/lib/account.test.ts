@@ -8,7 +8,7 @@ import {
   type AccountSale,
 } from "./account";
 
-// Cuenta de un pet shop: pedidos de alimento que se pagan al recibir el siguiente.
+// A pet shop's account: food orders that are paid on receipt of the next one.
 const sale = (
   number: number,
   total: string,

@@ -12,8 +12,8 @@ import {
   type BulkStateChangeState,
 } from "@/lib/sale-state-form";
 
-// Las casillas de cada pedido están en la tabla (Server Component) y se
-// asocian a este form con el atributo `form`.
+// The checkboxes of each order are in the table (Server Component) and are
+// linked to this form with the `form` attribute.
 export const BULK_FORM_ID = "bulk-states";
 
 const CONTROL = "rounded border border-current/20 bg-transparent px-3 py-2";
@@ -25,7 +25,7 @@ function boxes(group?: string): HTMLInputElement[] {
   return [...document.querySelectorAll<HTMLInputElement>(selector)];
 }
 
-/** Barra de cambio de estado masivo, con el resultado de cada pedido. */
+/** Bulk status change bar, with the result of each order. */
 export function BulkStateBar({
   warehouses,
   t,
@@ -41,7 +41,7 @@ export function BulkStateBar({
   >(changeSalesStateBulk, {});
   const [count, setCount] = useState(0);
 
-  // Cuenta las casillas marcadas (están fuera de este componente).
+  // Counts the checked boxes (they are outside this component).
   useEffect(() => {
     const update = () => setCount(boxes().filter((box) => box.checked).length);
     document.addEventListener("change", update);
@@ -49,7 +49,7 @@ export function BulkStateBar({
     return () => document.removeEventListener("change", update);
   }, []);
 
-  // Después de aplicar, se desmarcan: la tabla ya muestra los estados nuevos.
+  // After applying, they are unchecked: the table already shows the new statuses.
   useEffect(() => {
     if (!state.savedAt) return;
     for (const box of boxes()) box.checked = false;
@@ -153,7 +153,7 @@ export function BulkStateBar({
   );
 }
 
-/** Casilla de un pedido, asociada a la barra masiva. */
+/** Checkbox of an order, linked to the bulk bar. */
 export function SelectOrder({
   id,
   state,
@@ -164,7 +164,7 @@ export function SelectOrder({
   id: string;
   state: SaleState;
   number: number;
-  /** Para "elegir todos" de una zona. */
+  /** For "select all" of a zone. */
   group?: string;
   label: string;
 }) {
@@ -181,7 +181,7 @@ export function SelectOrder({
   );
 }
 
-/** "Elegir todos" de un grupo (una zona) o de la página. */
+/** "Select all" of a group (a zone) or of the page. */
 export function SelectGroup({
   group,
   label,
@@ -198,7 +198,7 @@ export function SelectGroup({
       className="print:hidden"
       onChange={(event) => {
         for (const box of boxes(group)) box.checked = event.target.checked;
-        // Avisa a la barra para que recuente.
+        // Tells the bar to recount.
         document.dispatchEvent(new Event("change"));
       }}
     />

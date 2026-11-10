@@ -1,20 +1,20 @@
 import { isCuid } from "./ids";
 
-// Puro: filtros de la pantalla de stock a partir de la URL.
+// Pure: stock screen filters, from the URL.
 
 export const STOCK_PAGE_SIZE = 50;
 export const MOVEMENTS_PAGE_SIZE = 50;
 
 /**
- * "out": total 0 o menos (incluye productos sin movimientos); "negative": menor
- * a 0; "low": por debajo del stock mínimo del producto (los que lo tienen cargado).
+ * "out": total 0 or less (includes products with no movements); "negative": less
+ * than 0; "low": below the product's minimum stock (those that have it set).
  */
 export type StockLevel = "all" | "out" | "negative" | "low";
 
 export type StockFilters = {
   q?: string;
   category?: number;
-  /** Con depósito, el nivel y la columna se miran solo en ese depósito. */
+  /** With a warehouse, the level and the column are only looked at in that warehouse. */
   warehouse?: string;
   level: StockLevel;
   page: number;
@@ -27,13 +27,13 @@ function first(value: string | string[] | undefined): string | undefined {
   return raw?.trim() || undefined;
 }
 
-/** Página de un listado: 1 si no viene o no es válida. */
+/** Page of a list: 1 if it is missing or not valid. */
 export function parsePage(params: SearchParams): number {
   const page = Number.parseInt(first(params.page) ?? "", 10);
   return Number.isInteger(page) && page >= 1 ? page : 1;
 }
 
-/** Lo que no se entiende se ignora: una URL editada a mano no rompe la página. */
+/** What is not understood is ignored: a hand-edited URL does not break the page. */
 export function parseStockFilters(params: SearchParams): StockFilters {
   const q = first(params.q);
   const category = Number(first(params.category));
@@ -51,7 +51,7 @@ export function parseStockFilters(params: SearchParams): StockFilters {
   };
 }
 
-/** Query string con los mismos filtros y otra página (para los links). */
+/** Query string with the same filters and another page (for the links). */
 export function stockQuery(filters: StockFilters, page: number): string {
   const params = new URLSearchParams();
   if (filters.q) params.set("q", filters.q);

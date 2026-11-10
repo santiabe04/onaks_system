@@ -3,7 +3,7 @@ import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { parseDecimalInput } from "./decimal-input";
 
-// Puro: lo que se carga en una parada (entregado / no entregado).
+// Pure: what is loaded at a stop (delivered / not delivered).
 
 export const STOP_LIMITS = {
   receiverName: 80,
@@ -20,9 +20,9 @@ export type StopRecordInput =
       outcome: "DELIVERED";
       receiverName: string | null;
       receiverDni: string | null;
-      /** Firma dibujada ("data:image/png;base64,…") o null si se usó foto. */
+      /** Signature drawn ("data:image/png;base64,…") or null if a photo was used. */
       signature: string | null;
-      /** Cobro en el momento (va a la cuenta corriente), o null. */
+      /** Payment at the time (goes to the customer's account), or null. */
       payment: { amount: string; method: PaymentMethod } | null;
       location: StopLocation | null;
     }
@@ -43,7 +43,7 @@ function text(formData: FormData, key: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-/** La ubicación es opcional: si el celular no la da (o la niegan), se omite. */
+/** The location is optional: if the phone does not give it (or it is denied), it is omitted. */
 function readLocation(formData: FormData): StopLocation | null {
   const latitude = Number(text(formData, "latitude"));
   const longitude = Number(text(formData, "longitude"));
@@ -58,7 +58,7 @@ function readLocation(formData: FormData): StopLocation | null {
   }
   const accuracy = Number(text(formData, "accuracy"));
   return {
-    // La columna guarda 6 decimales (~10 cm): más no tiene sentido.
+    // The column stores 6 decimals (~10 cm): more makes no sense.
     latitude: Math.round(latitude * 1e6) / 1e6,
     longitude: Math.round(longitude * 1e6) / 1e6,
     accuracyMeters:
@@ -67,8 +67,8 @@ function readLocation(formData: FormData): StopLocation | null {
 }
 
 /**
- * `hasPhoto`: si vino una foto del remito (el archivo se procesa aparte).
- * Entregado lleva firma con aclaración o foto; no entregado, el motivo.
+ * `hasPhoto`: whether a receipt photo came in (the file is processed separately).
+ * Delivered carries a signature with name or a photo; not delivered, the reason.
  */
 export function validateStopRecord(
   formData: FormData,

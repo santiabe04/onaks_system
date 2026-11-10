@@ -29,7 +29,7 @@ export default async function ReturnPage({
 
   return (
     <main className="mx-auto w-full max-w-4xl p-4 sm:p-8">
-      {/* params y la DB son de request: van en Suspense. */}
+      {/* params and the DB are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >

@@ -28,14 +28,14 @@ import {
   saveProofFile,
 } from "@/lib/transfer-proof-files";
 
-/** Corta la transacción con un mensaje para el cliente. */
+/** Aborts the transaction with a message for the customer. */
 class CheckoutError extends Error {}
 
 /**
- * Confirma el carrito como pedido, en efectivo al recibir o por transferencia
- * (con el comprobante adjunto, si ya lo tiene). Los precios se vuelven a
- * calcular acá: si no coinciden con los que vio el cliente, se rechaza para
- * que revise el total.
+ * Confirms the cart as an order, cash on delivery or by transfer
+ * (with the receipt attached, if it already has one). Prices are recalculated
+ * here: if they do not match what the customer saw, it is rejected so that
+ * they review the total.
  */
 export async function placeOrder(
   _prev: CheckoutFormState,
@@ -57,9 +57,9 @@ export async function placeOrder(
   const customerId = user.customerId;
   if (!customerId) return fail(t.addressInvalid);
 
-  // Transferencia: tiene que haber datos de cobro cargados y, si se adjunta,
-  // un comprobante válido. El archivo se guarda antes de la transacción y se
-  // borra si ésta falla, para no dejar archivos sin pedido.
+  // Transfer: payment details must be loaded and, if one is attached,
+  // a valid receipt. The file is saved before the transaction and
+  // deleted if it fails, so no files are left without an order.
   let proofFile: string | null = null;
   if (paymentMethod === "TRANSFER") {
     const settings = await db.transferSettings.findUnique({
@@ -84,25 +84,25 @@ export async function placeOrder(
   let number: number;
   try {
     number = await db.$transaction(async (tx) => {
-      // La dirección tiene que ser de la empresa y seguir vigente.
+      // The address must belong to the company and still be active.
       const address = await tx.customerAddress.findFirst({
         where: { id: addressId, customerId, deletedAt: null },
         select: { id: true },
       });
       if (!address) throw new CheckoutError(t.addressInvalid);
-      // Mismo orden de bloqueo que cobros y cambios de estado.
+      // Same lock order as payments and status changes.
       await lockAccount(tx, customerId);
 
-      // Con los precios de su lista y su descuento de ahora.
+      // With the prices of its list and the current discount.
       const { available } = await getCart(user.personId, customerId, tx);
       if (available.length === 0) throw new CheckoutError(t.empty);
       if (cartFingerprint(available.map(toFingerprintLine)) !== fingerprint) {
         throw new CheckoutError(t.cartChanged);
       }
 
-      // Se vacía primero: si otra confirmación (doble click, otra pestaña)
-      // ya tomó estos productos, el DELETE espera a que termine y no borra
-      // nada, así no se duplica el pedido.
+      // Emptied first: if another confirmation (double click, another tab)
+      // has already taken these products, the DELETE waits for it to finish and deletes
+      // nothing, so the order is not duplicated.
       const removed = await tx.cartItem.deleteMany({
         where: {
           personId: user.personId,
@@ -126,7 +126,7 @@ export async function placeOrder(
         total: totals.total,
         notes,
         paymentMethod,
-        // Foto del producto al vender: los cambios posteriores no tocan el pedido.
+        // Product snapshot at sale: later changes do not touch the order.
         items: {
           create: available.map((item) =>
             saleItemSnapshot(
@@ -139,8 +139,8 @@ export async function placeOrder(
         },
       };
 
-      // Si estaba modificando un pedido, se reemplaza ese (mismo número) y se
-      // consume el permiso; si no, es un pedido nuevo.
+      // If an order was being edited, that one is replaced (same number) and
+      // the permission is consumed; otherwise it is a new order.
       const [editing] = await tx.$queryRaw<{ id: string }[]>`
         SELECT s."id" FROM "sales" s
         JOIN "customer_addresses" a ON a."id" = s."address_id"
@@ -196,30 +196,30 @@ export async function placeOrder(
           after: proof,
         });
       }
-      // Un saldo a favor puede dejar el pedido ya pagado (o cambia lo que falta).
+      // A credit balance can leave the order already paid (or change what is left).
       const account = await recomputeAccount(tx, customerId);
-      // Si supera el límite o debe algo vencido, queda retenido para revisar.
+      // If it exceeds the limit or owes something overdue, it is held for review.
       await applyCreditCheck(tx, {
         saleId: sale.id,
         customerId,
         account,
         userId: user.id,
       });
-      // Confirmado: aviso por mail (si reemplaza uno ya avisado, no se repite).
+      // Confirmed: email notice (if it replaces one already notified, it is not repeated).
       await enqueueOrderNotice(tx, sale, "PENDING");
       return sale.number;
     });
   } catch (error) {
     if (proofFile) await removeProofFile(proofFile);
     if (error instanceof CheckoutError) {
-      // Que la página vuelva a mostrar el carrito y los precios actuales.
+      // So the page shows the cart and current prices again.
       revalidatePath("/[lang]", "layout");
       return fail(error.message);
     }
     throw error;
   }
 
-  // El header muestra la cantidad del carrito.
+  // The header shows the cart quantity.
   revalidatePath("/[lang]", "layout");
   redirect(`/orders/${number}?created=1`);
 }

@@ -4,16 +4,16 @@ import type { Dictionary } from "@/i18n/dictionaries/es";
 import { parseDecimalInput, PRICE_LIMITS } from "./decimal-input";
 import { percentToFraction } from "./tax-rate";
 
-// Puro: validación de listas de precios, sus precios fijos y el descuento
-// por cliente.
+// Pure: validation of price lists, their fixed prices and the discount
+// per customer.
 
 export const PRICE_LIST_NAME_MAX_LENGTH = 60;
 
-// Ajuste con signo, hasta 2 decimales: más de -100 % y hasta 999,99 % (la
-// columna es DECIMAL(5,4) como fracción).
+// Signed adjustment, up to 2 decimals: more than -100 % and up to 999.99 % (the
+// column is DECIMAL(5,4) as a fraction).
 const SIGNED_PERCENT = /^([+-])?\s*(\d{1,3})(?:[.,](\d{1,2}))?$/;
 
-/** "-10", "+15,5" o "0" → "-0.1000" / "0.1550" / "0.0000"; null si no es válido. */
+/** "-10", "+15,5" or "0" → "-0.1000" / "0.1550" / "0.0000"; null if it is not valid. */
 export function adjustmentToFraction(raw: string): string | null {
   const match = SIGNED_PERCENT.exec(raw.trim());
   if (!match) return null;
@@ -26,7 +26,7 @@ export function adjustmentToFraction(raw: string): string | null {
   return `${negative ? "-" : ""}${whole}.${decimals}`;
 }
 
-/** "5" o "2,5" → "0.0500"; vacío → "0". Menos de 100 %: null si no. */
+/** "5" or "2,5" → "0.0500"; empty → "0". Less than 100 %: null if not. */
 export function discountToFraction(raw: string): string | null {
   if (!raw.trim()) return "0";
   const fraction = percentToFraction(raw);
@@ -85,8 +85,8 @@ export function validatePriceListForm(
 }
 
 /**
- * Precios fijos del form (`price_<productId>`, neto). Vacío = sin precio fijo
- * (usa el ajuste de la lista). Solo los productos que se pasan.
+ * Fixed prices from the form (`price_<productId>`, net). Empty = no fixed price
+ * (uses the list's adjustment). Only the products that are passed.
  */
 export function parseFixedPrices(
   formData: FormData,

@@ -17,8 +17,8 @@ type PersonWithUser = {
 };
 
 /**
- * Props de `UserControls` para una persona: estado del usuario y las actions
- * ya bindeadas a su id. `lockedMails` sale de `getLockedMails`.
+ * Props of `UserControls` for a person: the user's status and the actions
+ * already bound to its id. `lockedMails` comes from `getLockedMails`.
  */
 export function userControlProps(
   person: PersonWithUser,
@@ -31,7 +31,7 @@ export function userControlProps(
 ): React.ComponentProps<typeof UserControls> {
   const { user } = person;
   const locked = user ? options.lockedMails.get(person.mail) : undefined;
-  // Sin usuario solo se usa `create`; las demás no se muestran.
+  // Without a user only `create` is used; the others are not shown.
   const userId = user?.id ?? "";
   return {
     personName: `${person.name} ${person.surname}`,

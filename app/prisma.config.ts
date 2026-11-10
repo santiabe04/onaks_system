@@ -8,8 +8,8 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    // Sin env() a propósito: `prisma generate` (postinstall) tiene que andar
-    // sin DATABASE_URL. Los comandos de migrate fallan si falta.
+    // No env() on purpose: `prisma generate` (postinstall) has to work
+    // without DATABASE_URL. The migrate commands fail if it is missing.
     url: process.env.DATABASE_URL,
   },
 });

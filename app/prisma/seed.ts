@@ -22,8 +22,8 @@ const CITIES: Record<string, string[]> = {
   "Ciudad Autónoma de Buenos Aires": ["CABA"],
 };
 
-// Alícuotas de IVA vigentes. `rate` es fracción, como string para no perder
-// precisión en el Decimal.
+// Current VAT rates. `rate` is a fraction, as a string so it does not lose
+// precision in the Decimal.
 const TAX_RATES = [
   { name: "IVA 21%", rate: "0.21" },
   { name: "IVA 10,5%", rate: "0.105" },
@@ -61,7 +61,7 @@ async function main() {
     });
   }
 
-  // Solo se crean si no existen: una tasa editada desde el ABM no se pisa.
+  // Only created if they do not exist: a rate edited from the CRUD is not overwritten.
   for (const taxRate of TAX_RATES) {
     await db.taxRate.upsert({
       where: { name: taxRate.name },
@@ -98,7 +98,7 @@ async function main() {
     console.log(`Admin ya existente: ${mail}`);
   }
 
-  // Datos de demo: solo pedidos explícitamente y nunca en producción.
+  // Demo data: only explicit orders, and never in production.
   if (process.env.SEED_DEMO === "true") {
     if (process.env.NODE_ENV === "production") {
       throw new Error("SEED_DEMO no se puede usar con NODE_ENV=production");

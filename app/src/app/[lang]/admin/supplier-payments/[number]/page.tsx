@@ -47,7 +47,7 @@ export default async function SupplierPaymentPage({
       <Link href="/admin/supplier-payments" className="text-sm hover:underline">
         ← {t.supplierPayments.title}
       </Link>
-      {/* params y la OP son de request: van en Suspense. */}
+      {/* params and the payment order are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -77,7 +77,7 @@ async function Payment({ params }: { params: Promise<{ number: string }> }) {
     allocations: payment.allocations,
   });
 
-  // Para imputar lo que quedó a cuenta hacen falta las facturas con saldo.
+  // To allocate what was left on account, invoices with a balance are needed.
   await connection();
   const openRows =
     toCents(available) > BigInt(0)

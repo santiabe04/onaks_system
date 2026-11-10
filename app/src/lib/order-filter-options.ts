@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "./db";
 
-/** Opciones de los selects de filtros de pedidos (lista y vista por zona). */
+/** Options for the order filter selects (list and by-zone view). */
 export async function getOrderFilterOptions() {
   const [customers, cities, products] = await Promise.all([
     db.customer.findMany({
@@ -12,7 +12,7 @@ export async function getOrderFilterOptions() {
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
-    // También los pausados y borrados: pueden estar en pedidos viejos.
+    // Paused and deleted ones too: they can be in old orders.
     db.product.findMany({
       orderBy: { name: "asc" },
       select: {

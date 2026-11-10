@@ -2,7 +2,7 @@ import { z } from "zod";
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 
-// Puro: validación de provincias y localidades (las usan las actions y los tests).
+// Pure: validation of provinces and cities (used by the actions and the tests).
 
 export const LOCATION_NAME_MAX_LENGTH = 80;
 
@@ -21,10 +21,10 @@ export type CityFormState = {
   values?: CityValues;
 };
 
-// La columna es INTEGER (int4): cualquier cosa fuera de rango no puede existir.
+// The column is INTEGER (int4): anything out of range cannot exist.
 const idSchema = z.coerce.number().int().positive().max(2_147_483_647);
 
-/** Convierte un id de la URL o de un form en número; null si no es válido. */
+/** Converts an id from the URL or a form into a number; null if it is not valid. */
 export function parseLocationId(raw: unknown): number | null {
   const parsed = idSchema.safeParse(raw);
   return parsed.success ? parsed.data : null;

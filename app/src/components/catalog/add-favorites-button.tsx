@@ -8,7 +8,7 @@ import {
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 
-/** Suma una unidad de cada favorito que todavía no esté en el carrito. */
+/** Adds one unit of each favorite not yet in the cart. */
 export function AddFavoritesButton({ t }: { t: Dictionary["favorites"] }) {
   const [state, action, pending] = useActionState<AddFavoritesState>(
     addFavoritesToCart,

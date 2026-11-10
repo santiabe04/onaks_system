@@ -10,7 +10,7 @@ import {
   type DecimalLimits,
 } from "./decimal-input";
 
-// Puro: validación del formulario de productos (la usan las actions y los tests).
+// Pure: validation of the product form (used by the actions and the tests).
 
 export const PRODUCT_LIMITS = {
   name: 120,
@@ -18,12 +18,12 @@ export const PRODUCT_LIMITS = {
   description: 1000,
 } as const;
 
-// EAN-8, UPC-A (12), EAN-13 o GTIN-14.
+// EAN-8, UPC-A (12), EAN-13 or GTIN-14.
 const BARCODE_PATTERN = /^(\d{8}|\d{12,14})$/;
 
 type Messages = Dictionary["products"]["errors"];
 
-/** Lo que el usuario cargó, para volver a mostrarlo si hay errores. */
+/** What the user entered, to show it again if there are errors. */
 export type ProductValues = {
   name: string;
   sku: string;
@@ -58,9 +58,9 @@ export type ProductInput = {
   price: string;
   weight: string;
   volume: string | null;
-  /** Stock mínimo (opcional): debajo se alerta y se sugiere comprar. */
+  /** Minimum stock (optional): below it an alert is raised and a purchase is suggested. */
   minStock: string | null;
-  /** Controla lote y vencimiento: las salidas toman primero lo que vence antes. */
+  /** Tracks lot and expiry: outgoing stock takes what expires first. */
   tracksExpiry: boolean;
   isActive: boolean;
 };
@@ -89,7 +89,7 @@ function productSchema(t: Messages) {
 
   return z.object({
     name: text(PRODUCT_LIMITS.name).min(1, t.nameRequired),
-    // El SKU se guarda en mayúsculas: "ace-001" y "ACE-001" son el mismo.
+    // The SKU is stored in uppercase: "ace-001" and "ACE-001" are the same.
     sku: text(PRODUCT_LIMITS.sku)
       .min(1, t.skuRequired)
       .regex(/^[A-Za-z0-9._-]+$/, t.skuFormat)
@@ -102,7 +102,7 @@ function productSchema(t: Messages) {
         t.barcodeFormat,
       )
       .transform((value) => value || null),
-    // Vacío se guarda como null, no como "".
+    // Empty is stored as null, not as "".
     description: text(PRODUCT_LIMITS.description).transform(
       (value) => value || null,
     ),
@@ -150,7 +150,7 @@ export function readProductForm(formData: FormData): ProductValues {
     weight: get("weight"),
     volume: get("volume"),
     minStock: get("minStock"),
-    // Checkbox: solo viene en el form si está tildado.
+    // Checkbox: only comes in the form if it is ticked.
     isActive: formData.get("isActive") === "on",
     tracksExpiry: formData.get("tracksExpiry") === "on",
   };
@@ -171,10 +171,10 @@ export function validateProductForm(
   };
 }
 
-/** URL pública de una imagen guardada (la sirve `app/media/products/[file]`). */
+/** Public URL of a stored image (served by `app/media/products/[file]`). */
 export function productImageUrl(fileName: string): string {
   return `/media/products/${fileName}`;
 }
 
-/** Los ids de productos son CUID2. */
+/** Product ids are CUID2. */
 export const isProductId = isCuid;

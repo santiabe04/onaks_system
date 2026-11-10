@@ -25,17 +25,17 @@ import {
 } from "@/lib/sale-state-change";
 import type { StateChangeInput } from "@/lib/sale-state-form";
 
-// Listas de picking: al armarla los pedidos Pendientes pasan a En preparación
-// (descuenta el stock del depósito de la lista); al confirmarla, a Listo para
-// despachar, con los faltantes ajustados en el pedido y el stock. Anularla o
-// sacar un pedido lo devuelve a Pendiente. Orden de bloqueo: la lista,
-// después cada pedido (cuenta del cliente y pedido), ordenados por cliente.
+// Picking lists: when created, the Pending orders move to In preparation
+// (deducting stock from the list's warehouse); when confirmed, to Ready to ship,
+// with the shortages adjusted on the order and the stock. Canceling it or
+// removing an order sends it back to Pending. Lock order: the list,
+// then each order (customer account and order), sorted by customer.
 const PERMISSION = "sales:manage";
 const ENTITY = "PICKING_LIST";
 
 export type PickingActionState = { error?: string };
 
-/** Corta la transacción con un mensaje para el admin. */
+/** Aborts the transaction with a message for the admin. */
 class PickingError extends Error {}
 
 function messages() {
@@ -61,7 +61,7 @@ function revalidateOrders() {
 
 type SaleRef = { id: string; number: number; customerId: string };
 
-/** Por cliente y pedido, como la salida de una hoja: no se cruzan bloqueos. */
+/** By customer and order, like the departure from a route sheet: no crossed locks. */
 function byCustomer<T extends SaleRef>(sales: T[]): T[] {
   return [...sales].sort(
     (a, b) =>
@@ -69,7 +69,7 @@ function byCustomer<T extends SaleRef>(sales: T[]): T[] {
   );
 }
 
-/** Cambia el estado de un pedido de la lista; un error corta todo con su número. */
+/** Changes the status of an order on the list; an error aborts everything with its number. */
 async function changeState(
   tx: Prisma.TransactionClient,
   sale: SaleRef,
@@ -97,7 +97,7 @@ async function changeState(
   }
 }
 
-/** Bloquea una lista abierta y la devuelve con sus pedidos. */
+/** Locks an open list and returns it with its orders. */
 async function lockOpenList(tx: Prisma.TransactionClient, listId: string) {
   const t = messages().picking;
   if (!isCuid(listId)) throw new PickingError(t.notFound);
@@ -137,7 +137,7 @@ async function lockOpenList(tx: Prisma.TransactionClient, listId: string) {
   return { list, sales: [...sales.values()] };
 }
 
-/** Lista nueva con los pedidos elegidos: pasan a En preparación desde el depósito. */
+/** New list with the chosen orders: they move to In preparation from the warehouse. */
 export async function createPickingList(
   _prev: PickingActionState,
   formData: FormData,
@@ -196,7 +196,7 @@ export async function createPickingList(
             user.id,
           );
         }
-        // Lo que hay que sacar: los productos de cada pedido (foto al armarla).
+        // What has to be taken out: each order's products (snapshot when built).
         const items = await tx.saleItem.findMany({
           where: { saleId: { in: sales.map((sale) => sale.id) } },
           select: { saleId: true, productId: true, quantity: true },
@@ -213,7 +213,7 @@ export async function createPickingList(
         });
         number = list.number;
       },
-      // Muchos pedidos con sus movimientos de stock: más que el timeout por defecto.
+      // Many orders with their stock movements: more than the default timeout.
       { timeout: 30_000 },
     ),
   );
@@ -223,8 +223,8 @@ export async function createPickingList(
 }
 
 /**
- * Confirma lo preparado: los faltantes ajustan el pedido y el stock
- * (`applyShortages`) y los pedidos pasan a Listo para despachar.
+ * Confirms what was prepared: the shortages adjust the order and the stock
+ * (`applyShortages`) and the orders move to Ready to ship.
  */
 export async function confirmPickingList(
   listId: string,
@@ -254,7 +254,7 @@ export async function confirmPickingList(
         if (!picked.ok) throw new PickingError(picked.error);
 
         for (const sale of byCustomer(sales)) {
-          // Primero el estado (bloquea cuenta y pedido), después los faltantes.
+          // First the status (locks account and order), then the shortages.
           await changeState(
             tx,
             sale,
@@ -316,14 +316,14 @@ export async function confirmPickingList(
   return {};
 }
 
-/** Devuelve un pedido de la lista a Pendiente (si sigue En preparación). */
+/** Returns an order on the list to Pending (if it is still In preparation). */
 async function releaseSale(
   tx: Prisma.TransactionClient,
   sale: SaleRef & { state: string },
   listNumber: number,
   userId: string,
 ) {
-  // Si alguien ya le cambió el estado a mano, solo se quita de la lista.
+  // If someone already changed its status by hand, it is only removed from the list.
   if (sale.state !== "PREPARING") return;
   await changeState(
     tx,
@@ -334,7 +334,7 @@ async function releaseSale(
   );
 }
 
-/** Anula la lista: sus pedidos vuelven a Pendiente y se devuelve el stock. */
+/** Cancels the list: its orders go back to Pending and the stock is returned. */
 export async function cancelPickingList(
   listId: string,
 ): Promise<PickingActionState> {
@@ -367,7 +367,7 @@ export async function cancelPickingList(
   return {};
 }
 
-/** Saca un pedido de la lista abierta y lo devuelve a Pendiente. */
+/** Removes an order from the open list and returns it to Pending. */
 export async function removePickingSale(
   listId: string,
   saleId: string,
@@ -404,9 +404,9 @@ export async function removePickingSale(
 }
 
 /**
- * Cambia el lote del que sale lo de un pedido de una lista abierta (la
- * sugerencia FEFO no era la que había en el estante). El stock del producto no
- * cambia: se mueve entre lotes con dos movimientos del pedido.
+ * Changes the lot that an order's goods come from on an open list (the FEFO
+ * suggestion was not what was on the shelf). The product's stock does not
+ * change: it moves between lots with two movements of the order.
  */
 export async function changePickingLot(
   listId: string,

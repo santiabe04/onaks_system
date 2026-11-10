@@ -4,7 +4,7 @@ import type { Dictionary } from "@/i18n/dictionaries/es";
 import { parseDecimalInput } from "./decimal-input";
 import { isCuid } from "./ids";
 
-// Puro: validación de los formularios de repartidores y vehículos.
+// Pure: validation of the driver and vehicle forms.
 
 export const FLEET_LIMITS = {
   name: 60,
@@ -12,7 +12,7 @@ export const FLEET_LIMITS = {
   plate: 15,
 } as const;
 
-/** Capacidad en kg o litros: hasta 3 decimales, como el peso de los productos. */
+/** Capacity in kg or liters: up to 3 decimals, like the products' weight. */
 const CAPACITY_LIMITS = { maxDecimals: 3, maxIntegerDigits: 7 };
 
 type Messages = Dictionary["fleet"]["errors"];
@@ -26,7 +26,7 @@ function text(t: Messages, max: number) {
   return z.string().trim().max(max, interpolate(t.tooLong, { max }));
 }
 
-/** Vacío se guarda como null, no como "". */
+/** Empty is stored as null, not as "". */
 function optional(t: Messages, max: number) {
   return text(t, max).transform((value) => value || null);
 }
@@ -46,7 +46,7 @@ function fail<V>(error: z.ZodError, values: V) {
   };
 }
 
-// --- Repartidores ---
+// --- Drivers ---
 
 export type DriverValues = {
   name: string;
@@ -58,7 +58,7 @@ export type DriverValues = {
 export type DriverInput = {
   name: string;
   phone: string | null;
-  /** Usuario (Repartidor o Admin) que carga sus entregas desde el celular. */
+  /** User (Driver or Admin) who loads their deliveries from the phone. */
   userId: string | null;
   isActive: boolean;
 };
@@ -68,7 +68,7 @@ export function validateDriverForm(formData: FormData, t: Messages) {
     name: read(formData, "name"),
     phone: read(formData, "phone"),
     userId: read(formData, "userId"),
-    // Checkbox: solo viene en el form si está tildado.
+    // Checkbox: only comes in the form if it is ticked.
     isActive: formData.get("isActive") === "on",
   };
   const parsed = z
@@ -86,7 +86,7 @@ export function validateDriverForm(formData: FormData, t: Messages) {
   return { ok: true as const, data: parsed.data as DriverInput, values };
 }
 
-// --- Vehículos ---
+// --- Vehicles ---
 
 export type VehicleValues = {
   name: string;
@@ -98,7 +98,7 @@ export type VehicleValues = {
 
 export type VehicleInput = {
   name: string;
-  /** En mayúsculas y sin espacios ("AB123CD"). */
+  /** In uppercase and without spaces ("AB123CD"). */
   plate: string | null;
   capacityKg: string | null;
   capacityLiters: string | null;

@@ -31,7 +31,7 @@ export default async function CustomerPage({
 
   return (
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
-      {/* params y la DB son de request: va en Suspense. */}
+      {/* params and the DB are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -52,7 +52,7 @@ async function CustomerDetail({ params }: { params: Promise<{ id: string }> }) {
   ]);
   const format = formatters(locale);
   const c = t.customers;
-  // Lo que debe y va a deber (pedidos abiertos), contra su límite.
+  // What it owes and will owe (open orders), against its limit.
   const used = creditExposure(account.summary);
   const base = `/admin/customers/${customer.id}`;
   const labels = { delete: t.common.delete, deleting: t.common.deleting };

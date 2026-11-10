@@ -12,7 +12,7 @@ export function loginSchema(t: Messages) {
 
 export type LoginInput = z.infer<ReturnType<typeof loginSchema>>;
 
-/** `mail` vuelve al form para no tener que tipearlo de nuevo; la contraseña nunca. */
+/** `mail` goes back to the form so it does not have to be typed again; the password never does. */
 export type LoginFormState = { error?: string; mail?: string };
 
 export function validateLoginForm(

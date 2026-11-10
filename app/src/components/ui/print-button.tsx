@@ -2,7 +2,7 @@
 
 import { buttonClass } from "./button";
 
-/** Abre el diálogo de impresión del navegador. No se imprime a sí mismo. */
+/** Opens the browser's print dialog. It does not print itself. */
 export function PrintButton({ label }: { label: string }) {
   return (
     <button

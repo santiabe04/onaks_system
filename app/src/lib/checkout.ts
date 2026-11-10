@@ -4,19 +4,19 @@ import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { isCuid } from "./ids";
 
-// Puro: validación de la confirmación del pedido.
+// Pure: validation of the order confirmation.
 
 export const NOTES_MAX_LENGTH = 500;
 
 /**
- * Pedidos cuyo stock está reservado: confirmados y todavía sin descontar del
- * depósito (al prepararlos, en la fase 7, se descuenta y dejan de contar).
+ * Orders whose stock is reserved: confirmed and not yet deducted from the
+ * warehouse (when prepared, in phase 7, it is deducted and they stop counting).
  */
 export const RESERVED_SALE_STATES: SaleState[] = ["PENDING"];
 
 type Messages = Dictionary["checkout"]["errors"];
 
-/** Cómo se paga el pedido: efectivo al recibir o transferencia con comprobante. */
+/** How the order is paid: cash on delivery or transfer with a receipt. */
 export const CHECKOUT_PAYMENT_METHODS = ["CASH", "TRANSFER"] as const;
 
 export function checkoutSchema(t: Messages) {
@@ -25,7 +25,7 @@ export function checkoutSchema(t: Messages) {
     paymentMethod: z.enum(CHECKOUT_PAYMENT_METHODS, {
       message: t.paymentMethodInvalid,
     }),
-    // Vacío se guarda como null, no como "".
+    // Empty is stored as null, not as "".
     notes: z
       .string()
       .trim()
@@ -40,7 +40,7 @@ export function checkoutSchema(t: Messages) {
 
 export type CheckoutInput = z.infer<ReturnType<typeof checkoutSchema>>;
 
-/** Lo que el usuario eligió, para volver a mostrarlo si hay errores. */
+/** What the user chose, to show it again if there are errors. */
 export type CheckoutValues = {
   addressId: string;
   notes: string;
@@ -67,7 +67,7 @@ export function validateCheckoutForm(
   const values = {
     addressId: get("addressId"),
     notes: get("notes"),
-    // Sin elegir (un form viejo) es efectivo, como antes.
+    // Not chosen (an old form) is cash, as before.
     paymentMethod: get("paymentMethod") || "CASH",
   };
   const parsed = checkoutSchema(t).safeParse({
@@ -91,7 +91,7 @@ export function validateCheckoutForm(
   };
 }
 
-/** "/orders/12" → 12; null si no es un número de pedido válido (int4). */
+/** "/orders/12" → 12; null if it is not a valid order number (int4). */
 export function parseSaleNumber(raw: unknown): number | null {
   const parsed = z.coerce
     .number()

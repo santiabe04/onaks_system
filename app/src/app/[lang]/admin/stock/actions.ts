@@ -11,8 +11,8 @@ import { normalizeLocation } from "@/lib/picking";
 import { validateMovementForm, type MovementFormState } from "@/lib/stock";
 import { recordMovement, StockLedgerError } from "@/lib/stock-ledger";
 
-// La acción verifica el permiso antes que nada: se puede invocar con un POST
-// directo, sin pasar por la página ni por el proxy.
+// The action checks the permission first of all: it can be invoked with a direct POST
+// without going through the page or the proxy.
 const PERMISSION = "stock:manage";
 
 export async function createMovement(
@@ -40,7 +40,7 @@ export async function createMovement(
     return { errors: { [field]: [t[error.code]] }, values: result.values };
   }
 
-  // Cambian el stock de la lista de productos, la de stock y la del producto.
+  // They change the stock on the products list, the stock list and the product's.
   revalidatePath("/[lang]/admin/stock", "layout");
   revalidatePath("/[lang]/admin/products", "page");
   redirect(`/admin/stock/${result.data.productId}`);
@@ -49,8 +49,8 @@ export async function createMovement(
 export type LocationState = { error?: string; savedAt?: number };
 
 /**
- * Ubicación del producto en un depósito (ordena el picking). Si todavía no
- * tiene saldo ahí, se crea en 0: el saldo solo lo mueve el libro de stock.
+ * Product location in a warehouse (sorts the picking). If it does not yet
+ * have a balance there, it is created at 0: only the stock ledger moves the balance.
  */
 export async function setProductLocation(
   productId: string,

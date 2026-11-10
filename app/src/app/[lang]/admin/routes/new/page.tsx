@@ -18,7 +18,7 @@ export default async function NewRouteSheetPage() {
   return (
     <main className="mx-auto w-full max-w-3xl p-4 sm:p-8">
       <h1 className="mb-6 text-2xl font-semibold">{t.routes.newTitle}</h1>
-      {/* Repartidores y vehículos salen de la DB: van en Suspense. */}
+      {/* Drivers and vehicles come from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -32,7 +32,7 @@ async function NewRouteSheet() {
   await getUserWithPermission("routes:manage");
   const t = await getT();
   const options = await getFleetOptions();
-  // Por defecto, hoy (el día del request).
+  // By default, today (the request's day).
   await connection();
   return (
     <RouteSheetForm

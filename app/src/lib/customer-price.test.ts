@@ -28,7 +28,7 @@ describe("listPrice", () => {
     ).toBe("2299.99"); // 2299.9885
     expect(
       listPrice(DOG_FOOD, "0.05", { ...BASE_PRICING, adjustment: "-0.5" }),
-    ).toBe("0.03"); // 0.025: mitad hacia arriba
+    ).toBe("0.03"); // 0.025: half up
   });
 
   it("un precio fijo pisa el ajuste", () => {

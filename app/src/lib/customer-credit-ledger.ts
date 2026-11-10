@@ -12,7 +12,7 @@ import {
 import { fromMilli, toMilli } from "./quantity";
 import { recordCreditNoteMovements } from "./stock-ledger";
 
-/** Una nota de crédito que no se puede hacer o anular, con el motivo. */
+/** A credit note that cannot be made or voided, with the reason. */
 export class CreditNoteError extends Error {
   constructor(
     readonly code: "notFound" | "notReturnable" | "quantity" | "alreadyVoided",
@@ -24,11 +24,11 @@ export class CreditNoteError extends Error {
 const ENTITY = "CUSTOMER_CREDIT_NOTE" as const;
 
 /**
- * Devolución de mercadería de un pedido entregado: crea la nota de crédito
- * con la foto del precio y la alícuota del pedido, ingresa lo devuelto al
- * depósito (lo que se da de baja entra y sale en el mismo acto, así queda en
- * el libro) y recalcula la cuenta. Orden de bloqueo: cuenta del cliente y
- * después el pedido, como cobros y cambios de estado.
+ * Return of goods from a delivered order: creates the credit note
+ * with the order's price and tax rate snapshot, puts what was returned back into the
+ * warehouse (what is written off comes in and goes out in the same act, so it stays in
+ * the ledger) and recalculates the account. Lock order: the customer's account and
+ * then the order, like payments and status changes.
  */
 export async function createReturn(
   tx: Prisma.TransactionClient,
@@ -49,7 +49,7 @@ export async function createReturn(
   if (!locked) throw new CreditNoteError("notFound");
   if (!isReturnable(locked.state)) throw new CreditNoteError("notReturnable");
 
-  // Con la cuenta bloqueada: dos devoluciones a la vez no pasan lo entregado.
+  // With the account locked: two returns at once do not both pass what was delivered.
   const [items, previous] = await Promise.all([
     tx.saleItem.findMany({ where: { saleId } }),
     tx.customerCreditNoteItem.findMany({
@@ -107,7 +107,7 @@ export async function createReturn(
     include: { items: true },
   });
 
-  // Todo lo devuelto ingresa; lo que no sirve se da de baja enseguida.
+  // Everything returned comes in; what is not usable is written off right away.
   const entries = lines.map(({ quantity, item }) => ({
     productId: item.productId,
     warehouseId: input.warehouseId,
@@ -135,7 +135,7 @@ export async function createReturn(
   return note;
 }
 
-/** Nota de crédito por importe (bonificación o ajuste): sin mercadería ni stock. */
+/** Credit note by amount (discount or adjustment): no goods or stock. */
 export async function createAdjustment(
   tx: Prisma.TransactionClient,
   customerId: string,
@@ -166,10 +166,10 @@ export async function createAdjustment(
 }
 
 /**
- * Anula una nota de crédito (queda en el historial, deja de bajar la deuda).
- * Lo que se había reingresado al depósito se saca otra vez; lo que se dio de
- * baja no se toca (ya no estaba). El stock puede quedar negativo si ya se
- * vendió: es un saldo a revisar, no un error.
+ * Voids a credit note (it stays in the history, stops lowering the debt).
+ * What had been put back into the warehouse is removed again; what was written off
+ * is not touched (it was no longer there). Stock can end up negative if it was
+ * already sold: it is a balance to review, not an error.
  */
 export async function voidCreditNote(
   tx: Prisma.TransactionClient,
@@ -184,7 +184,7 @@ export async function voidCreditNote(
   if (!current) throw new CreditNoteError("notFound");
   await lockAccount(tx, current.customerId);
 
-  // Releída con la cuenta bloqueada: dos anulaciones a la vez no pasan.
+  // Re-read with the account locked: two voids at once do not both pass.
   const before = await tx.customerCreditNote.findUniqueOrThrow({
     where: { id: noteId },
     include: { items: true },

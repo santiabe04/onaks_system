@@ -48,7 +48,7 @@ export default async function StockPage({
         </div>
       </div>
 
-      {/* Los filtros vienen de la URL y los saldos de la DB: van en Suspense. */}
+      {/* The filters come from the URL and the balances from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -75,13 +75,13 @@ async function StockContent({
       select: { id: true, name: true, isActive: true },
     }),
   ]);
-  // Columnas: el depósito filtrado, o los activos.
+  // Columns: the filtered warehouse, or the active ones.
   const columns = filters.warehouse
     ? warehouses.filter((w) => w.id === filters.warehouse)
     : warehouses.filter((w) => w.isActive);
 
-  // El nivel se calcula sobre la suma (de todos o del depósito filtrado).
-  // Sin movimientos no hay fila de saldo: cuenta como 0.
+  // The level is calculated on the sum (of all or of the filtered warehouse).
+  // Without movements there is no balance row: it counts as 0.
   const stockWhere = filters.warehouse
     ? { warehouseId: filters.warehouse }
     : {};
@@ -134,7 +134,7 @@ async function StockContent({
       where: { productId: { in: productIds }, ...stockWhere },
       select: { productId: true, warehouseId: true, quantity: true },
     }),
-    // Lo pedido y todavía sin descontar: no es de un depósito, sino del total.
+    // Ordered and not yet deducted: it does not belong to a warehouse, but to the total.
     db.saleItem.groupBy({
       by: ["productId"],
       where: {
@@ -292,7 +292,7 @@ async function StockContent({
   );
 }
 
-/** Productos con stock mínimo cargado cuyo saldo (total o del depósito) está por debajo. */
+/** Products with a minimum stock set whose balance (total or of the warehouse) is below it. */
 async function lowStockIds(stockWhere: { warehouseId?: string }) {
   const products = await db.product.findMany({
     where: { minStock: { not: null }, deletedAt: null },
@@ -307,13 +307,13 @@ async function lowStockIds(stockWhere: { warehouseId?: string }) {
     .filter((product) => {
       const sum = sums.find((row) => row.productId === product.id)?._sum
         .quantity;
-      // Sin movimientos no hay fila de saldo: cuenta como 0.
+      // Without movements there is no balance row: it counts as 0.
       return toMilli(sum ?? 0) < toMilli(product.minStock!);
     })
     .map((product) => product.id);
 }
 
-/** Celda de cantidad: los negativos en rojo, para verlos de un vistazo. */
+/** Quantity cell: negatives in red, to see them at a glance. */
 function Quantity({
   value,
   format,
@@ -335,7 +335,7 @@ function Quantity({
   );
 }
 
-// Formulario GET: los filtros quedan en la URL, se pueden compartir y recargar.
+// GET form: the filters stay in the URL, so they can be shared and reloaded.
 function FiltersForm({
   t,
   filters,

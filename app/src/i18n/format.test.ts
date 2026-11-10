@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { formatters } from "./format";
 
-// Intl usa espacios no separables: se normalizan para comparar.
+// Intl uses non-breaking spaces: they are normalized for comparison.
 const plain = (value: string) => value.replace(/\s/g, " ");
 
 describe("formatters", () => {

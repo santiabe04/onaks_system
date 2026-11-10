@@ -36,7 +36,7 @@ export default async function InvoicePage({
       <Link href="/admin/invoices" className="text-sm hover:underline">
         ← {t.invoices.title}
       </Link>
-      {/* params y la factura son de request: van en Suspense. */}
+      {/* params and the invoice are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -59,7 +59,7 @@ async function Invoice({ params }: { params: Promise<{ id: string }> }) {
   if (!invoice) notFound();
 
   const order = invoice.purchaseOrder;
-  // Lo pagado: imputaciones de OP y notas de crédito sin anular.
+  // Paid: allocations from payment orders and credit notes that are not voided.
   const paid = await db.supplierAllocation.aggregate({
     where: {
       invoiceId: invoice.id,

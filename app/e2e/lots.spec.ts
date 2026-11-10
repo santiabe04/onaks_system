@@ -1,16 +1,16 @@
 import { expect, test } from "@playwright/test";
 import { login, ready } from "./helpers";
 
-/** YYYY-MM-DD a `days` días de hoy (UTC alcanza: los márgenes son de semanas). */
+/** YYYY-MM-DD, `days` days from today (UTC is enough: the margins are weeks). */
 function dayFromNow(days: number): string {
   const date = new Date();
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
 }
 
-// Un producto que controla vencimiento se recibe repartido en dos lotes (uno ya
-// vencido); un pedido sale primero del que vence antes, el picking lo muestra y
-// permite cambiarlo, un ingreso a mano pide lote y el listado y el aviso lo reflejan.
+// A product that tracks expiry is received split across two lots (one already
+// expired); an order leaves from the one that expires first, picking shows it and
+// lets you change it, a manual entry asks for a lot, and the list and the notice reflect it.
 test("lotes y vencimientos: recepción, salida FEFO y avisos", async ({
   page,
 }) => {
@@ -55,7 +55,7 @@ test("lotes y vencimientos: recepción, salida FEFO y avisos", async ({
       .getByRole("combobox", { name: "Depósito" })
       .selectOption({ label: "Depósito Sur" });
     await page.getByLabel(`Llegó ${product}`).fill("10");
-    // Sin lote ni fecha no se puede confirmar.
+    // Without a lot and a date it cannot be confirmed.
     await page.getByRole("button", { name: "Confirmar recepción" }).click();
     await expect(page.getByText(/Cargá el lote/)).toBeVisible();
 
@@ -65,7 +65,7 @@ test("lotes y vencimientos: recepción, salida FEFO y avisos", async ({
     await page.getByLabel(`Cantidad del lote 1 ${product}`).fill("4");
     await page.getByLabel(`Lote 2 ${product}`, { exact: true }).fill("L-NUEVO");
     await page.getByLabel(`Vencimiento 2 ${product}`).fill(dayFromNow(400));
-    // Los lotes tienen que sumar lo que llegó.
+    // The lots have to add up to what arrived.
     await page.getByLabel(`Cantidad del lote 2 ${product}`).fill("5");
     await page.getByRole("button", { name: "Confirmar recepción" }).click();
     await expect(page.getByText(/tienen que sumar/)).toBeVisible();
@@ -119,7 +119,7 @@ test("lotes y vencimientos: recepción, salida FEFO y avisos", async ({
     await page.getByRole("button", { name: "Armar lista" }).click();
     await expect(page).toHaveURL(/\/admin\/picking\/\d+$/);
     await ready(page);
-    // La lista dice de qué lote sacar: 4 del vencido y 1 del nuevo.
+    // The list says which lot to take from: 4 from the expired one and 1 from the new one.
     await expect(
       page.getByText(/L-VIEJO \(vence .*\): 4/).first(),
     ).toBeVisible();
@@ -158,13 +158,13 @@ test("lotes y vencimientos: recepción, salida FEFO y avisos", async ({
     await page.getByLabel(/^Cantidad/).fill("2");
     await page.getByRole("button", { name: "Registrar" }).click();
     await expect(page.getByText(/controla vencimiento/)).toBeVisible();
-    // React resetea el form un instante después del error: se espera antes de tipear.
+    // React resets the form a moment after the error: wait before typing.
     await ready(page);
     const expiry = page.getByRole("textbox", {
       name: "Vencimiento",
       exact: true,
     });
-    // Si el reset llega después de tipear, se vuelve a tipear hasta que quede.
+    // If the reset arrives after typing, type again until it sticks.
     await expect(async () => {
       await page.getByLabel(/^Lote/).fill("L-MANUAL");
       await expiry.fill(dayFromNow(200));
@@ -175,7 +175,7 @@ test("lotes y vencimientos: recepción, salida FEFO y avisos", async ({
     await page.waitForURL((url) => !url.pathname.endsWith("/new"));
 
     await page.goto("/admin/stock/lots");
-    // Lo que quedó de cada lote: 2 del vencido, 3 del nuevo y 2 del manual.
+    // What is left of each lot: 2 from the expired one, 3 from the new one and 2 from the manual entry.
     for (const [lot, quantity] of [
       ["L-VIEJO", "2"],
       ["L-NUEVO", "3"],

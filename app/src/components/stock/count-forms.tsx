@@ -19,7 +19,7 @@ import {
 
 const CONTROL = "rounded border border-current/20 bg-transparent px-3 py-2";
 
-/** Abre el conteo de un depósito. */
+/** Opens a warehouse's count. */
 export function NewCountForm({
   warehouses,
   t,
@@ -61,13 +61,13 @@ export function NewCountForm({
   );
 }
 
-/** Lo mínimo de BarcodeDetector (no está en los tipos de TypeScript). */
+/** Minimal BarcodeDetector (not in the TypeScript types). */
 type Detector = {
   detect(source: HTMLVideoElement): Promise<{ rawValue: string }[]>;
 };
 type DetectorConstructor = new (options?: { formats?: string[] }) => Detector;
 
-/** El lector de códigos del navegador, si lo tiene (Chrome en Android, por ejemplo). */
+/** The browser's barcode reader, if it has one (Chrome on Android, for example). */
 function barcodeDetector(): DetectorConstructor | null {
   const Detector = (
     window as unknown as { BarcodeDetector?: DetectorConstructor }
@@ -87,7 +87,7 @@ const FORMATS = [
   "itf",
 ];
 
-/** Carga un escaneo: el código se tipea, lo manda un lector o lo lee la cámara. */
+/** Loads a scan: the code is typed, sent by a reader, or read by the camera. */
 export function ScanForm({
   countId,
   t,
@@ -105,7 +105,7 @@ export function ScanForm({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [camera, setCamera] = useState<"off" | "on" | "unsupported">("off");
 
-  // Cargado un producto: se limpia el código y se vuelve a empezar.
+  // Once a product is loaded: the code is cleared and it starts again.
   useEffect(() => {
     if (state.added) {
       fields.setMany({ code: "", quantity: "1" });
@@ -114,7 +114,7 @@ export function ScanForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.added]);
 
-  // La cámara lee un código y se apaga; la cantidad queda lista para tipear.
+  // The camera reads a code and turns off; the quantity is ready to type.
   useEffect(() => {
     if (camera !== "on") return;
     const Detector = barcodeDetector();
@@ -137,7 +137,7 @@ export function ScanForm({
           return;
         }
       } catch {
-        // Un cuadro que no se pudo leer no corta el escaneo.
+        // A frame that could not be read does not stop the scanning.
       }
       timer = setTimeout(loop, 250);
     };
@@ -243,7 +243,7 @@ export function ScanForm({
   );
 }
 
-/** Aprueba o descarta el conteo desde la revisión. */
+/** Approves or discards the count from the review. */
 export function ReviewActions({
   countId,
   hasDifferences,

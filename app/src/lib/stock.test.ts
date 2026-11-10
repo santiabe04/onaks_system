@@ -7,7 +7,7 @@ import {
 } from "./stock";
 
 const t = es.stock.errors;
-const PRODUCT = "c4fvs2r1srhx4gwrri4k0pq0"; // Alimento balanceado perro adulto 15 kg
+const PRODUCT = "c4fvs2r1srhx4gwrri4k0pq0"; // Adult dog balanced food 15 kg
 const CENTRAL = "x6x0uzz02a26bhdgg5kk343s";
 const SUR = "k2m9v8q1w0e7r6t5y4u3i2o1";
 
@@ -49,7 +49,7 @@ describe("validateMovementForm", () => {
     if (!noDate.ok) {
       expect(noDate.state.errors?.expiresOn).toEqual([t.expiryInvalid]);
     }
-    // En una baja el lote no cuenta: se toma el que vence antes.
+    // On a write-off the lot does not count: the one that expires first is taken.
     expect(
       validateMovementForm(
         form({
@@ -194,7 +194,7 @@ describe("planMovement", () => {
         balanceAfter: "37",
       },
     ]);
-    // Corrige un negativo.
+    // Corrects a negative.
     expect(
       planMovement(input({ type: "ADJUSTMENT", quantity: "0" }), {
         from: "-4",

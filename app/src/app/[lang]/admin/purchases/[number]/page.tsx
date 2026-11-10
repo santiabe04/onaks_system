@@ -61,7 +61,7 @@ export default async function PurchaseOrderPage({
       <Link href={PATH} className="text-sm hover:underline">
         ← {t.purchases.title}
       </Link>
-      {/* params y la orden son de request: van en Suspense. */}
+      {/* params and the order are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -91,7 +91,7 @@ async function PurchaseOrder({
   const day = (value: string) =>
     format.date(new Date(`${value}T12:00:00-03:00`));
 
-  // En borrador: los productos del proveedor con la sugerencia.
+  // In draft: the supplier's products with the suggestion.
   await connection();
   const lines = draft
     ? await getPurchaseLines(order.supplier.id, order.id)
@@ -233,7 +233,7 @@ async function PurchaseOrder({
                 minStock: line.minStock ? format.number(line.minStock) : "—",
                 onOrder: format.number(line.onOrder),
                 suggested: format.number(line.suggested),
-                // Sin líneas guardadas, se precarga la sugerencia.
+                // With no saved lines, the suggestion is pre-filled.
                 quantity: line.quantity
                   ? format.input(line.quantity)
                   : !hasLines && toMilli(line.suggested) > BigInt(0)
@@ -272,7 +272,7 @@ async function PurchaseOrder({
   );
 }
 
-/** Las facturas del proveedor por esta OC. */
+/** The supplier's invoices for this PO. */
 function Invoices({
   order,
   t,
@@ -305,7 +305,7 @@ function Invoices({
   );
 }
 
-/** Los informes de recepción de la OC. */
+/** The receiving reports for the PO. */
 function Receipts({
   order,
   t,
@@ -345,7 +345,7 @@ function Receipts({
   );
 }
 
-/** Lo pedido (fuera de borrador): productos, cantidades, costos y totales. */
+/** What was ordered (outside draft): products, quantities, costs and totals. */
 function PurchaseItems({
   order,
   t,
@@ -392,7 +392,7 @@ function PurchaseItems({
                   {format.number(item.receivedQuantity)}
                 </td>
                 <td className="py-2 pr-3 text-right whitespace-nowrap">
-                  {/* Mientras no llegó nada no hay diferencia. */}
+                  {/* While nothing has arrived there is no difference. */}
                   {order.state === "SENT" ? (
                     <span className="opacity-50">—</span>
                   ) : (

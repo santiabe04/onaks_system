@@ -8,12 +8,12 @@ import type { UserActionState } from "./actions";
 type Action = (state: UserActionState) => Promise<UserActionState>;
 
 type Props = {
-  /** Para los textos de confirmación y de la contraseña temporal. */
+  /** For the confirmation texts and the temporary password. */
   personName: string;
   user: { isActive: boolean; mustChange: boolean } | null;
-  /** Hora hasta la que está bloqueado el login, ya formateada; null si no. */
+  /** Time until which the login is locked, already formatted; null if not. */
   lockedUntil: string | null;
-  /** El propio admin: no se blanquea ni se desactiva a sí mismo. */
+  /** The admin themselves: they cannot reset or deactivate themselves. */
   isSelf: boolean;
   actions: {
     create: Action;
@@ -27,7 +27,7 @@ type Props = {
 
 const link = "text-sm hover:underline disabled:opacity-50";
 
-/** Estado del usuario de una persona y sus acciones (crear, blanquear, desactivar, desbloquear). */
+/** The person's user status and its actions (create, reset, deactivate, unlock). */
 export function UserControls({
   personName,
   user,
@@ -43,7 +43,7 @@ export function UserControls({
     {},
   );
   const [unlocked, unlock, unlocking] = useActionState(actions.unlock, {});
-  // La contraseña generada vive solo en el estado del cliente: al recargar se pierde.
+  // The generated password lives only in the client's state: it is lost on reload.
   const password = reset.password ?? created.password;
   const error = created.error ?? reset.error ?? toggled.error ?? unlocked.error;
   const confirmThen =
@@ -121,7 +121,7 @@ export function UserControls({
   );
 }
 
-/** La contraseña generada, con botón para copiarla. Se muestra una sola vez. */
+/** The generated password, with a button to copy it. Shown only once. */
 export function TempPassword({
   password,
   personName,

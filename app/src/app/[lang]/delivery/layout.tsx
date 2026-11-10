@@ -6,8 +6,8 @@ import { getT } from "@/i18n/server";
 import { APP_NAME } from "@/lib/app";
 import { DELIVERY_PATH } from "@/lib/routes";
 
-// Lo que ve el repartidor desde el celular: sus hojas de ruta. Los admins que
-// también reparten entran igual.
+// What the driver sees from the phone: their route sheets. Admins who
+// also deliver get in the same way.
 export default async function DeliveryLayout({
   children,
 }: LayoutProps<"/[lang]/delivery">) {
@@ -20,7 +20,7 @@ export default async function DeliveryLayout({
           <Link href={DELIVERY_PATH} className="font-semibold">
             {APP_NAME}
           </Link>
-          {/* La sesión no se lee en el layout: se empuja a hijos en Suspense. */}
+          {/* The session is not read in the layout: it is pushed to children in Suspense. */}
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <Suspense fallback={null}>
               <UserMenu />

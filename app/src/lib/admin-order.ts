@@ -4,23 +4,23 @@ import { parseCartQuantity } from "./cart";
 import { NOTES_MAX_LENGTH } from "./checkout";
 import { isCuid } from "./ids";
 
-// Puro: pedido cargado por el admin en nombre de un cliente (pedidos que
-// llegan por teléfono o WhatsApp). Precios de lista y efectivo, como la tienda.
+// Pure: an order entered by the admin on behalf of a customer (orders that
+// come in by phone or WhatsApp). Prices from the list and cash, as in the shop.
 
-/** Hasta cuántos resultados muestra el buscador de productos. */
+/** How many results the product search shows. */
 export const PRODUCT_SEARCH_LIMIT = 20;
 
 type Messages = Dictionary["adminOrderNew"]["errors"];
 type Numeric = { toString(): string } | string;
 
-/** Para buscar sin importar mayúsculas ni acentos ("Pelota" ~ "pelota", "Alimento" ~ "alimento"). */
+/** To search regardless of case or accents ("Pelota" ~ "pelota", "Alimento" ~ "alimento"). */
 export function searchKey(text: string): string {
   return text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 }
 
 /**
- * Los productos que coinciden con lo que se buscó: todas las palabras tienen
- * que estar en el nombre, el SKU o el código de barras.
+ * The products that match what was searched: all the words have
+ * to be in the name, the SKU or the barcode.
  */
 export function searchProducts<
   T extends { name: string; sku: string; barcode: string | null },
@@ -45,8 +45,8 @@ export type AdminOrderInput = {
 };
 
 /**
- * Cliente, dirección, comentario y las líneas (`qty_<producto>`, solo de
- * productos que se pueden vender). Tiene que haber al menos una.
+ * Customer, address, comment and the lines (`qty_<product>`, only of
+ * products that can be sold). There must be at least one.
  */
 export function parseAdminOrder(
   formData: FormData,
@@ -87,9 +87,9 @@ export function parseAdminOrder(
 }
 
 /**
- * Foto del producto en el pedido: los cambios posteriores no lo tocan. `price`
- * es el neto que paga el cliente; el precio base queda como `unitListPrice` y
- * el último costo de compra (si hay) como `unitCost`, para el margen.
+ * Product snapshot in the order: later changes do not touch it. `price`
+ * is the net the customer pays; the base price stays as `unitListPrice` and
+ * the last purchase cost (if any) as `unitCost`, for the margin.
  */
 export function saleItemSnapshot(
   product: {

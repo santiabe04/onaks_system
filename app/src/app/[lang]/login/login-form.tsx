@@ -7,7 +7,7 @@ import type { Dictionary } from "@/i18n/dictionaries/es";
 import type { LoginFormState } from "@/lib/login";
 import { login } from "./actions";
 
-// Lee `?next=` del proxy. Solo esto va en Suspense, el form queda en el shell estático.
+// Reads `?next=` from the proxy. Only this goes in Suspense; the form stays in the static shell.
 function NextInput() {
   const next = useSearchParams().get("next");
   return next ? <input type="hidden" name="next" value={next} /> : null;

@@ -10,8 +10,8 @@ import { db } from "@/lib/db";
 import { can } from "@/lib/permissions";
 import { interpolate } from "@/i18n/config";
 
-// La tienda que ven los clientes (catálogo, carrito y pedidos). Los
-// admins también pueden entrar, para ver lo mismo que el cliente.
+// The shop customers see (catalog, cart and orders). Admins
+// can also enter, to see the same thing as the customer.
 export default async function ShopLayout({ children }: LayoutProps<"/[lang]">) {
   const t = await getT();
 
@@ -22,7 +22,7 @@ export default async function ShopLayout({ children }: LayoutProps<"/[lang]">) {
           <Link href="/" className="font-semibold">
             {APP_NAME}
           </Link>
-          {/* La sesión no se lee en el layout: se empuja a hijos en Suspense. */}
+          {/* The session is not read in the layout: it is pushed to children in Suspense. */}
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <Suspense fallback={null}>
               <AdminLink label={t.catalog.adminPanel} />
@@ -43,8 +43,8 @@ export default async function ShopLayout({ children }: LayoutProps<"/[lang]">) {
 }
 
 /**
- * "Mis pedidos" y "Carrito (N)" para los clientes. El carrito cuenta solo
- * productos que se siguen vendiendo.
+ * "My orders" and "Cart (N)" for customers. The cart counts only
+ * products that are still being sold.
  */
 async function BuyerLinks({ cart, orders }: { cart: string; orders: string }) {
   const user = await getCurrentUser();
@@ -64,7 +64,7 @@ async function BuyerLinks({ cart, orders }: { cart: string; orders: string }) {
   );
 }
 
-/** Acceso al panel, solo para admins. */
+/** Access to the panel, admins only. */
 async function AdminLink({ label }: { label: string }) {
   const user = await getCurrentUser();
   if (user.role !== "ADMIN") return null;

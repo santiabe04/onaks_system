@@ -1,8 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Tests de punta a punta contra la app compilada (`next start`) y una base con
-// la demo del seed (SEED_DEMO=true). Corren de a uno: comparten la base y
-// cada circuito deja datos que el siguiente puede ver. Ver e2e/README.md.
+// End-to-end tests against the compiled app (`next start`) and a database with
+// the seed demo (SEED_DEMO=true). They run one at a time: they share the database and
+// each flow leaves data that the next one can see. See e2e/README.md.
 const baseURL = process.env.E2E_BASE_URL ?? "http://localhost:3000";
 
 export default defineConfig({
@@ -24,7 +24,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  // Sin E2E_BASE_URL levanta la app ya compilada (npm run build antes).
+  // Without E2E_BASE_URL it starts the already compiled app (run npm run build first).
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {
@@ -32,7 +32,7 @@ export default defineConfig({
         url: `${baseURL}/api/health`,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
-        // SMTP a un puerto cerrado: los avisos por mail quedan en cola con su error.
+        // SMTP to a closed port: the email notices stay in the queue with their error.
         env: {
           SMTP_HOST: "127.0.0.1",
           SMTP_PORT: "1",

@@ -6,7 +6,7 @@ import { db } from "./db";
 
 type Client = Prisma.TransactionClient | typeof db;
 
-/** Pedidos, cobros y notas de crédito de un cliente, con el resumen de la cuenta. */
+/** A customer's orders, payments and credit notes, with the account summary. */
 export async function loadAccount(client: Client, customerId: string) {
   const [sales, payments, creditNotes] = await Promise.all([
     client.sale.findMany({
@@ -76,9 +76,9 @@ export async function loadAccount(client: Client, customerId: string) {
 }
 
 /**
- * Bloquea la cuenta del cliente hasta el fin de la transacción: cobros,
- * anulaciones y cambios de estado del mismo cliente se hacen de a uno, así
- * el saldo que se valida es el que queda.
+ * Locks the customer's account until the end of the transaction: payments,
+ * voids and status changes for the same customer are done one at a time, so
+ * the balance that is validated is the one that remains.
  */
 export async function lockAccount(
   tx: Prisma.TransactionClient,
@@ -90,9 +90,9 @@ export async function lockAccount(
 }
 
 /**
- * Recalcula el estado de pago de los pedidos del cliente (imputación al más
- * viejo) y lo guarda en `sales`, así las listas y filtros lo usan directo.
- * `paid_at` es cuándo quedó pagado; se borra si deja de estarlo.
+ * Recalculates the payment status of the customer's orders (allocation to the
+ * oldest) and saves it in `sales`, so the lists and filters use it directly.
+ * `paid_at` is when it became paid; it is cleared if it stops being paid.
  */
 export async function recomputeAccount(
   tx: Prisma.TransactionClient,
@@ -101,7 +101,7 @@ export async function recomputeAccount(
   const account = await loadAccount(tx, customerId);
   for (const sale of account.sales) {
     const allocation = account.summary.sales[sale.id];
-    // Los cancelados no reciben imputación: quedan como estaban.
+    // Canceled orders receive no allocation: they stay as they were.
     if (!allocation) continue;
     const paidAt =
       allocation.paymentState === "PAID" ? (sale.paidAt ?? new Date()) : null;
@@ -119,9 +119,9 @@ export async function recomputeAccount(
 }
 
 /**
- * Registra un cobro o reintegro (ya validado) con auditoría y recalcula la
- * cuenta. La cuenta tiene que estar bloqueada (`lockAccount`) por quien llama.
- * Lo usan la cuenta corriente, el detalle del pedido y la carga por parada.
+ * Records a payment or refund (already validated) with audit and recalculates the
+ * account. The account must be locked (`lockAccount`) by the caller.
+ * Used by the customer account, the order detail and the stop loading.
  */
 export async function createCustomerPayment(
   tx: Prisma.TransactionClient,

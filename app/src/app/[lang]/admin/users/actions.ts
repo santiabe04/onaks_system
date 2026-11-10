@@ -16,27 +16,27 @@ import { clearLoginFailures } from "@/lib/login-attempts";
 import { hashPassword } from "@/lib/password";
 import { generateTempPassword } from "@/lib/temp-password";
 
-// Cada acción verifica el permiso antes que nada: se pueden invocar con un POST
-// directo, sin pasar por la página ni por el proxy.
+// Each action checks the permission first of all: they can be invoked with a direct POST
+// without going through the page or the proxy.
 const PERMISSION = "users:manage";
 
-/** Resultado de las acciones de usuario. `password` se muestra una sola vez. */
+/** Result of the user actions. `password` is shown only once. */
 export type UserActionState = { password?: string; error?: string };
 
 function messages() {
   return getActionDictionary().users.errors;
 }
 
-/** Las pantallas que muestran usuarios: la de cada cliente y la de admins. */
+/** The screens that show users: each customer's and the admins'. */
 function revalidateUsers() {
   revalidatePath("/[lang]/admin/customers/[id]", "page");
   revalidatePath("/[lang]/admin/users", "page");
 }
 
-/** Error esperable: se muestra junto a los botones, sin romper la pantalla. */
+/** Expected error: shown next to the buttons, without breaking the screen. */
 class UserError extends Error {}
 
-/** Usuario vigente (de una persona vigente) para operar sobre él. */
+/** Active user (of an active person) to operate on. */
 async function findUser(tx: Prisma.TransactionClient, userId: string) {
   const user = await tx.user.findFirst({
     where: { id: userId, deletedAt: null, person: { deletedAt: null } },
@@ -60,9 +60,9 @@ async function run(
 }
 
 /**
- * Crea el usuario de una persona con una contraseña generada (que hay que
- * cambiar al entrar). El rol sale de la persona: con cliente es CLIENT, sin
- * cliente es ADMIN.
+ * Creates a person's user with a generated password (which must be
+ * changed on login). The role comes from the person: with a customer it is CLIENT, without
+ * a customer it is ADMIN.
  */
 export async function createUser(personId: string): Promise<UserActionState> {
   const admin = await requirePermission(PERMISSION);
@@ -91,7 +91,7 @@ export async function createUser(personId: string): Promise<UserActionState> {
           passwordMustChange: true,
         },
       });
-      // `audit` saca el hash del snapshot.
+      // `audit` strips the hash from the snapshot.
       await audit(tx, {
         action: "CREATE",
         actorUserId: admin.id,
@@ -105,13 +105,13 @@ export async function createUser(personId: string): Promise<UserActionState> {
 }
 
 /**
- * Contraseña nueva generada, con cambio obligatorio al entrar. Cierra sus
- * sesiones (session_version) y le saca un bloqueo de login si tenía.
+ * New generated password, with a forced change on login. Closes its
+ * sessions (session_version) and removes a login lock it had, if any.
  */
 export async function resetPassword(userId: string): Promise<UserActionState> {
   const admin = await requirePermission(PERMISSION);
   if (!isCuid(userId)) return { error: messages().invalid };
-  // La propia se cambia con "Cambiar contraseña", pidiendo la actual.
+  // Your own is changed with "Change password", asking for the current one.
   if (userId === admin.id) return { error: messages().self };
 
   return run(async () => {
@@ -139,14 +139,14 @@ export async function resetPassword(userId: string): Promise<UserActionState> {
   });
 }
 
-/** Desactivar cierra sus sesiones al instante; reactivar no toca la contraseña. */
+/** Deactivating closes its sessions instantly; reactivating does not touch the password. */
 export async function setUserActive(
   userId: string,
   active: boolean,
 ): Promise<UserActionState> {
   const admin = await requirePermission(PERMISSION);
   if (!isCuid(userId)) return { error: messages().invalid };
-  // Un admin no se desactiva a sí mismo (podría quedar el sistema sin admins).
+  // An admin does not deactivate themselves (the system could be left without admins).
   if (userId === admin.id) return { error: messages().self };
 
   return run(async () => {
@@ -172,7 +172,7 @@ export async function setUserActive(
   });
 }
 
-/** Libera un bloqueo de login por intentos fallidos antes de los 15 minutos. */
+/** Releases a login lock from failed attempts before the 15 minutes. */
 export async function unlockLogin(userId: string): Promise<UserActionState> {
   const admin = await requirePermission(PERMISSION);
   if (!isCuid(userId)) return { error: messages().invalid };
@@ -193,8 +193,8 @@ export async function unlockLogin(userId: string): Promise<UserActionState> {
   });
 }
 
-/** Estado del alta de admin: el form, o la contraseña generada si salió bien. */
-/** Roles de los usuarios internos (los clientes se crean desde su empresa). */
+/** Admin creation status: the form, or the generated password if it went well. */
+/** Roles of the internal users (customers are created from their company). */
 export type InternalRole = "ADMIN" | "DRIVER";
 
 export type AdminFormState = FormState<PersonValues> & {
@@ -204,8 +204,8 @@ export type AdminFormState = FormState<PersonValues> & {
 };
 
 /**
- * Alta de un usuario interno: persona sin cliente + usuario Admin o
- * Repartidor con contraseña generada.
+ * Creation of an internal user: a person without a customer + an Admin or
+ * Driver user with a generated password.
  */
 export async function createAdmin(
   _prev: AdminFormState,

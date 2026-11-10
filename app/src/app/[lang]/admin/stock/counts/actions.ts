@@ -20,21 +20,21 @@ import {
 } from "@/lib/stock-count";
 import { recordStockCorrection, StockLedgerError } from "@/lib/stock-ledger";
 
-// Conteo de inventario: se abre por depósito (uno abierto a la vez), se carga
-// escaneando (a ciegas: lo que se ve es lo contado, no el saldo) y un admin lo
-// aprueba. Los escaneos son borrador hasta aprobar: al aprobar, cada
-// diferencia (contado − saldo al primer escaneo) se asienta como un ajuste y
-// todo queda en la auditoría. Contar: `stock:count`; aprobar y descartar:
+// Inventory count: it is opened per warehouse (one open at a time), entered
+// by scanning (blind: what is shown is the counted quantity, not the balance), and an admin
+// approves it. The scans are a draft until approved: on approval, each
+// difference (counted − balance at the first scan) is recorded as an adjustment and
+// everything is kept in the audit log. Counting: `stock:count`; approving and discarding: `stock:manage`.
 // `stock:manage`.
 const ENTITY = "STOCK_COUNT";
 
 export type CountActionState = {
   error?: string;
-  /** Último producto cargado, con lo que lleva contado. */
+  /** Last product loaded, with what has been counted so far. */
   added?: { name: string; counted: string; unit: string };
 };
 
-/** Corta la transacción con un mensaje para quien cuenta. */
+/** Aborts the transaction with a message for whoever is counting. */
 class CountError extends Error {}
 
 function messages() {
@@ -56,7 +56,7 @@ async function run<T>(
   }
 }
 
-/** Bloquea un conteo abierto (así un escaneo no pisa una aprobación). */
+/** Locks an open count (so a scan does not overwrite an approval). */
 async function lockOpenCount(
   tx: Prisma.TransactionClient,
   countId: string,
@@ -73,7 +73,7 @@ async function lockOpenCount(
   return row;
 }
 
-/** Abre el conteo de un depósito y entra a cargarlo. */
+/** Opens a warehouse's count and goes in to load it. */
 export async function createStockCount(
   _prev: CountActionState,
   formData: FormData,
@@ -116,7 +116,7 @@ export async function createStockCount(
       return count.number;
     }),
   ).catch((error: unknown) => {
-    // Dos conteos abiertos a la vez: lo frena el índice único parcial.
+    // Two open counts at once: stopped by the partial unique index.
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
@@ -130,7 +130,7 @@ export async function createStockCount(
   redirect(`/admin/stock/counts/${result.value}`);
 }
 
-/** Carga un escaneo: suma (o fija) lo contado de un producto por código de barras o SKU. */
+/** Loads a scan: adds (or sets) the counted quantity of a product by barcode or SKU. */
 export async function scanCountEntry(
   countId: string,
   _prev: CountActionState,
@@ -198,7 +198,7 @@ export async function scanCountEntry(
           data: { counted },
         });
       } else {
-        // El saldo del sistema en este primer escaneo: la diferencia se mide contra él.
+        // The system balance at this first scan: the difference is measured against it.
         const stock = await tx.productStock.findUnique({
           where: {
             productId_warehouseId: {
@@ -229,7 +229,7 @@ export async function scanCountEntry(
   return { added: result.value };
 }
 
-/** Quita un producto del conteo (se contó mal o no corresponde ajustarlo). */
+/** Removes a product from the count (it was counted wrong or should not be adjusted). */
 export async function removeCountEntry(
   countId: string,
   productId: string,
@@ -248,7 +248,7 @@ export async function removeCountEntry(
   revalidateCounts();
 }
 
-/** Descarta el conteo: no mueve stock. */
+/** Discards the count: it does not move stock. */
 export async function cancelStockCount(
   countId: string,
 ): Promise<CountActionState> {
@@ -276,9 +276,9 @@ export async function cancelStockCount(
 }
 
 /**
- * Aprueba el conteo: cada diferencia se asienta como un ajuste de stock (todo
- * o nada). La diferencia es contado − saldo al primer escaneo, así lo que se
- * vendió o recibió mientras se contaba no se pisa.
+ * Approves the count: each difference is recorded as a stock adjustment (all
+ * or nothing). The difference is counted − balance at the first scan, so what
+ * was sold or received while counting is not overwritten.
  */
 export async function approveStockCount(
   countId: string,
@@ -295,7 +295,7 @@ export async function approveStockCount(
         });
         if (items.length === 0) throw new CountError(t.empty);
         const applied: { productId: string; difference: string }[] = [];
-        // Siempre en el mismo orden (por producto): los bloqueos no se cruzan.
+        // Always in the same order (by product): locks do not cross.
         for (const item of items) {
           const difference = countDifference(
             item.counted.toString(),
@@ -308,7 +308,7 @@ export async function approveStockCount(
                 {
                   productId: item.productId,
                   warehouseId: count.warehouseId,
-                  // "Faltante" con signo: un sobrante entra como faltante negativo.
+                  // "Shortage" with a sign: a surplus enters as a negative shortage.
                   missing: fromMilli(-toMilli(difference)),
                 },
                 `Conteo #${count.number}`,
@@ -349,7 +349,7 @@ export async function approveStockCount(
           after: { state: after.state, adjustments: applied },
         });
       },
-      // Muchos productos con su movimiento y auditoría: más que el timeout por defecto.
+      // Many products with their movement and audit: more than the default timeout.
       { timeout: 60_000 },
     ),
   );

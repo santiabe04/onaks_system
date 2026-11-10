@@ -35,7 +35,7 @@ export default async function CustomerAccountPage({
 
   return (
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
-      {/* params y la cuenta son de request: van en Suspense. */}
+      {/* params and the account are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -50,7 +50,7 @@ type Movement = {
   day: string;
   concept: string;
   href?: string;
-  /** Centavos: positivo suma deuda, negativo la baja. 0 si está anulado. */
+  /** Cents: positive adds debt, negative lowers it. 0 if voided. */
   amount: bigint;
   detail?: string;
   voided?: string;
@@ -71,7 +71,7 @@ async function Account({ params }: { params: Promise<{ id: string }> }) {
   });
   if (!customer) notFound();
 
-  // La fecha de hoy para el form es la del request.
+  // Today's date for the form is the one from the request.
   await connection();
   const today = isoDay(new Date());
   const { sales, payments, creditNotes, summary } = await loadAccount(
@@ -83,7 +83,7 @@ async function Account({ params }: { params: Promise<{ id: string }> }) {
   const day = (value: string) =>
     format.date(new Date(`${value}T12:00:00-03:00`));
 
-  // Los pedidos entregados son deuda; cobros y reintegros la mueven.
+  // Delivered orders are debt; payments and refunds move it.
   const movements: Movement[] = [
     ...sales
       .filter((sale) => isCharged(sale.state))
@@ -151,7 +151,7 @@ async function Account({ params }: { params: Promise<{ id: string }> }) {
     }),
   ].sort((a, b) => a.day.localeCompare(b.day));
 
-  // Saldo acumulado fila por fila.
+  // Running balance row by row.
   const rows = movements.reduce<(Movement & { balance: bigint })[]>(
     (acc, movement) => [
       ...acc,

@@ -12,8 +12,8 @@ import {
 } from "./login-throttle";
 
 /**
- * Bloqueo vigente para este mail (e IP), o null. Solo cuentan los fallos
- * posteriores al último login correcto de ese mail.
+ * Current lock for this email (and IP), or null. Only the failures
+ * after that email's last successful login count.
  */
 export async function getLoginLock(
   mail: string,
@@ -49,7 +49,7 @@ export async function getLoginLock(
   );
 }
 
-/** Fallos que cuentan para el bloqueo: dentro de la ventana y después del último login correcto. */
+/** Failures that count toward the lock: within the window and after the last successful login. */
 async function recentFailuresWhere(
   mails: string[],
   now: Date,
@@ -75,8 +75,8 @@ async function recentFailuresWhere(
 }
 
 /**
- * Para el admin: qué mails están bloqueados ahora y hasta cuándo, desde
- * cualquier IP. Los que no figuran, no están bloqueados.
+ * For the admin: which emails are locked now and until when, from
+ * any IP. Those not listed are not locked.
  */
 export async function getLockedMails(
   mails: string[],
@@ -99,8 +99,8 @@ export async function getLockedMails(
 }
 
 /**
- * Libera el bloqueo de un mail: borra sus fallos recientes. `login_attempts`
- * es solo un contador de trabajo; el historial queda en la auditoría.
+ * Releases an email's lock: deletes its recent failures. `login_attempts`
+ * is only a working counter; the history stays in the audit log.
  */
 export async function clearLoginFailures(
   tx: Prisma.TransactionClient,

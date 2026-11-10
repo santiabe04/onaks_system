@@ -20,22 +20,22 @@ import {
   type PaymentFormState,
 } from "@/lib/payment-form";
 
-// Cobros y reintegros de la cuenta corriente. Mismo permiso que gestionar
-// pedidos: el admin que entrega es el que cobra.
+// Payments and refunds of the customer account. Same permission as managing
+// orders: the admin who delivers is the one who collects.
 const PERMISSION = "sales:manage";
 const ENTITY = "CUSTOMER_PAYMENT";
 
-/** Corta la transacción con un mensaje para el form. */
+/** Aborts the transaction with a message for the form. */
 class AccountError extends Error {}
 
 function revalidateAccount() {
-  // Cuenta, detalle de pedidos, listas (estado de pago) y "Mis pedidos".
+  // Account, order detail, lists (payment status) and "My orders".
   revalidatePath("/[lang]", "layout");
 }
 
 /**
- * Registra un cobro o un reintegro del cliente y recalcula el estado de pago
- * de sus pedidos. `saleId` es el pedido desde el que se cargó (referencia).
+ * Records a payment or refund from the customer and recalculates the payment status
+ * of their orders. `saleId` is the order it was entered from (reference).
  */
 export async function registerPayment(
   customerId: string,
@@ -59,7 +59,7 @@ export async function registerPayment(
         throw new AccountError(t.notFound);
       }
       if (input.kind === "REFUND") {
-        // Solo se devuelve lo que el cliente tiene a favor.
+        // Only what the customer has in credit is returned.
         const { summary } = await recomputeAccount(tx, customerId);
         const max = maxRefund(summary.balance);
         if (toCents(input.amount) > toCents(max)) {
@@ -87,7 +87,7 @@ export async function registerPayment(
   return { savedAt: Date.now() };
 }
 
-/** Anula un cobro o reintegro mal cargado (queda en el historial, deja de sumar). */
+/** Voids a badly entered payment or refund (it stays in the history and stops counting). */
 export async function voidPayment(
   paymentId: string,
   _prev: { error?: string },
@@ -109,7 +109,7 @@ export async function voidPayment(
       if (!current) throw new AccountError(t.notFound);
       await lockAccount(tx, current.customerId);
 
-      // Releída con la cuenta bloqueada: dos anulaciones a la vez no pasan.
+      // Re-read with the account locked: two voids at once do not pass.
       const before = await tx.customerPayment.findUniqueOrThrow({
         where: { id: paymentId },
       });

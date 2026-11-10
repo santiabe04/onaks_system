@@ -3,16 +3,16 @@ import { flattenCategoryTree } from "@/lib/category";
 import { db } from "@/lib/db";
 
 export type ProductFormOptions = {
-  /** Solo categorías finales, con la ruta completa como etiqueta. */
+  /** Only leaf categories, with the full path as the label. */
   categories: { id: number; label: string }[];
   units: { id: number; label: string }[];
-  /** `rate` como string para calcular el precio final en el form. */
+  /** `rate` as a string to calculate the final price in the form. */
   taxRates: { id: number; label: string; rate: string }[];
 };
 
 /**
- * Opciones de los selects. Las alícuotas inactivas no se ofrecen, salvo la que
- * el producto ya tiene (si no, al editarlo se perdería sin aviso).
+ * Options for the selects. Inactive tax rates are not offered, except the one
+ * the product already has (otherwise editing it would silently lose it).
  */
 export async function getProductFormOptions(
   currentTaxRateId?: number,

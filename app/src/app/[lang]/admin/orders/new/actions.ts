@@ -17,14 +17,14 @@ import { enqueueOrderNotice } from "@/lib/order-notice-ledger";
 import { isCuid } from "@/lib/ids";
 import { getPricing } from "@/lib/pricing-queries";
 
-// Pedido cargado por el admin en nombre de un cliente: queda Pendiente, con
-// el admin como quien lo hizo, los precios del cliente (su lista y su
-// descuento) del momento y efectivo. Mismo
-// orden de bloqueo que el checkout: la cuenta del cliente primero.
+// Order entered by the admin on behalf of a customer: it is Pending, with
+// the admin as the one who did it, the customer's prices (their list and their
+// discount) at that time, and cash. Same
+// lock order as checkout: the customer's account first.
 
 export type NewOrderState = { error?: string };
 
-/** Corta la transacción con un mensaje para el admin. */
+/** Aborts the transaction with a message for the admin. */
 class NewOrderError extends Error {}
 
 export async function createOrderForCustomer(
@@ -34,7 +34,7 @@ export async function createOrderForCustomer(
   const user = await requirePermission("sales:manage");
   const t = getActionDictionary().adminOrderNew.errors;
 
-  // Solo productos que se pueden vender ahora (activos y vigentes).
+  // Only products that can be sold now (active and current).
   const productIds = [...formData.keys()]
     .filter((key) => key.startsWith("qty_"))
     .map((key) => key.slice(4))
@@ -135,16 +135,16 @@ export async function createOrderForCustomer(
         after: sale,
         metadata: { placedForCustomer: customerId },
       });
-      // Un saldo a favor puede dejarlo ya pagado.
+      // A credit balance can leave it already paid.
       const account = await recomputeAccount(tx, customerId);
-      // Igual que en la tienda: si no le da el crédito, queda para aprobar.
+      // Same as in the shop: if it does not get the credit, it is held for approval.
       await applyCreditCheck(tx, {
         saleId: sale.id,
         customerId,
         account,
         userId: user.id,
       });
-      // Confirmado: aviso por mail a la persona de la empresa que corresponda.
+      // Confirmed: email notice to the appropriate person of the company.
       await enqueueOrderNotice(tx, sale, "PENDING");
       return sale.number;
     });

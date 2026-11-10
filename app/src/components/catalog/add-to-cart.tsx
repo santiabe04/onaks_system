@@ -12,11 +12,11 @@ type Props = {
   unitName: string;
   allowsDecimals: boolean;
   t: Dictionary["cart"];
-  /** Más compacto para las tarjetas del catálogo. */
+  /** More compact for the catalog cards. */
   compact?: boolean;
 };
 
-/** Cantidad + "Agregar". Con unidades enteras ("u") el input no acepta decimales. */
+/** Quantity + "Add". With whole units ("u") the input does not accept decimals. */
 export function AddToCart({
   productId,
   unitName,
@@ -31,12 +31,12 @@ export function AddToCart({
 
   return (
     <form action={action} className="flex flex-col gap-1">
-      {/* En tarjetas angostas el botón baja a su propia línea y la ocupa entera. */}
+      {/* On narrow cards the button drops to its own line and takes the full width. */}
       <div className="flex flex-wrap items-center gap-2">
         <label className="flex items-center gap-1 text-sm">
           <span className="sr-only">{t.quantity}</span>
           <input
-            // key: después de agregar, vuelve a 1.
+            // key: after adding, it goes back to 1.
             key={state.savedAt ?? 0}
             name="quantity"
             type="number"

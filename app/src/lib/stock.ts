@@ -5,9 +5,9 @@ import { parseDecimalInput } from "./decimal-input";
 import { isCuid } from "./ids";
 import { fromMilli, QUANTITY_LIMITS, toMilli } from "./quantity";
 
-// Puro: validación de movimientos manuales de stock y cálculo de sus patas.
+// Pure: validation of manual stock movements and calculation of their legs.
 
-/** Lo que se elige en el form; la transferencia genera dos movimientos (OUT/IN). */
+/** What is chosen in the form; the transfer generates two movements (OUT/IN). */
 export const MANUAL_MOVEMENTS = [
   "ENTRY",
   "ADJUSTMENT",
@@ -18,7 +18,7 @@ export type ManualMovement = (typeof MANUAL_MOVEMENTS)[number];
 
 export const STOCK_COMMENT_MAX_LENGTH = 200;
 
-/** Ajustes y bajas tienen que explicar el porqué. */
+/** Adjustments and write-offs have to explain why. */
 export function commentRequired(type: ManualMovement): boolean {
   return type === "ADJUSTMENT" || type === "WRITE_OFF";
 }
@@ -32,7 +32,7 @@ export type MovementValues = {
   toWarehouseId: string;
   quantity: string;
   comment: string;
-  /** Lote y vencimiento de un ingreso de un producto que controla vencimiento. */
+  /** Lot and expiry of an entry of a product that tracks expiry. */
   lotCode: string;
   expiresOn: string;
 };
@@ -47,10 +47,10 @@ export type MovementInput = {
   productId: string;
   warehouseId: string;
   toWarehouseId: string | null;
-  /** Cantidad positiva; en un ajuste, lo contado (puede ser 0). */
+  /** Positive quantity; in an adjustment, what was counted (it can be 0). */
   quantity: string;
   comment: string | null;
-  /** Solo en un ingreso; el libro lo exige si el producto controla vencimiento. */
+  /** Only on an entry; the ledger requires it if the product tracks expiry. */
   lot?: { code: string; expiresOn: string } | null;
 };
 
@@ -91,8 +91,8 @@ export function validateMovementForm(
     })
     .transform((data, ctx) => {
       const quantity = parseDecimalInput(data.quantity, QUANTITY_LIMITS);
-      // En un ajuste se carga lo contado, que puede ser 0; el resto mueve al
-      // menos una milésima.
+      // In an adjustment the counted amount is entered, which can be 0; the rest moves at
+      // least one thousandth.
       const minimumMilli = BigInt(data.type === "ADJUSTMENT" ? 0 : 1);
       if (quantity === null || toMilli(quantity) < minimumMilli) {
         ctx.addIssue({
@@ -116,7 +116,7 @@ export function validateMovementForm(
           message: t.sameWarehouse,
         });
       }
-      // Lote y fecha van juntos, y solo en un ingreso.
+      // Lot and date go together, and only on an entry.
       const lotCode = normalizeLotCode(data.lotCode);
       const expiresOn = data.expiresOn.trim();
       const withLot = data.type === "ENTRY" && (lotCode || expiresOn);
@@ -163,14 +163,14 @@ export function validateMovementForm(
 export type MovementLeg = {
   warehouseId: string;
   type: "ENTRY" | "ADJUSTMENT" | "WRITE_OFF" | "TRANSFER_OUT" | "TRANSFER_IN";
-  /** Variación con signo. */
+  /** Signed change. */
   quantity: string;
   balanceAfter: string;
 };
 
 /**
- * Las patas a registrar, a partir de los saldos actuales (ya bloqueados).
- * null si un ajuste no cambia nada (lo contado coincide con el saldo).
+ * The legs to record, from the current balances (already locked).
+ * null if an adjustment changes nothing (what was counted matches the balance).
  */
 export function planMovement(
   input: MovementInput,

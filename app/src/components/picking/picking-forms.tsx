@@ -30,8 +30,8 @@ const CONTROL = "rounded border border-current/20 bg-transparent px-2 py-1";
 const SELECT = "rounded border border-current/20 bg-transparent px-3 py-2";
 
 /**
- * Armar una lista de picking con los pedidos tildados en la tabla (las
- * casillas son del form de la barra masiva: se copian al enviar).
+ * Builds a picking list with the orders ticked in the table (the
+ * checkboxes belong to the bulk bar's form: they are copied on submit).
  */
 export function PickingFromSelection({
   warehouses,
@@ -103,15 +103,15 @@ export type ConfirmLine = {
   name: string;
   unit: string;
   allowsDecimals: boolean;
-  /** Lo pedido como decimal ("3", "2.5") y formateado para el input. */
+  /** What was ordered as a decimal ("3", "2.5") and formatted for the input. */
   quantity: string;
   quantityInput: string;
   quantityLabel: string;
 };
 
 /**
- * Lo preparado por pedido y producto (se precarga lo pedido). Si falta algo,
- * aparece el motivo.
+ * What was prepared per order and product (what was ordered is pre-filled). If something is
+ * missing, the reason appears.
  */
 export function ConfirmPickingForm({
   listId,
@@ -219,7 +219,7 @@ export function ConfirmPickingForm({
   );
 }
 
-/** Ubicación de un producto en un depósito, editable en el lugar. */
+/** A product's location in a warehouse, editable in place. */
 export function LocationForm({
   productId,
   warehouseId,

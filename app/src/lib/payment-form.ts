@@ -4,7 +4,7 @@ import type { Dictionary } from "@/i18n/dictionaries/es";
 import { parseDecimalInput } from "./decimal-input";
 import { isoDay } from "./order-period";
 
-// Puro: los formularios de cobro / reintegro y de anulación.
+// Pure: the payment / refund and void forms.
 
 export const PAYMENT_NOTES_MAX_LENGTH = 200;
 const MONEY_LIMITS = { maxDecimals: 2, maxIntegerDigits: 10 };
@@ -21,7 +21,7 @@ export type PaymentValues = {
 
 export type PaymentInput = {
   kind: CustomerPaymentKind;
-  /** "1234.5" (sin separador de miles). */
+  /** "1234.5" (without a thousands separator). */
   amount: string;
   method: PaymentMethod;
   /** YYYY-MM-DD. */
@@ -44,7 +44,7 @@ function oneOf<T extends string>(values: Record<string, T>, raw: string) {
   return (Object.values(values) as string[]).includes(raw) ? (raw as T) : null;
 }
 
-/** `today` es el día de Argentina (YYYY-MM-DD): no se cargan cobros a futuro. */
+/** `today` is the Argentina day (YYYY-MM-DD): no future payments are loaded. */
 export function validatePaymentForm(
   formData: FormData,
   t: Messages,
@@ -92,7 +92,7 @@ export function validatePaymentForm(
   };
 }
 
-/** Motivo obligatorio para anular un cobro. */
+/** Mandatory reason to void a payment. */
 export function validateVoidReason(
   formData: FormData,
   t: Messages,

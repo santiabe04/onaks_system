@@ -10,9 +10,9 @@ import {
   type TransferSettingsFormState,
 } from "@/lib/transfer";
 
-// Los datos de cobro son una sola fila (id 1): guardar crea o reemplaza.
+// The payment details are a single row (id 1): saving creates or replaces it.
 
-/** Guarda los datos de cobro por transferencia y los audita (antes y después). */
+/** Saves the transfer payment details and audits them (before and after). */
 export async function saveTransferSettings(
   _prev: TransferSettingsFormState,
   formData: FormData,
@@ -42,7 +42,7 @@ export async function saveTransferSettings(
     });
   });
 
-  // Checkout y detalle de pedidos muestran estos datos.
+  // Checkout and order detail show this data.
   revalidatePath("/[lang]", "layout");
   return { savedAt: Date.now(), values: result.values };
 }

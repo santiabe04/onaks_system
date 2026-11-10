@@ -14,8 +14,8 @@ import { StockLedgerError } from "@/lib/stock-ledger";
 export type ReturnFormState = { error?: string };
 
 /**
- * Registra la devolución de un pedido entregado (ver `createReturn`): crea la
- * nota de crédito, mueve el stock y baja la deuda del cliente.
+ * Records the return of a delivered order (see `createReturn`): creates the
+ * credit note, moves the stock and lowers the customer's debt.
  */
 export async function registerReturn(
   saleId: string,
@@ -26,7 +26,7 @@ export async function registerReturn(
   const t = getActionDictionary().customerCreditNotes.errors;
   if (!isCuid(saleId)) return { error: t.notFound };
 
-  // Para validar el form; `createReturn` lo vuelve a controlar con la cuenta bloqueada.
+  // To validate the form; `createReturn` checks it again with the account locked.
   const sale = await returnableLines(db, saleId);
   if (!sale) return { error: t.notFound };
   const parsed = parseReturn(formData, sale.lines, t);
@@ -45,7 +45,7 @@ export async function registerReturn(
     throw error;
   }
 
-  // Detalle del pedido, cuenta corriente, stock, deudores y "Mis pedidos".
+  // Order detail, customer account, stock, debtors and "My orders".
   revalidatePath("/[lang]", "layout");
   redirect(`/admin/orders/${number}`);
 }

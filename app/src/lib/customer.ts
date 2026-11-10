@@ -7,7 +7,7 @@ import { parseDecimalInput, PRICE_LIMITS } from "./decimal-input";
 import { isCuid } from "./ids";
 import { discountToFraction } from "./price-list";
 
-// Puro: validación de clientes, sus personas y sus direcciones de entrega.
+// Pure: validation of customers, their people and their delivery addresses.
 
 export const CUSTOMER_LIMITS = {
   tradeName: 120,
@@ -32,12 +32,12 @@ function text(t: Messages, max: number) {
   return z.string().trim().max(max, interpolate(t.tooLong, { max }));
 }
 
-/** Opcional: vacío se guarda como null, no como "". */
+/** Optional: empty is stored as null, not as "". */
 function optional(t: Messages, max: number) {
   return text(t, max).transform((value) => value || null);
 }
 
-/** Errores por campo + lo cargado, para volver a mostrar el form. */
+/** Field errors + what was loaded, to show the form again. */
 export type FormState<V> = {
   errors?: Partial<Record<keyof V | "form", string[]>>;
   values?: V;
@@ -62,20 +62,20 @@ function validate<I, V extends Record<string, unknown>>(
   };
 }
 
-// --- Cliente ---
+// --- Customer ---
 
 export type CustomerValues = {
   tradeName: string;
   legalName: string;
   cuit: string;
   taxCondition: string;
-  /** "" = sin lista (precio base). */
+  /** "" = no list (base price). */
   priceListId: string;
-  /** Porcentaje como lo tipeó ("5" o "2,5"). */
+  /** Percentage as typed ("5" or "2,5"). */
   discount: string;
-  /** Monto como lo tipeó; "" = sin límite. */
+  /** Amount as typed; "" = no limit. */
   creditLimit: string;
-  /** Días; "" = sin control de deuda vencida. */
+  /** Days; "" = no overdue debt control. */
   paymentTermDays: string;
 };
 
@@ -115,13 +115,13 @@ export function validateCustomerForm(
           1,
           t.legalNameRequired,
         ),
-        // Se guarda sin guiones: "30-50001091-2" → "30500010912".
+        // Stored without dashes: "30-50001091-2" → "30500010912".
         cuit: z
           .string()
           .transform(normalizeCuit)
           .refine(isValidCuit, t.cuitInvalid),
         taxCondition: z.enum(TaxCondition, { message: t.taxConditionRequired }),
-        // Que exista se controla con la FK al guardar.
+        // That it exists is checked by the FK on save.
         priceListId: z
           .string()
           .refine((id) => id === "" || isCuid(id), t.priceListInvalid)
@@ -147,7 +147,7 @@ export function validateCustomerForm(
           return z.NEVER;
         }),
       })
-      // El form dice `discount` (porcentaje); la columna, `discountRate` (fracción).
+      // The form says `discount` (percentage); the column, `discountRate` (fraction).
       .transform(({ discount, ...data }) => ({
         ...data,
         discountRate: discount,
@@ -156,7 +156,7 @@ export function validateCustomerForm(
   );
 }
 
-// --- Persona ---
+// --- Person ---
 
 export type PersonValues = {
   name: string;
@@ -186,7 +186,7 @@ export function validatePersonForm(
     z.object({
       name: text(t, CUSTOMER_LIMITS.personName).min(1, t.nameRequired),
       surname: text(t, CUSTOMER_LIMITS.personName).min(1, t.surnameRequired),
-      // El mail es el usuario para entrar: único y en minúsculas.
+      // The email is the login: unique and in lowercase.
       mail: z
         .string()
         .trim()
@@ -199,7 +199,7 @@ export function validatePersonForm(
   );
 }
 
-// --- Dirección de entrega ---
+// --- Delivery address ---
 
 export type AddressValues = {
   name: string;

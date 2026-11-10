@@ -29,7 +29,7 @@ type Common = {
 
 const selectClass = "rounded border border-current/20 bg-transparent px-3 py-2";
 
-/** Botones y error general, iguales en los tres forms. */
+/** Buttons and general error, the same in the three forms. */
 function Footer({
   pending,
   errors,
@@ -86,7 +86,7 @@ export function CustomerForm({
 }) {
   const { t } = props;
   const [state, formAction, pending] = useActionState(action, {});
-  // Si hubo error, se muestra lo último que cargó el usuario.
+  // If there was an error, the user's last input is shown.
   const values = state.values ?? defaultValues;
   const errors = state.errors;
 
@@ -123,7 +123,7 @@ export function CustomerForm({
           />
         </Field>
         <Field label={t.taxCondition} error={errors?.taxCondition}>
-          {/* key: al volver con error, el select toma el valor nuevo. */}
+          {/* key: when returning with an error, the select takes the new value. */}
           <select
             key={`tc${values.taxCondition}`}
             name="taxCondition"

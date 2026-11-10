@@ -15,16 +15,16 @@ import {
   type WarehouseValues,
 } from "@/lib/warehouse";
 
-// Cada acción verifica el permiso antes que nada: se pueden invocar con un POST
-// directo, sin pasar por la página ni por el proxy.
+// Each action checks the permission first of all: they can be invoked with a direct POST
+// without going through the page or the proxy.
 const PERMISSION = "warehouses:manage";
 const ENTITY = "WAREHOUSE";
 
 const LIST_PATH = "/admin/warehouses";
-// revalidatePath usa la ruta interna: así cubre los dos idiomas.
+// revalidatePath uses the internal route: this way it covers both languages.
 const LIST_ROUTE = "/[lang]/admin/warehouses";
 
-/** Se intentó desactivar un depósito que todavía tiene stock. */
+/** An attempt was made to deactivate a warehouse that still has stock. */
 class HasStockError extends Error {}
 
 function messages() {
@@ -37,7 +37,7 @@ function prismaErrorCode(error: unknown): string | undefined {
     : undefined;
 }
 
-/** Errores conocidos de Prisma → estado del form; el resto se relanza. */
+/** Known Prisma errors → form state; the rest is rethrown. */
 function formError(
   error: unknown,
   values: WarehouseValues,
@@ -48,7 +48,7 @@ function formError(
   }
   const code = prismaErrorCode(error);
   if (code === "P2002") return { errors: { name: [t.duplicate] }, values };
-  // P2003: la localidad elegida no existe (FK).
+  // P2003: the chosen city does not exist (FK).
   if (code === "P2003") return { errors: { cityId: [t.cityNotFound] }, values };
   if (code === "P2025") return { errors: { form: [t.notFound] }, values };
   throw error;
@@ -91,7 +91,7 @@ export async function updateWarehouse(
 ): Promise<WarehouseFormState> {
   const user = await requirePermission(PERMISSION);
 
-  // El id viene bindeado desde el cliente: no confiar en el tipo.
+  // The id is bound from the client: do not trust the type.
   if (!isCuid(id)) {
     return { errors: { form: [messages().invalid] } };
   }
@@ -101,13 +101,13 @@ export async function updateWarehouse(
 
   try {
     await db.$transaction(async (tx) => {
-      // FOR UPDATE: espera a los movimientos en curso (que toman la fila FOR
-      // SHARE), así el chequeo de stock no queda viejo antes de desactivar.
+      // FOR UPDATE: waits for the movements in progress (which take the row FOR
+      // SHARE), so the stock check does not go stale before deactivating.
       await tx.$queryRaw`SELECT "id" FROM "warehouses" WHERE "id" = ${id} FOR UPDATE`;
-      // findUniqueOrThrow tira P2025 si ya no existe, igual que el update.
+      // findUniqueOrThrow throws P2025 if it no longer exists, just like the update.
       const before = await tx.warehouse.findUniqueOrThrow({ where: { id } });
       if (before.isActive && !result.data.isActive) {
-        // Solo se desactiva sin stock (ni positivo ni negativo).
+        // Only deactivated when there is no stock (neither positive nor negative).
         const withStock = await tx.productStock.count({
           where: { warehouseId: id, quantity: { not: 0 } },
         });
@@ -135,8 +135,8 @@ export async function updateWarehouse(
 }
 
 /**
- * Solo se puede borrar un depósito sin uso. Cuando existan los movimientos de
- * stock (PR 1.4), su FK lo impide y se ofrece desactivarlo.
+ * A warehouse can only be deleted if it is unused. Once stock movements exist (PR 1.4),
+ * their FK prevents it and deactivating is offered instead.
  */
 export async function deleteWarehouse(id: string): Promise<DeleteState> {
   const user = await requirePermission(PERMISSION);
@@ -160,7 +160,7 @@ export async function deleteWarehouse(id: string): Promise<DeleteState> {
   } catch (error) {
     const code = prismaErrorCode(error);
     if (code === "P2003") return { error: t.inUse };
-    // P2025: ya estaba borrado; alcanza con refrescar la lista.
+    // P2025: it was already deleted; refreshing the list is enough.
     if (code !== "P2025") throw error;
   }
 

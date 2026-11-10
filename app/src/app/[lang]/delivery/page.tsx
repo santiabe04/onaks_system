@@ -19,7 +19,7 @@ export default async function DeliveryPage() {
   return (
     <main className="mx-auto w-full max-w-3xl p-4">
       <h1 className="text-2xl font-semibold">{t.delivery.title}</h1>
-      {/* Las hojas salen de la DB en cada request: van en Suspense. */}
+      {/* The sheets come from the DB on every request: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -33,7 +33,7 @@ async function Deliveries() {
   const user = await getUserWithPermission("routes:deliver");
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
-  // El repartidor ve sus hojas; un admin, todas las que están en reparto.
+  // The driver sees their sheets; an admin, all the ones on the road.
   const sheets = await getDeliverySheets({
     id: user.id,
     canManage: can(user.role, "routes:manage"),
@@ -55,7 +55,7 @@ async function Deliveries() {
             </span>
             <span className="block text-sm opacity-70">
               {format.date(
-                // `date` es un día sin hora: se muestra ese mismo día.
+                // `date` is a day without time: it is shown on that same day.
                 new Date(
                   `${sheet.date.toISOString().slice(0, 10)}T12:00:00-03:00`,
                 ),

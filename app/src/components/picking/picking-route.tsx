@@ -4,8 +4,8 @@ import type { formatters } from "@/i18n/format";
 import { type PickingLine, pickingRoute } from "@/lib/picking";
 
 /**
- * El recorrido por el depósito: un renglón por producto (por ubicación), con
- * el total y de qué pedidos sale. En papel lleva una casilla para tildar.
+ * The route through the warehouse: one line per product (by location), with
+ * the total and which orders it comes from. On paper it has a checkbox to tick.
  */
 export function PickingRoute({
   lines,
@@ -18,7 +18,7 @@ export function PickingRoute({
   t: Dictionary["picking"];
   format: ReturnType<typeof formatters>;
   checkboxes?: boolean;
-  /** De qué lotes sale cada producto (ya sumado entre pedidos). */
+  /** Which lots each product comes from (already summed across orders). */
   lots?: Map<string, { code: string; expiresOn: string; quantity: string }[]>;
 }) {
   const c = t.columns;

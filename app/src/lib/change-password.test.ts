@@ -36,7 +36,7 @@ describe("validateChangePasswordForm", () => {
   });
 
   it("rechaza más de 72 bytes, el límite de bcrypt", () => {
-    // 37 caracteres de 2 bytes = 74 bytes.
+    // 37 characters of 2 bytes = 74 bytes.
     const long = "ñ".repeat(37);
     const result = validateChangePasswordForm(
       form({ ...valid, newPassword: long, confirmPassword: long }),

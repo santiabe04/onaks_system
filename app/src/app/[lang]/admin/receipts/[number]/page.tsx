@@ -37,7 +37,7 @@ export default async function ReceiptPage({
       <Link href="/admin/receipts" className="text-sm hover:underline">
         ← {t.receipts.title}
       </Link>
-      {/* params y el informe son de request: van en Suspense. */}
+      {/* params and the report are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >

@@ -2,17 +2,17 @@ import { jwtVerify, SignJWT } from "jose";
 import { z } from "zod";
 import { UserType } from "@/generated/prisma/enums";
 
-// Sin "server-only" ni Prisma: lo importa también el proxy y los tests.
+// Without "server-only" or Prisma: the proxy and the tests also import it.
 
 export const SESSION_COOKIE = "onaks_session";
-/** Vida de la sesión, en segundos (7 días). */
+/** Session lifetime, in seconds (7 days). */
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
 
 export type SessionPayload = {
   userId: string;
   role: UserType;
   mustChangePassword: boolean;
-  /** Copia de `users.session_version`: si no coincide, la sesión fue revocada. */
+  /** Copy of `users.session_version`: if it does not match, the session was revoked. */
   sessionVersion: number;
 };
 
@@ -22,11 +22,11 @@ const claimsSchema = z.object({
   sub: z.string().min(1),
   role: z.enum(UserType),
   mustChangePassword: z.boolean(),
-  // Tokens emitidos antes de que existiera: valen como versión 0.
+  // Tokens issued before it existed: they are valid as version 0.
   sv: z.number().int().nonnegative().default(0),
 });
 
-// Se lee al usarla, no al importar: `next build` corre sin SESSION_SECRET.
+// Read when used, not when imported: `next build` runs without SESSION_SECRET.
 function getKey() {
   const secret = process.env.SESSION_SECRET;
   if (!secret || secret.length < 32) {
@@ -50,12 +50,12 @@ export async function signSession(payload: SessionPayload): Promise<string> {
     .sign(getKey());
 }
 
-/** Devuelve el contenido del token si la firma y el vencimiento son válidos. */
+/** Returns the token's content if the signature and the expiry are valid. */
 export async function verifySession(
   token: string | undefined,
 ): Promise<SessionPayload | null> {
   if (!token) return null;
-  // Fuera del try: un secreto mal configurado tiene que romper, no desloguear.
+  // Outside the try: a misconfigured secret must break, not log out.
   const key = getKey();
   try {
     const { payload } = await jwtVerify(token, key, {

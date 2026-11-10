@@ -21,8 +21,8 @@ localidad, producto, número y fechas, todo por URL); con un producto muestra cu
 La vista por zona y el CSV aceptan los mismos filtros salvo número y fechas (`zoneOrderWhere`: sin
 estados elegidos excluye cancelados); los campos del form son `components/orders/order-filter-fields`.
 
-Idioma: el usuario habla en español rioplatense. Código, commits y nombres en inglés;
-comentarios y textos de UI en español.
+Idioma: el usuario habla en español rioplatense. Código, comentarios, commits y nombres en inglés;
+textos de UI en español.
 
 ## Stack
 

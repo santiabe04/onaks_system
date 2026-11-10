@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { hasLocale, type Locale } from "./config";
 import { getDictionary, type Dictionary } from "./dictionary";
 
-// Para Server Components: el idioma sale del segmento `[lang]` que agrega el
-// proxy, así cada idioma se prerenderiza por separado en el build.
+// For Server Components: the language comes from the `[lang]` segment added by the
+// proxy, so each language is prerendered separately at build time.
 
 export async function getLocale(): Promise<Locale> {
   const value = await lang();

@@ -1,16 +1,16 @@
 import type { Prisma } from "@/generated/prisma/client";
 
-// Puro: lo usan `lib/audit`, el visor de auditoría y los tests.
+// Pure: used by `lib/audit`, the audit viewer and the tests.
 
-// Nunca van al registro, aunque el snapshot de la fila los traiga.
+// They never go to the log, even if the row's snapshot includes them.
 const REDACTED_KEYS = new Set(["passwordHash"]);
 
-// Cambian en toda modificación: en el detalle solo meten ruido.
+// They change on every modification: in the detail they only add noise.
 const IGNORED_IN_DIFF = new Set(["updatedAt", "updatedById"]);
 
 /**
- * Convierte un snapshot a JSON guardable: fechas a ISO, Decimal a string y sin
- * campos sensibles. `undefined` (o null) no guarda nada.
+ * Converts a snapshot to storable JSON: dates to ISO, Decimal to string and without
+ * sensitive fields. `undefined` (or null) stores nothing.
  */
 export function toAuditJson(value: unknown): Prisma.InputJsonValue | undefined {
   if (value === undefined || value === null) return undefined;
@@ -23,7 +23,7 @@ export function toAuditJson(value: unknown): Prisma.InputJsonValue | undefined {
 
 export type FieldChange = { field: string; before: unknown; after: unknown };
 
-/** Campos que cambiaron entre dos snapshots (para el detalle de un UPDATE). */
+/** Fields that changed between two snapshots (for the detail of an UPDATE). */
 export function changedFields(before: unknown, after: unknown): FieldChange[] {
   const a = isRecord(before) ? before : {};
   const b = isRecord(after) ? after : {};
@@ -39,9 +39,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * IP del cliente. El primer valor de `x-forwarded-for` es el cliente y los
- * demás, proxies intermedios. Si la app quedara expuesta sin reverse proxy, un
- * cliente podría falsearla: por eso el bloqueo de login también cuenta por mail.
+ * Client IP. The first value of `x-forwarded-for` is the client and the
+ * rest are intermediate proxies. If the app were exposed without a reverse proxy, a
+ * client could forge it: that is why the login lock also counts by email.
  */
 export function parseClientIp(
   forwardedFor: string | null,

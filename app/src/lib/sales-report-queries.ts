@@ -12,8 +12,8 @@ import {
 } from "./sales-report";
 
 /**
- * Qué pedidos son venta y con qué fecha: entregados por fecha de entrega, o
- * todos los no cancelados por fecha del pedido.
+ * Which orders are sales and with what date: delivered by delivery date, or
+ * all non-canceled ones by order date.
  */
 function saleFilter(basis: ReportBasis, start: Date, end: Date): Prisma.Sql {
   return basis === "delivered"
@@ -24,9 +24,9 @@ function saleFilter(basis: ReportBasis, start: Date, end: Date): Prisma.Sql {
 }
 
 /**
- * Las devoluciones vigentes de un período: las notas de crédito de tipo
- * devolución no anuladas, por la fecha de la nota (no la del pedido), así los
- * meses ya cerrados no se mueven.
+ * The valid returns of a period: the non-voided credit notes of type
+ * return, by the note's date (not the order's), so that
+ * months already closed do not move.
  */
 function returnFilter(start: Date, end: Date): Prisma.Sql {
   return Prisma.sql`n."kind" = 'RETURN' AND n."voided_at" IS NULL
@@ -34,8 +34,8 @@ function returnFilter(start: Date, end: Date): Prisma.Sql {
 }
 
 /**
- * Los ítems vendidos del período y los devueltos (con el precio y el costo del
- * pedido original), con producto, categoría, cliente y zona.
+ * The items sold in the period and the returned ones (with the price and cost of the
+ * original order), with product, category, customer and zone.
  */
 export async function getReportLines(
   params: ReportParams,
@@ -64,17 +64,17 @@ export async function getReportLines(
 }
 
 export type MonthlySales = {
-  /** YYYY-MM de Argentina. */
+  /** YYYY-MM in Argentina. */
   month: string;
   net: string;
-  /** Venta con costo − costo, como en el reporte. */
+  /** Sale with cost − cost, as in the report. */
   margin: string;
 };
 
 /**
- * Venta y margen por mes (Argentina) entre `start` y `end`, para el gráfico,
- * netos de devoluciones con la misma regla que el reporte: lo que vuelve al
- * stock revierte venta y costo; lo dado de baja, solo la venta.
+ * Sale and margin per month (Argentina) between `start` and `end`, for the chart,
+ * net of returns with the same rule as the report: what goes back to
+ * stock reverses sale and cost; what is written off, only the sale.
  */
 export async function getMonthlySales(
   basis: ReportBasis,
@@ -126,11 +126,11 @@ export type IdleProduct = {
   sku: string;
   categoryId: number;
   unit: string;
-  /** Stock total en depósitos. */
+  /** Total stock in warehouses. */
   stock: string;
 };
 
-/** Productos a la venta (activos, no borrados) que no se vendieron en el período. */
+/** Products on sale (active, not deleted) that did not sell in the period. */
 export async function getIdleProducts(
   soldIds: Set<string>,
 ): Promise<IdleProduct[]> {
@@ -158,18 +158,18 @@ export async function getIdleProducts(
   }));
 }
 
-/** Una fila con su nombre (y un dato secundario: SKU, provincia, etc.). */
+/** A row with its name (and a secondary detail: SKU, province, etc.). */
 export type LabeledRow = ReportRow & { label: string; detail: string | null };
 
 export type SalesReport = {
   totals: ReportRow;
-  /** Las filas de la pestaña elegida (vacío en "Sin movimiento"). */
+  /** The rows of the chosen tab (empty in "No movement"). */
   rows: LabeledRow[];
-  /** Solo en "Sin movimiento". */
+  /** Only in "No movement". */
   idle: (IdleProduct & { category: string })[];
 };
 
-/** "Alimentos › Perros › Alimento seco" por id de categoría. */
+/** "Alimentos › Perros › Alimento seco" by category id. */
 async function categoryPaths(): Promise<Map<number, string>> {
   const rows = await db.category.findMany({
     select: { id: true, name: true, parentId: true },
@@ -179,7 +179,7 @@ async function categoryPaths(): Promise<Map<number, string>> {
   );
 }
 
-/** El reporte del período para la pestaña elegida, con los nombres. */
+/** The period's report for the chosen tab, with the names. */
 export async function getSalesReport(
   params: ReportParams,
 ): Promise<SalesReport> {
@@ -188,7 +188,7 @@ export async function getSalesReport(
 
   if (params.tab === "idle") {
     const [idle, paths] = await Promise.all([
-      // Sin movimiento = no se vendió: una devolución sola no cuenta.
+      // No movement = did not sell: a return alone does not count.
       getIdleProducts(
         new Set(
           lines

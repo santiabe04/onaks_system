@@ -52,7 +52,7 @@ export default async function AdminOrderPage({
       <Link href="/admin/orders" className="text-sm hover:underline">
         {t.adminOrders.detail.back}
       </Link>
-      {/* params y la query a la DB son de request: van en Suspense. */}
+      {/* params and the DB query are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -62,7 +62,7 @@ export default async function AdminOrderPage({
   );
 }
 
-// Detalle + cambio de estado (con descuento/devolución de stock) e historial.
+// Detail + status change (with stock return/deduction) and history.
 async function Order({ params }: { params: Promise<{ number: string }> }) {
   const user = await getUserWithPermission("sales:read-all");
   const [t, locale] = await Promise.all([getT(), getLocale()]);
@@ -108,27 +108,27 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
   });
   if (!sale) notFound();
 
-  // Para descontar stock: solo depósitos activos.
+  // To deduct stock: only active warehouses.
   const warehouses = await db.warehouse.findMany({
     where: { isActive: true },
     orderBy: { name: "asc" },
     select: { id: true, name: true },
   });
   const { customer, city } = sale.address;
-  // Cuenta corriente: lo que debe el cliente y cuánto falta de este pedido.
+  // Customer account: what the customer owes and how much of this order is left.
   await connection();
   const today = isoDay(new Date());
   const account = await loadAccount(db, customer.id);
   const allocation = account.summary.sales[sale.id];
   const debt = toCents(account.summary.balance);
-  // Al cobrar se sugiere la deuda y, si el pedido todavía no es deuda, lo que falta de él.
+  // When collecting, the debt is suggested and, if the order is not yet a debt, what is left of it.
   const suggested =
     (debt > BigInt(0) ? debt : BigInt(0)) +
     (allocation && !isCharged(sale.state)
       ? toCents(allocation.pending)
       : BigInt(0));
   const canManage = can(user.role, "sales:manage");
-  // Comprobantes de transferencia (con quién los subió y quién los revisó).
+  // Transfer receipts (with who uploaded them and who reviewed them).
   const proofRows = await db.transferProof.findMany({
     where: { saleId: sale.id },
     orderBy: { createdAt: "desc" },
@@ -153,18 +153,18 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
       ? `${proof.reviewedBy.person.name} ${proof.reviewedBy.person.surname}`
       : null,
   }));
-  // Lo que falta cobrar de este pedido es lo que se espera de la transferencia.
+  // What is left to collect for this order is what is expected from the transfer.
   const proofAmount =
     allocation && toCents(allocation.pending) > BigInt(0)
       ? format.input(allocation.pending)
       : format.input(sale.total);
-  // Devoluciones de este pedido (las anuladas también, para el historial).
+  // Returns for this order (voided ones too, for the history).
   const orderNotes = account.creditNotes.filter(
     (note) => note.saleId === sale.id,
   );
   const canReturn = canManage && isReturnable(sale.state);
   const person = sale.user.person;
-  // Mismo cálculo que en la pantalla por zona.
+  // Same calculation as on the by-zone screen.
   const { totals } = groupOrdersByZone([
     {
       cityId: 0,
@@ -422,7 +422,7 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
   );
 }
 
-/** Por qué quedó retenido y el botón para aprobarlo (o quién lo aprobó). */
+/** Why it was held and the button to approve it (or who approved it). */
 function CreditHoldBanner({
   sale,
   canManage,
@@ -492,7 +492,7 @@ function CreditHoldBanner({
   );
 }
 
-/** Confirmación y cambios de estado del pedido, desde la auditoría. */
+/** Order confirmation and status changes, from the audit log. */
 async function History({ saleId }: { saleId: string }) {
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
@@ -514,7 +514,7 @@ async function History({ saleId }: { saleId: string }) {
   const commentOf = (value: unknown) =>
     (value as { comment?: string | null } | null)?.comment;
   const h = t.adminOrders.history;
-  /** Qué pasó, en palabras: estado, permiso de modificar o cambios del cliente. */
+  /** What happened, in words: status, edit permission or customer changes. */
   const describe = (
     log: (typeof logs)[number],
     from: SaleState | undefined,

@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { login, numberFromUrl, pageAs, ready } from "./helpers";
 
-// Mascotas Varela ya debe el pedido #4 (pendiente, $ 427.000 neto): con un
-// límite de $ 100.000 su pedido nuevo queda retenido hasta que el admin lo
-// aprueba.
+// Mascotas Varela already owes order #4 (pending, $ 427.000 net): with a
+// limit of $ 100.000 its new order is held until the admin
+// approves it.
 test("un pedido que supera el límite de crédito queda retenido hasta aprobarlo", async ({
   page,
   browser,
@@ -15,11 +15,11 @@ test("un pedido que supera el límite de crédito queda retenido hasta aprobarlo
   await page.getByLabel("Límite de crédito (opcional)").fill("100000");
   await page.getByRole("button", { name: "Guardar" }).click();
   await expect(
-    // Intl separa el signo con un espacio duro: \s lo incluye.
+    // Intl puts a non-breaking space between the sign and the number: \s includes it.
     page.getByText(/Crédito: usado .* de \$\s100\.000,00/),
   ).toBeVisible();
 
-  // El cliente confirma igual: no se entera de la retención.
+  // The customer confirms anyway: they are not told about the hold.
   const client = await pageAs(browser, "varela");
   await client.goto("/?q=pelota");
   await client
@@ -50,7 +50,7 @@ test("un pedido que supera el límite de crédito queda retenido hasta aprobarlo
   await expect(banner).toContainText("$ 100.000,00");
   await ready(page);
 
-  // Retenido: no avanza hasta aprobarlo.
+  // Held: does not move forward until it is approved.
   await page
     .getByRole("combobox", { name: "Nuevo estado" })
     .selectOption({ label: "En preparación" });

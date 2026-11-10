@@ -1,5 +1,5 @@
-// Clases compartidas para <button> y <Link>, así un link "Nueva unidad" y el
-// submit de un form se ven iguales sin duplicar Tailwind.
+// Shared classes for <button> and <Link>, so a "New unit" link and the
+// submit of a form look the same without duplicating Tailwind.
 const VARIANTS = {
   primary: "bg-foreground text-background font-medium",
   secondary: "border border-current/20",

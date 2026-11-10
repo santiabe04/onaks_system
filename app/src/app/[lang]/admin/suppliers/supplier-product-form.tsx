@@ -14,7 +14,7 @@ type Props = {
     state: SupplierProductFormState,
     formData: FormData,
   ) => Promise<SupplierProductFormState>;
-  /** Con `?product=` precarga los datos actuales de ese producto. */
+  /** With `?product=` it pre-fills that product's current data. */
   defaultValues: SupplierProductValues;
   products: { id: string; label: string }[];
   t: Dictionary["suppliers"];
@@ -31,7 +31,7 @@ export function SupplierProductForm({
   common,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
-  // Tras guardar bien (savedAt) el form vuelve a vacío para cargar el siguiente.
+  // After a successful save (savedAt) the form goes back to empty to load the next one.
   const values = state.values ?? (state.savedAt ? empty : defaultValues);
   const errors = state.errors;
   const key = `${state.savedAt ?? 0}`;
@@ -79,7 +79,7 @@ export function SupplierProductForm({
         />
       </Field>
       <div className="flex flex-col gap-1 text-sm">
-        {/* Alinea el botón con los inputs (que tienen label arriba). */}
+        {/* Aligns the button with the inputs (which have their label above). */}
         <span aria-hidden className="invisible font-medium">
           ·
         </span>

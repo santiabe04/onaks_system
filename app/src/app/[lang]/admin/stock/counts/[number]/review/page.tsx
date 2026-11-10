@@ -35,7 +35,7 @@ export default async function ReviewPage({
       <Link href={PATH} className="text-sm hover:underline">
         ← {t.stockCount.title}
       </Link>
-      {/* params y el conteo son de request: van en Suspense. */}
+      {/* params and the count are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -55,7 +55,7 @@ async function Review({ params }: { params: Promise<{ number: string }> }) {
   if (number === null) notFound();
   const count = await getStockCount(number);
   if (!count) notFound();
-  // Ya aprobado o descartado: queda el resultado en el detalle.
+  // Already approved or discarded: the result stays in the detail.
   if (count.state !== "OPEN") redirect(`${PATH}/${count.number}`);
 
   const lines = count.items.map((item) => ({
@@ -63,7 +63,7 @@ async function Review({ params }: { params: Promise<{ number: string }> }) {
     difference: countDifference(item.counted, item.expected),
   }));
   const summary = summarizeCount(lines);
-  // Primero lo que tiene diferencia, que es lo que hay que revisar.
+  // First the ones with a difference, which is what has to be reviewed.
   const sorted = [...lines].sort(
     (a, b) =>
       Number(toMilli(b.difference) !== BigInt(0)) -

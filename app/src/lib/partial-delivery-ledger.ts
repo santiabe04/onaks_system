@@ -13,15 +13,15 @@ import {
 } from "./stock-ledger";
 
 /**
- * Aplica faltantes a un pedido que ya descontó stock (entrega parcial en una
- * parada o lo que no se pudo preparar en un picking), dentro de la transacción:
- * - lo que falta vuelve al depósito del que salió (SALE_RETURN);
- * - si se rompió o venció, además se da de baja (WRITE_OFF); si no estaba,
- *   se corrige el saldo (ADJUSTMENT). Así el libro lo muestra y una
- *   cancelación posterior no devuelve unidades que no existen;
- * - el pedido queda con lo entregado/preparado y se recalculan sus totales.
- * `source` describe de dónde viene (comentario del movimiento y metadata de
- * la auditoría).
+ * Applies shortages to an order that already deducted stock (partial delivery at a
+ * stop, or what could not be prepared in a picking), inside the transaction:
+ * - what is missing goes back to the warehouse it came from (SALE_RETURN);
+ * - if it was broken or expired, it is also written off (WRITE_OFF); if it was not there,
+ *   the balance is corrected (ADJUSTMENT). This way the ledger shows it and a
+ *   later cancellation does not return units that do not exist;
+ * - the order keeps what was delivered/prepared and its totals are recalculated.
+ * `source` describes where it comes from (movement comment and audit
+ * metadata).
  */
 export async function applyShortages(
   tx: Prisma.TransactionClient,
@@ -37,7 +37,7 @@ export async function applyShortages(
     include: { items: true },
   });
 
-  // Stock: lo que salió de cada depósito por este pedido (neto), por producto.
+  // Stock: what left each warehouse for this order (net), per product.
   const movements = await tx.stockMovement.findMany({
     where: { saleId: sale.id },
     select: { productId: true, warehouseId: true, quantity: true },
@@ -85,7 +85,7 @@ export async function applyShortages(
     }
   }
 
-  // Pedido: cantidades entregadas (0 = se quita el producto) y totales.
+  // Order: quantities delivered (0 = the product is removed) and totals.
   const quantities = deliveredQuantities(before.items, shortages);
   for (const { productId, quantity } of quantities) {
     const where = { saleId_productId: { saleId: sale.id, productId } };

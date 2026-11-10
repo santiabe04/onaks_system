@@ -22,15 +22,15 @@ import {
 } from "@/lib/supplier-account-ledger";
 import { parseVoucher } from "@/lib/supplier-invoice";
 
-// Notas de crédito de proveedores, por importe: bajan la deuda como un pago
-// y se imputan a facturas (la asociada, si la hay, se precarga). Se anulan con
-// motivo. Todo con el proveedor bloqueado.
+// Supplier credit notes, by amount: they lower the debt like a payment
+// and are allocated to invoices (the associated one, if any, is preloaded). They are voided with a
+// reason. Everything with the supplier locked.
 const PERMISSION = "purchases:manage";
 const ENTITY = "SUPPLIER_CREDIT_NOTE";
 
 export type CreditNoteActionState = { error?: string };
 
-/** Corta la transacción con un mensaje para el admin. */
+/** Aborts the transaction with a message for the admin. */
 class CreditNoteError extends Error {}
 
 function messages() {
@@ -53,7 +53,7 @@ function revalidateAccounts() {
   revalidatePath("/[lang]/admin", "layout");
 }
 
-/** Bloquea al proveedor de la nota y después la nota; la devuelve. */
+/** Locks the note's supplier and then the note; returns it. */
 async function lockCreditNote(tx: Prisma.TransactionClient, noteId: string) {
   const t = messages();
   if (!isCuid(noteId)) throw new CreditNoteError(t.notFound);
@@ -73,7 +73,7 @@ async function lockCreditNote(tx: Prisma.TransactionClient, noteId: string) {
   return note;
 }
 
-/** Nueva nota de crédito del proveedor, con su imputación. */
+/** New supplier credit note, with its allocation. */
 export async function createCreditNote(
   supplierId: string,
   _prev: CreditNoteActionState,
@@ -154,7 +154,7 @@ export async function createCreditNote(
   redirect(`/admin/credit-notes/${noteId}`);
 }
 
-/** Imputa lo que quedó sin imputar de la nota a facturas con saldo. */
+/** Allocates what was left unallocated of the note to invoices with a balance. */
 export async function allocateCreditNote(
   noteId: string,
   _prev: CreditNoteActionState,
@@ -194,7 +194,7 @@ export async function allocateCreditNote(
   return {};
 }
 
-/** Anula una nota de crédito: el crédito y sus imputaciones dejan de contar. */
+/** Voids a credit note: the credit and its allocations stop counting. */
 export async function annulCreditNote(
   noteId: string,
   _prev: CreditNoteActionState,

@@ -12,7 +12,7 @@ import { getPeriodOrders } from "@/lib/orders-by-zone-queries";
 
 const TZ_OFFSET_MS = -3 * 60 * 60 * 1000;
 
-/** "2026-10-28 10:37" en hora de Argentina: lo que una planilla entiende como fecha. */
+/** "2026-10-28 10:37" in Argentina time: what a spreadsheet understands as a date. */
 function localDateTime(date: Date): string {
   return new Date(date.getTime() + TZ_OFFSET_MS)
     .toISOString()
@@ -20,14 +20,14 @@ function localDateTime(date: Date): string {
     .replace("T", " ");
 }
 
-// Los pedidos del período y los filtros (mismos parámetros que la pantalla) en CSV, ordenados
-// por zona como en pantalla: para Excel o para cargar en otra herramienta.
+// The orders of the period and the filters (same parameters as the screen) in CSV, sorted
+// by zone as on the screen: for Excel or to load into another tool.
 export async function GET(request: NextRequest) {
   await requirePermission("sales:read-all");
   const t = getActionDictionary();
   const decimalComma = appLocale() === "es";
 
-  // Mismo período y filtros que la pantalla (estados múltiples incluidos).
+  // Same period and filters as the screen (multiple statuses included).
   const params: Record<string, string[]> = {};
   for (const [key, value] of request.nextUrl.searchParams) {
     (params[key] ??= []).push(value);
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       columns.status,
       columns.paymentMethod,
       columns.paymentState,
-      // Con el filtro de producto: cuánto se pidió de él en cada pedido.
+      // With the product filter: how much of it was ordered in each order.
       ...(product
         ? [
             interpolate(columns.productQuantity, {

@@ -1,12 +1,12 @@
 import { createHash } from "node:crypto";
 import { toMilli } from "./quantity";
 
-// Solo server: usa node:crypto. Va aparte de lib/checkout, que también lo
-// importa el formulario del cliente.
+// Server only: uses node:crypto. It lives apart from lib/checkout, which the
+// customer's form also imports.
 
 type Numeric = { toString(): string } | string;
 
-/** "25000" o un Decimal("25000.00") → "2500000" (con `digits` decimales fijos). */
+/** "25000" or a Decimal("25000.00") → "2500000" (with `digits` fixed decimals). */
 function scaled(value: Numeric, digits: number): string {
   const [integer, decimals = ""] = value.toString().trim().split(".");
   return BigInt(
@@ -22,9 +22,9 @@ export type FingerprintLine = {
 };
 
 /**
- * Huella de lo que el cliente vio al confirmar: productos, cantidades, precios
- * y alícuotas. Si cambia algo entre que se mostró y se confirmó (otro precio,
- * otra pestaña que editó el carrito), la confirmación se rechaza.
+ * Fingerprint of what the customer saw on confirmation: products, quantities, prices
+ * and tax rates. If something changes between being shown and being confirmed (another price,
+ * another tab that edited the cart), the confirmation is rejected.
  */
 export function cartFingerprint(lines: FingerprintLine[]): string {
   const canonical = lines
@@ -32,7 +32,7 @@ export function cartFingerprint(lines: FingerprintLine[]): string {
       [
         line.productId,
         toMilli(line.quantity).toString(),
-        // Normalizados: "25000" y "25000.00" son el mismo precio.
+        // Normalized: "25000" and "25000.00" are the same price.
         scaled(line.price, 2),
         scaled(line.rate, 4),
       ].join(":"),

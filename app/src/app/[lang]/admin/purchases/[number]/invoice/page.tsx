@@ -29,7 +29,7 @@ export default async function NewInvoicePage({
   const t = await getT();
   return (
     <main className="mx-auto w-full max-w-6xl p-4 sm:p-8">
-      {/* params y la orden son de request: van en Suspense. */}
+      {/* params and the order are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -90,7 +90,7 @@ async function NewInvoice({ params }: { params: Promise<{ number: string }> }) {
               invoicedBefore: format.number(before),
               pending: format.number(pending),
               orderCost: format.money(item.unitCost),
-              // Se precarga lo que falta facturar al costo de la OC.
+              // What is still to be invoiced is pre-filled at the PO cost.
               quantity:
                 toMilli(pending) > BigInt(0) ? format.input(pending) : "",
               unitCost: format.input(item.unitCost),

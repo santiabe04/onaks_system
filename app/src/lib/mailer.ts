@@ -1,7 +1,7 @@
 import "server-only";
 import nodemailer from "nodemailer";
 
-// Envío de mails por SMTP, configurado por env en la instalación. Sin
+// Sending emails over SMTP, configured by env in the installation. Without
 // SMTP_HOST (ni SMTP_FROM) la app anda igual: simplemente no manda avisos.
 
 export type MailConfig = {
@@ -13,7 +13,7 @@ export type MailConfig = {
   from: string;
 };
 
-/** La configuración SMTP, o null si la instalación no la tiene. */
+/** The SMTP configuration, or null if the installation does not have it. */
 export function mailConfig(): MailConfig | null {
   const host = process.env.SMTP_HOST?.trim();
   const from = process.env.SMTP_FROM?.trim();
@@ -22,7 +22,7 @@ export function mailConfig(): MailConfig | null {
   return {
     host,
     port,
-    // 465 es TLS directo; en los demás puertos se negocia STARTTLS.
+    // 465 is direct TLS; on the other ports STARTTLS is negotiated.
     secure: process.env.SMTP_SECURE
       ? process.env.SMTP_SECURE === "true"
       : port === 465,
@@ -36,7 +36,7 @@ export function mailEnabled(): boolean {
   return mailConfig() !== null;
 }
 
-/** Manda un mail de texto. Tira un error si el servidor SMTP lo rechaza. */
+/** Sends a plain text email. Throws an error if the SMTP server rejects it. */
 export async function sendMail(message: {
   to: string;
   subject: string;

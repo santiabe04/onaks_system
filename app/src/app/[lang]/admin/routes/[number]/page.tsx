@@ -55,7 +55,7 @@ export default async function RouteSheetPage({
       <Link href={PATH} className="text-sm hover:underline">
         ← {t.routes.title}
       </Link>
-      {/* params y la hoja son de request: van en Suspense. */}
+      {/* params and the sheet are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -71,7 +71,7 @@ async function RouteSheet({ params }: { params: Promise<{ number: string }> }) {
   const format = formatters(locale);
   const r = t.routes;
 
-  // Mismo parser que el número de pedido: entero positivo.
+  // Same parser as the order number: positive integer.
   const number = parseSaleNumber((await params).number);
   if (number === null) notFound();
   const sheet = await getRouteSheet(number);
@@ -206,7 +206,7 @@ async function RouteSheet({ params }: { params: Promise<{ number: string }> }) {
                     </td>
                     {!draft && (
                       <td className="py-2 pr-3 whitespace-nowrap">
-                        {/* Lo cargado en la parada, o cargarla (el admin también puede). */}
+                        {/* What was loaded at the stop, or load it (the admin can too). */}
                         <Link
                           href={`/delivery/${sheet.number}/${stop.position}`}
                           className={`hover:underline ${
@@ -305,8 +305,8 @@ async function RouteSheet({ params }: { params: Promise<{ number: string }> }) {
 }
 
 /**
- * En reparto: lo cobrado en las paradas y el formulario de rendición (si ya
- * están todas cargadas). Cerrada: el resumen de la rendición.
+ * On the road: what was collected at the stops and the cash count form (if all
+ * stops are already loaded). Closed: the cash count summary.
  */
 function ClosingSection({
   sheet,

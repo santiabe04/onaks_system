@@ -1,7 +1,7 @@
 import { fromMilli, toMilli } from "./quantity";
 
-// Puro: qué se suma al carrito al repetir un pedido. Los precios no se copian:
-// el carrito siempre usa los de hoy (lista y descuento del cliente).
+// Pure: what gets added to the cart when repeating an order. Prices are not copied:
+// the cart always uses today's (the customer's list and discount).
 
 type Numeric = { toString(): string } | string;
 
@@ -10,24 +10,24 @@ const ZERO = BigInt(0);
 
 export type RepeatLine = {
   productId: string;
-  /** Lo que se pidió (`sale_items.quantity`, hasta 4 decimales). */
+  /** What was ordered (`sale_items.quantity`, up to 4 decimals). */
   quantity: Numeric;
-  /** Si el producto se puede comprar hoy (activo y no borrado). */
+  /** Whether the product can be bought today (active and not deleted). */
   available: boolean;
-  /** Si su unidad admite fracciones hoy (puede haber cambiado). */
+  /** Whether its unit allows fractions today (it may have changed). */
   allowsDecimals: boolean;
 };
 
 export type RepeatPlan = {
   adds: { productId: string; quantity: string }[];
-  /** Productos que ya no se pueden comprar y no se suman. */
+  /** Products that can no longer be bought and are not added. */
   omitted: number;
 };
 
 /**
- * Cantidad para el carrito: a milésimas (el carrito guarda 3 decimales) y, si
- * la unidad ya no admite fracciones, redondeada hacia arriba: pidió al menos
- * eso. null si no queda nada que sumar.
+ * Quantity for the cart: to thousandths (the cart stores 3 decimals) and, if
+ * the unit no longer allows fractions, rounded up: at least what was
+ * ordered. null if there is nothing left to add.
  */
 export function repeatQuantity(
   quantity: Numeric,
@@ -41,7 +41,7 @@ export function repeatQuantity(
   return fromMilli(milli);
 }
 
-/** Qué sumar al carrito y cuántos productos quedan afuera. */
+/** What to add to the cart and how many products are left out. */
 export function planRepeat(lines: RepeatLine[]): RepeatPlan {
   const adds: RepeatPlan["adds"] = [];
   let omitted = 0;

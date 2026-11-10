@@ -29,7 +29,7 @@ export default async function DeliverySheetPage({
       <Link href="/delivery" className="text-sm hover:underline">
         ← {t.delivery.title}
       </Link>
-      {/* params y la hoja son de request: van en Suspense. */}
+      {/* params and the sheet are request-bound: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -48,7 +48,7 @@ async function Sheet({ params }: { params: Promise<{ number: string }> }) {
   const number = parseSaleNumber((await params).number);
   if (number === null) notFound();
   const sheet = await getRouteSheet(number);
-  // Una hoja ajena se ve igual que una que no existe.
+  // Another driver's sheet looks the same as one that does not exist.
   if (
     !sheet ||
     !canRecordSheet(sheet, {

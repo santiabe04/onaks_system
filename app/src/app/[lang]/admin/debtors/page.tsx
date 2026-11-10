@@ -12,7 +12,7 @@ import { getAccountBalances, type AccountBalanceRow } from "@/lib/debtors";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Se llama después de `connection()`: la hora es la del request, no la del build.
+// Called after `connection()`: the time is the request's, not the build's.
 function currentTime(): number {
   return Date.now();
 }
@@ -29,7 +29,7 @@ export default async function DebtorsPage() {
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.debtors.title}</h1>
       <p className="mt-1 text-sm opacity-70">{t.debtors.intro}</p>
-      {/* Los saldos salen de la DB en cada request: van en Suspense. */}
+      {/* The balances come from the DB on every request: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -43,7 +43,7 @@ async function Debtors() {
   await getUserWithPermission("sales:read-all");
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const format = formatters(locale);
-  // La antigüedad se cuenta desde hoy (el del request).
+  // Age is counted from today (the request's).
   await connection();
   const now = currentTime();
 
@@ -151,7 +151,7 @@ function BalancesTable({
                 <td className="py-2 whitespace-nowrap">
                   {row.lastPayment
                     ? format.date(
-                        // `paid_on` es una fecha sin hora: se muestra el mismo día.
+                        // `paid_on` is a date without time: it is shown on the same day.
                         new Date(
                           `${row.lastPayment.toISOString().slice(0, 10)}T12:00:00-03:00`,
                         ),

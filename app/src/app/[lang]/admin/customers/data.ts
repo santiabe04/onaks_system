@@ -5,8 +5,8 @@ import { db } from "@/lib/db";
 import { isCuid } from "@/lib/ids";
 
 /**
- * Cliente vigente con sus personas y direcciones vigentes, para las pantallas
- * del cliente. Chequea el permiso; si no existe o está dado de baja, 404.
+ * Active customer with its active people and addresses, for the customer's
+ * screens. Checks the permission; if it does not exist or is deactivated, 404.
  */
 export async function loadCustomer(id: string) {
   await getUserWithPermission("customers:manage");

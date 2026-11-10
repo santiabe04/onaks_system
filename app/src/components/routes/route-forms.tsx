@@ -26,7 +26,7 @@ type FleetOptions = {
   vehicles: { id: string; name: string }[];
 };
 
-/** Fecha, repartidor, vehículo y comentario (alta, edición y desde la zona). */
+/** Date, driver, vehicle and comment (create, edit and from the zone). */
 function SheetFields({
   values,
   errors,
@@ -133,7 +133,7 @@ export function RouteSheetForm({
   );
 }
 
-/** Un botón que corre una acción de la hoja (salir, quitar, subir…) y muestra el error. */
+/** A button that runs a sheet action (depart, remove, move up…) and shows the error. */
 export function SheetActionButton({
   action,
   label,
@@ -145,7 +145,7 @@ export function SheetActionButton({
   action: () => Promise<RouteActionState>;
   label: string;
   pendingLabel?: string;
-  /** Pregunta antes de correr (p. ej. al borrar). */
+  /** Asks before running (e.g. when deleting). */
   confirm?: string;
   variant?: "primary" | "secondary" | "link" | "danger";
   compact?: boolean;
@@ -186,7 +186,7 @@ export function SheetActionButton({
   );
 }
 
-/** Pedidos listos para despachar, para sumar a la hoja. */
+/** Orders ready to ship, to add to the sheet. */
 export function AddStopsForm({
   sheetId,
   candidates,
@@ -199,7 +199,7 @@ export function AddStopsForm({
     customer: string;
     address: string;
     city: string;
-    /** Ya formateado ("$ 27.625,00"): las funciones no pasan al cliente. */
+    /** Already formatted ("$ 27.625,00"): the functions do not pass to the client. */
     total: string;
   }[];
   t: Dictionary["routes"];
@@ -246,8 +246,8 @@ export function AddStopsForm({
 }
 
 /**
- * "Armar hoja de ruta" en la vista por zona: usa las casillas de la barra de
- * cambio masivo (marcadas en la tabla) y crea la hoja con esos pedidos.
+ * "Build route sheet" in the by-zone view: uses the checkboxes of the bulk
+ * change bar (ticked in the table) and creates the sheet with those orders.
  */
 export function RouteFromSelection({
   options,
@@ -262,7 +262,7 @@ export function RouteFromSelection({
     RouteSheetFormState,
     FormData
   >(async (prev, formData) => {
-    // Las casillas pertenecen al form de la barra masiva: se copian acá.
+    // The checkboxes belong to the bulk bar's form: they are copied here.
     const boxes = document.querySelectorAll<HTMLInputElement>(
       `input[type=checkbox][form=${BULK_FORM_ID}][name=sale]:checked`,
     );
@@ -300,14 +300,14 @@ export function RouteFromSelection({
   );
 }
 
-/** Rendición y cierre de la hoja: cuánto efectivo entregó el repartidor. */
+/** Cash count and closing of the sheet: how much cash the driver handed in. */
 export function ClosingForm({
   sheetId,
   cashExpected,
   t,
 }: {
   sheetId: string;
-  /** Con el separador decimal del idioma, para precargar ("44860,5"). */
+  /** With the language's decimal separator, to pre-fill ("44860,5"). */
   cashExpected: string;
   t: Dictionary["routes"]["closing"];
 }) {

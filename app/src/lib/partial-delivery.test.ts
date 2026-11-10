@@ -4,7 +4,7 @@ import { deliveredQuantities, parsePartialDelivery } from "./partial-delivery";
 
 const t = es.delivery.errors;
 
-// Pedido de un pet shop: 2 bolsas de alimento y 1,25 kg de alimento suelto.
+// A pet shop's order: 2 bags of food and 1.25 kg of loose food.
 const items = [
   { productId: "prodbolsa15", quantity: "2.0000", allowsDecimals: false },
   { productId: "prodsuelto", quantity: "1.2500", allowsDecimals: true },

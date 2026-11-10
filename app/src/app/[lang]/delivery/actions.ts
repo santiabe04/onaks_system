@@ -26,13 +26,13 @@ import { parsePartialDelivery, type Shortage } from "@/lib/partial-delivery";
 import { applyShortages } from "@/lib/partial-delivery-ledger";
 import { validateStopRecord } from "@/lib/stop-record";
 
-// Carga de cada parada desde el celular: la hace el repartidor de la hoja (su
-// usuario vinculado) o un admin. Entregado → el pedido pasa a Entregado (y es
-// deuda); no entregado → vuelve a Listo para despachar.
+// Loading each stop from the phone: done by the driver of the sheet (their
+// linked user) or an admin. Delivered → the order moves to Delivered (and is
+// a debt); not delivered → back to Ready to ship.
 
 export type StopActionState = { error?: string };
 
-/** Corta la transacción con un mensaje para quien carga. */
+/** Aborts the transaction with a message for whoever is loading it. */
 class StopError extends Error {}
 
 function messages() {
@@ -51,8 +51,8 @@ type LockedStop = {
 };
 
 /**
- * Bloquea la cuenta del cliente y la parada (mismo orden que cobros y
- * cambios de estado) y verifica que quien carga pueda hacerlo.
+ * Locks the customer's account and the stop (same order as payments and
+ * status changes) and checks that whoever is loading can do it.
  */
 async function lockStop(
   tx: Prisma.TransactionClient,
@@ -79,7 +79,7 @@ async function lockStop(
     WHERE st."id" = ${stopId}
     FOR UPDATE OF st, sh`;
   if (!stop) throw new StopError(t.notFound);
-  // El repartidor de la hoja, o cualquier admin (las empresas chicas reparten ellas).
+  // The sheet's driver, or any admin (small companies deliver themselves).
   if (stop.driverUserId !== user.id && !can(user.role, "routes:manage")) {
     throw new StopError(t.notYours);
   }
@@ -101,9 +101,9 @@ export async function recordStop(
   if (!parsed.ok) return { error: parsed.error };
   const input = parsed.data;
 
-  // Entrega parcial: se valida contra lo que tiene el pedido.
+  // Partial delivery: validated against what the order has.
   let shortages: Shortage[] = [];
-  // Para la parada: con nombre y unidad (el producto puede salir del pedido).
+  // For the stop: with name and unit (the product may come from the order).
   let shortageRecord: (Shortage & { name: string; unit: string })[] = [];
   if (input.outcome === "DELIVERED" && isCuid(stopId)) {
     const items = await db.saleItem.findMany({
@@ -140,8 +140,8 @@ export async function recordStop(
     });
   }
 
-  // Las imágenes se procesan y guardan antes de la transacción (sharp tarda).
-  // Si después la carga falla, quedan huérfanas en disco: no es un problema.
+  // Images are processed and saved before the transaction (sharp takes time).
+  // If the load fails afterwards they are left orphaned on disk: not a problem.
   let signatureFile: string | null = null;
   let photoFile: string | null = null;
   if (input.outcome === "DELIVERED") {
@@ -168,7 +168,7 @@ export async function recordStop(
       if (stop.status !== "PENDING") throw new StopError(t.alreadyRecorded);
 
       const delivered = input.outcome === "DELIVERED";
-      // Primero se ajusta el pedido a lo entregado: así la deuda es por eso.
+      // First the order is adjusted to what was delivered: so the debt is for that.
       if (delivered) {
         const sale = await tx.sale.findUniqueOrThrow({
           where: { id: stop.saleId },
@@ -201,7 +201,7 @@ export async function recordStop(
         getActionDictionary().adminOrders.stateChange.errors,
       );
 
-      // El cobro va a la cuenta corriente, con la fecha de hoy.
+      // The payment goes to the customer's account, dated today.
       const payment =
         delivered && input.payment
           ? await createCustomerPayment(
@@ -259,9 +259,9 @@ export async function recordStop(
 }
 
 /**
- * Deshace la carga de una parada (solo admins, mientras la hoja está en
- * reparto): el pedido vuelve a En reparto. Un cobro cargado queda en la
- * cuenta corriente y se anula desde ahí; firma y foto quedan en el historial.
+ * Undoes the loading of a stop (admins only, while the sheet is on the
+ * road): the order goes back to On the road. A payment loaded stays in the
+ * customer's account and is voided from there; the signature and photo stay in the history.
  */
 export async function undoStop(stopId: string): Promise<StopActionState> {
   const user = await requirePermission("routes:manage");
@@ -271,7 +271,7 @@ export async function undoStop(stopId: string): Promise<StopActionState> {
     await db.$transaction(async (tx) => {
       const stop = await lockStop(tx, stopId, user);
       if (stop.status === "PENDING") throw new StopError(t.notRecorded);
-      // Revertir una entrega parcial implica pedido, stock y montos: a mano.
+      // Reverting a partial delivery involves order, stock and amounts: done by hand.
       const recorded = await tx.routeStop.findUniqueOrThrow({
         where: { id: stop.id },
         select: { shortages: true },

@@ -7,7 +7,7 @@ import {
   weekStart,
 } from "./order-period";
 
-// Miércoles 28/10/2026 a las 10:00 de Argentina (13:00 UTC).
+// Wednesday 28/10/2026 at 10:00 in Argentina (13:00 UTC).
 const NOW = new Date("2026-10-28T13:00:00Z");
 
 describe("weekStart", () => {
@@ -16,12 +16,12 @@ describe("weekStart", () => {
   });
 
   it("un sábado es el comienzo de su propia semana", () => {
-    const saturday = new Date("2026-10-31T03:00:00Z"); // 00:00 del sábado 31
+    const saturday = new Date("2026-10-31T03:00:00Z"); // 00:00 on Saturday 31
     expect(weekStart(saturday).toISOString()).toBe(saturday.toISOString());
   });
 
   it("el viernes a la noche (ya sábado en UTC) sigue siendo la semana anterior", () => {
-    const fridayNight = new Date("2026-10-31T02:30:00Z"); // viernes 30, 23:30
+    const fridayNight = new Date("2026-10-31T02:30:00Z"); // Friday 30, 23:30
     expect(isoDay(weekStart(fridayNight))).toBe("2026-10-24");
   });
 });

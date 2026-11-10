@@ -19,7 +19,7 @@ export default async function SupplierPaymentsPage() {
   return (
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.supplierPayments.title}</h1>
-      {/* Las órdenes salen de la DB: van en Suspense. */}
+      {/* The orders come from the DB: they go in Suspense. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >

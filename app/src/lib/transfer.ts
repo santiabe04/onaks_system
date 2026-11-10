@@ -4,17 +4,17 @@ import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { isValidCuit, normalizeCuit } from "./cuit";
 
-// Puro: datos de cobro por transferencia y reglas de los comprobantes que
-// sube el cliente. El archivo en sí se procesa en `lib/transfer-proof-files`.
+// Pure: transfer payment details and the rules for the receipts the
+// customer uploads. The file itself is processed in `lib/transfer-proof-files`.
 
 export const TRANSFER_LIMITS = {
   bankName: 60,
   holder: 80,
-  /** Motivo con el que el admin rechaza un comprobante. */
+  /** Reason with which the admin rejects a receipt. */
   rejectReason: 200,
 } as const;
 
-// Pesos de los dos dígitos verificadores del CBU (BCRA).
+// Weights of the two CBU check digits (BCRA).
 const CBU_BLOCK_1 = [7, 1, 3, 9, 7, 1, 3];
 const CBU_BLOCK_2 = [3, 9, 7, 1, 3, 9, 7, 1, 3, 9, 7, 1, 3];
 
@@ -23,12 +23,12 @@ function checkDigit(digits: number[], weights: number[]): number {
   return (10 - (sum % 10)) % 10;
 }
 
-/** "0170 0992-2000…" → solo los dígitos. */
+/** "0170 0992-2000…" → digits only. */
 export function normalizeCbu(input: string): string {
   return input.replace(/[\s-]/g, "");
 }
 
-/** 22 dígitos con los dos verificadores correctos (banco/sucursal y cuenta). */
+/** 22 digits with both check digits correct (bank/branch and account). */
 export function isValidCbu(input: string): boolean {
   const cbu = normalizeCbu(input);
   if (!/^\d{22}$/.test(cbu)) return false;
@@ -39,7 +39,7 @@ export function isValidCbu(input: string): boolean {
   );
 }
 
-/** Alias bancario: 6 a 20 caracteres entre letras, números, punto y guion. */
+/** Bank alias: 6 to 20 characters among letters, numbers, dot and dash. */
 export function isValidAlias(input: string): boolean {
   return /^[A-Za-z0-9.-]{6,20}$/.test(input);
 }
@@ -57,7 +57,7 @@ export type TransferSettingsValues = {
 export type TransferSettingsInput = {
   bankName: string;
   holder: string;
-  /** Sin guiones. */
+  /** Without dashes. */
   cuit: string;
   cbu: string | null;
   alias: string | null;
@@ -74,7 +74,7 @@ function read(formData: FormData, key: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-/** Los datos de cobro: banco, titular, CUIT y al menos CBU o alias. */
+/** The payment details: bank, holder, CUIT and at least a CBU or alias. */
 export function validateTransferSettingsForm(
   formData: FormData,
   t: Messages,
@@ -130,7 +130,7 @@ export function validateTransferSettingsForm(
   };
 }
 
-/** La transferencia solo se ofrece con datos de cobro cargados (con CBU o alias). */
+/** Transfer is only offered with payment details loaded (with CBU or alias). */
 export function transferAvailable(
   settings: { cbu: string | null; alias: string | null } | null,
 ): boolean {
@@ -140,9 +140,9 @@ export function transferAvailable(
 }
 
 /**
- * Un cliente puede subir un comprobante de un pedido que paga por
- * transferencia, no cancelado ni pagado del todo, mientras no haya otro
- * esperando revisión (el admin revisa de a uno).
+ * A customer can upload a receipt for an order that pays by
+ * transfer, not canceled nor fully paid, as long as there is no other one
+ * awaiting review (the admin reviews one at a time).
  */
 export function canUploadProof(
   sale: {
@@ -160,7 +160,7 @@ export function canUploadProof(
   );
 }
 
-/** Motivo del rechazo: obligatorio y acotado. */
+/** Rejection reason: mandatory and bounded. */
 export function validateRejectReason(
   formData: FormData,
   t: { reasonRequired: string; reasonTooLong: string },

@@ -4,12 +4,12 @@ import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
-// Comprobantes de transferencia en disco: UPLOADS_DIR/transfers/<uuid>.webp o
-// .pdf. Como las firmas de los remitos NO son públicos: se sirven solo con
-// sesión (ver app/media/transfers) y entran en los backups del volumen.
+// Transfer receipts on disk: UPLOADS_DIR/transfers/<uuid>.webp or
+// .pdf. Like the delivery signatures they are NOT public: they are served only
+// with a session (see app/media/transfers) and are included in the volume backups.
 
 export const MAX_PROOF_BYTES = 5 * 1024 * 1024;
-// Lado mayor de la imagen: una captura de homebanking se lee bien con esto.
+// Longer side of the image: a home banking screenshot reads well with this.
 const MAX_SIDE = 2000;
 const ACCEPTED_FORMATS = new Set(["jpeg", "png", "webp", "heif"]);
 const MAX_INPUT_PIXELS = 50_000_000;
@@ -26,9 +26,9 @@ export type ProofResult =
   | { ok: false; error: "tooLarge" | "invalid" };
 
 /**
- * El tipo se lee del contenido, no del nombre ni del tipo que declara el
- * navegador. Un PDF se guarda tal cual; una imagen se endereza según EXIF,
- * se achica y se guarda como WebP sin metadatos.
+ * The type is read from the content, not from the name nor the type the
+ * browser declares. A PDF is saved as is; an image is rotated according to EXIF,
+ * shrunk and saved as WebP without metadata.
  */
 export async function processProof(file: File): Promise<ProofResult> {
   if (file.size > MAX_PROOF_BYTES) return { ok: false, error: "tooLarge" };
@@ -60,7 +60,7 @@ export async function processProof(file: File): Promise<ProofResult> {
   }
 }
 
-/** Guarda con un nombre al azar (no adivinable) y lo devuelve. */
+/** Saves under a random (non-guessable) name and returns it. */
 export async function saveProofFile(
   data: Buffer,
   ext: "webp" | "pdf",
@@ -72,7 +72,7 @@ export async function saveProofFile(
   return fileName;
 }
 
-/** El archivo, o null si el nombre no es uno nuestro o no existe. */
+/** The file, or null if the name is not ours or it does not exist. */
 export async function readProofFile(fileName: string): Promise<Buffer | null> {
   if (!FILE_PATTERN.test(fileName)) return null;
   try {
@@ -82,13 +82,13 @@ export async function readProofFile(fileName: string): Promise<Buffer | null> {
   }
 }
 
-/** Borra un archivo que quedó sin registro (falló la transacción); sin error si no está. */
+/** Deletes a file that was left without a record (the transaction failed); no error if it is not there. */
 export async function removeProofFile(fileName: string): Promise<void> {
   if (!FILE_PATTERN.test(fileName)) return;
   try {
     await unlink(path.join(transfersDir(), fileName));
   } catch {
-    // Ya no estaba: nada que limpiar.
+    // It was already gone: nothing to clean up.
   }
 }
 

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { interpolate } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 
-// Puro: validación del formulario de depósitos (la usan las actions y los tests).
+// Pure: validation of the warehouse form (used by the actions and the tests).
 
 export const WAREHOUSE_LIMITS = {
   name: 60,
@@ -13,7 +13,7 @@ export const WAREHOUSE_LIMITS = {
 
 type Messages = Dictionary["warehouses"]["errors"];
 
-/** Lo que el usuario cargó, para volver a mostrarlo si hay errores. */
+/** What the user entered, to show it again if there are errors. */
 export type WarehouseValues = {
   name: string;
   address: string;
@@ -42,7 +42,7 @@ const intId = z.coerce.number().int().positive().max(2_147_483_647);
 function warehouseSchema(t: Messages) {
   const text = (max: number) =>
     z.string().trim().max(max, interpolate(t.tooLong, { max }));
-  // Vacío se guarda como null, no como "".
+  // Empty is stored as null, not as "".
   const optional = (max: number) =>
     text(max).transform((value) => value || null);
 
@@ -77,7 +77,7 @@ export function validateWarehouseForm(
     cityId: get("cityId"),
     phone: get("phone"),
     contactName: get("contactName"),
-    // Checkbox: solo viene en el form si está tildado.
+    // Checkbox: only comes in the form if it is ticked.
     isActive: formData.get("isActive") === "on",
   };
   const parsed = warehouseSchema(t).safeParse(values);

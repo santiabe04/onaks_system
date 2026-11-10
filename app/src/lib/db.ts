@@ -2,12 +2,12 @@ import "server-only";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 
-// En desarrollo, el hot reload de Next recrea los módulos: guardamos la
-// instancia en globalThis para no abrir un pool de conexiones nuevo cada vez.
+// In development, Next's hot reload recreates the modules: we keep the
+// instance on globalThis so as not to open a new connection pool each time.
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-// No validamos DATABASE_URL acá: `next build` importa este módulo sin DB.
-// El pool recién se conecta en la primera query, y ahí falla si falta.
+// We do not validate DATABASE_URL here: `next build` imports this module without a DB.
+// The pool only connects on the first query, and that is where it fails if it is missing.
 function createClient() {
   const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
   return new PrismaClient({ adapter });

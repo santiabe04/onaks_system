@@ -8,24 +8,24 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends openssl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-# ---------- deps: instala node_modules (incluye prisma generate por postinstall) ----------
+# ---------- deps: installs node_modules (includes prisma generate via postinstall) ----------
 FROM base AS deps
 COPY package.json package-lock.json prisma.config.ts ./
 COPY prisma ./prisma
 RUN npm ci
 
-# ---------- builder: compila Next ----------
+# ---------- builder: builds Next ----------
 FROM deps AS builder
 COPY . .
 RUN npm run build
 
-# ---------- migrator: aplica migraciones y seed, y termina ----------
+# ---------- migrator: applies migrations and the seed, then exits ----------
 FROM deps AS migrator
-# La demo del seed reusa cálculos puros de la app (totales, CUIT).
+# The seed demo reuses the app's pure calculations (totals, CUIT).
 COPY src/lib ./src/lib
 CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
 
-# ---------- runner: imagen final, solo el output standalone ----------
+# ---------- runner: final image, only the standalone output ----------
 FROM base AS runner
 ENV NODE_ENV=production \
     PORT=3000 \
@@ -34,8 +34,8 @@ ENV NODE_ENV=production \
 RUN groupadd --system --gid 1001 nodejs \
   && useradd --system --uid 1001 --gid nodejs nextjs
 
-# Imágenes de productos. En docker-compose es un volumen: al crearlo, Docker copia
-# este directorio vacío con su dueño, así el usuario nextjs puede escribir.
+# Product images. In docker-compose it is a volume: when it is created, Docker copies
+# this empty directory with its owner, so the nextjs user can write to it.
 ENV UPLOADS_DIR=/app/uploads
 RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
 

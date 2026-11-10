@@ -24,15 +24,15 @@ const CART_ITEM_INCLUDE = {
 export type CartItemRow = Prisma.CartItemGetPayload<{
   include: typeof CART_ITEM_INCLUDE;
 }> & {
-  /** Precio neto del cliente (su lista y su descuento). */
+  /** Customer's net price (their list and their discount). */
   price: string;
 };
 
 /**
- * El carrito de una persona con los precios de su empresa, separado en lo que
- * se puede pedir y lo que no: un producto pausado o borrado después de
- * agregarlo no entra en el pedido. Acepta una transacción para leerlo dentro
- * de la confirmación.
+ * A person's cart with their company's prices, split into what
+ * can be ordered and what cannot: a product paused or deleted after
+ * being added does not go into the order. Accepts a transaction to read it inside
+ * the confirmation.
  */
 export async function getCart(
   personId: string,
@@ -60,7 +60,7 @@ export async function getCart(
   return { items, available, unavailable };
 }
 
-/** Lo que necesitan `lineTotals` / `cartTotals`. */
+/** What `lineTotals` / `cartTotals` need. */
 export function toCartLine(item: CartItemRow): CartLine {
   return {
     price: item.price,
@@ -70,7 +70,7 @@ export function toCartLine(item: CartItemRow): CartLine {
   };
 }
 
-/** Bonificación neta de las líneas: precio base contra el del cliente. */
+/** Net discount of the lines: base price against the customer's. */
 export function cartDiscount(items: CartItemRow[]): string {
   return saleDiscount(
     items.map((item) => ({
@@ -81,7 +81,7 @@ export function cartDiscount(items: CartItemRow[]): string {
   );
 }
 
-/** Lo que necesita `cartFingerprint`. */
+/** What `cartFingerprint` needs. */
 export function toFingerprintLine(item: CartItemRow) {
   return {
     productId: item.productId,

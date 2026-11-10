@@ -3,7 +3,7 @@ import type { Dictionary } from "@/i18n/dictionaries/es";
 import type { formatters } from "@/i18n/format";
 import { toMilli } from "@/lib/quantity";
 
-/** Diferencia recibida (con signo, "2" / "-2.5"): de más, faltante u OK. */
+/** Received difference (with sign, "2" / "-2.5"): surplus, shortage or OK. */
 export function DifferenceLabel({
   diff,
   t,

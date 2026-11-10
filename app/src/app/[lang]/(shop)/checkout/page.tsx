@@ -30,7 +30,7 @@ export default async function CheckoutPage() {
   return (
     <main className="mx-auto w-full max-w-4xl p-4 sm:p-4 sm:p-8">
       <h1 className="text-2xl font-semibold">{t.checkout.title}</h1>
-      {/* El carrito y las direcciones salen de la DB en cada request. */}
+      {/* The cart and addresses come from the DB on every request. */}
       <Suspense
         fallback={<p className="mt-6 text-sm opacity-70">{t.common.loading}</p>}
       >
@@ -49,7 +49,7 @@ async function Checkout() {
     await Promise.all([
       getCart(user.personId, user.customerId),
       db.customerAddress.findMany({
-        // Las direcciones son de la empresa: cualquier persona usa cualquiera.
+        // Addresses belong to the company: any person uses any of them.
         where: { customerId: user.customerId ?? "", deletedAt: null },
         orderBy: { name: "asc" },
         select: {
@@ -60,12 +60,12 @@ async function Checkout() {
           city: { select: { name: true } },
         },
       }),
-      // Con datos de cobro cargados se ofrece pagar por transferencia.
+      // With payment details loaded, paying by transfer is offered.
       db.transferSettings.findUnique({ where: { id: 1 } }),
     ]);
-  // Sin nada para pedir no hay nada que confirmar.
+  // With nothing to order there is nothing to confirm.
   if (available.length === 0) redirect("/cart");
-  // Modificando un pedido: se confirma sobre ese, con su dirección elegida.
+  // Editing an order: it is confirmed over that one, with its chosen address.
   const editing = await db.sale.findFirst({
     where: { editingPersonId: user.personId },
     select: { number: true, addressId: true },
