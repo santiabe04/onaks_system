@@ -41,6 +41,11 @@ SESSION_SECRET=una-clave-de-al-menos-32-caracteres APP_LOCALE=es npm run test:e2
 
 La primera vez hay que bajar el navegador: `npx playwright install chromium`.
 
+El servidor que levanta Playwright (`playwright.config.ts`) lleva un SMTP a un puerto cerrado
+(`SMTP_HOST`/`SMTP_PORT`/`SMTP_FROM`): así los avisos por mail se encolan y fallan sin mandar nada, y
+`notices.spec.ts` los ve en el pedido. Si corrés contra una app ya levantada (`E2E_BASE_URL`), tiene que
+tener ese mismo SMTP.
+
 - Para correrlos contra una app ya levantada: `E2E_BASE_URL=http://localhost:3000 npm run test:e2e`.
 - Para verlos en acción: `npm run test:e2e -- --headed` o `--ui`.
 - Si falla, el reporte con capturas y la traza queda en `playwright-report/` (`npx playwright show-report`).

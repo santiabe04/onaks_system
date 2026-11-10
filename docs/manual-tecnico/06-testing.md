@@ -28,7 +28,7 @@ El hook de pre-commit ya corre `format:check` y `lint`, pero solo cuando el comm
 ## Tests unitarios (Vitest)
 
 Configuración: `vitest.config.ts`, entorno `node`, incluye `src/**/*.test.ts`, con el alias `@` →
-`src/`. Hay ~50 archivos y ~380 tests. Se corren con `npm test` (una pasada) o, mientras desarrollás,
+`src/`. Hay ~60 archivos y ~470 tests. Se corren con `npm test` (una pasada) o, mientras desarrollás,
 `npx vitest` (modo watch) o `npx vitest run src/lib/credit.test.ts` (un archivo).
 
 ### Qué se testea y qué no

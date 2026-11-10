@@ -29,7 +29,8 @@ comentarios y textos de UI en español.
 - Next.js 16 (App Router, `cacheComponents: true`, `output: "standalone"`), React 19, Tailwind 4
 - Prisma 7 (generator `prisma-client`, adaptador `@prisma/adapter-pg`) + PostgreSQL 18 (`postgres:18-alpine`)
 - Auth propia: `bcryptjs` para hashes + `jose` para la sesión firmada en cookie httpOnly (sin Auth.js)
-- Zod para validación, Vitest para tests, npm como gestor de paquetes, Node 22
+- Zod para validación, nodemailer para los avisos por mail (SMTP por env), Vitest para tests, npm como
+  gestor de paquetes, Node 22
 
 @app/AGENTS.md
 
@@ -389,7 +390,9 @@ docker compose up --build           # db + migrate + app
 
 ## Convenciones de Git y versiones
 
-- **Conventional Commits** obligatorio (commitlint + husky en `app/.husky`). Squash merge: el título del PR es el commit.
+- **Conventional Commits** obligatorio (commitlint + husky en `app/.husky`; las líneas del cuerpo del commit no
+  pasan de 100 caracteres). Squash merge: el título del PR es el commit. La descripción del PR usa el
+  template de `.github/pull_request_template.md` (Descripción y Tipo de cambio con la casilla tildada).
 - **release-please** versiona solo `app/` (paquete `app`, tags `vX.Y.Z` sin componente).
 - Etapas con numeración continua: ALPHA (`1.0.0-alpha`) → BETA (siguiente minor `-beta`) → PROD (siguiente major).
   En cada salto de etapa se pone `release-as` en `release-please-config.json` y se borra después de la release.

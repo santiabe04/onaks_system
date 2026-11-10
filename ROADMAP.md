@@ -3,8 +3,8 @@
 Sistema de pedidos B2B para la distribuidora. Un PR por subfase; antes de cada fase se acuerdan las
 definiciones (UX y funcionales).
 
-Estado al 09/11/2026: fases 0 a 16 resueltas (la 15 se descartó), en BETA (v1.49.0-beta). Siguen las
-funciones nuevas (fases 20 a 22); facturación electrónica y app del repartidor quedan al fondo.
+Estado al 10/11/2026: fases 0 a 22 resueltas (la 15 se descartó), en BETA (v1.52.0-beta). Quedan al
+fondo la facturación electrónica y la app del repartidor, que se retoman solo si se decide.
 
 | Fase | Contenido                                                        | Estado      |
 | ---- | ---------------------------------------------------------------- | ----------- |
@@ -28,9 +28,9 @@ funciones nuevas (fases 20 a 22); facturación electrónica y app del repartidor
 | 17   | Devoluciones y notas de crédito a clientes                       | ✅          |
 | 18   | Repetir pedido y favoritos                                       | ✅          |
 | 19   | Transferencia en el checkout                                     | ✅          |
-| 20   | Lotes y vencimientos                                             | 🟡          |
-| 21   | Toma de inventario desde el celular                              | ⏳          |
-| 22   | Avisos al cliente (mail y WhatsApp)                              | ⏳          |
+| 20   | Lotes y vencimientos                                             | ✅          |
+| 21   | Toma de inventario desde el celular                              | ✅          |
+| 22   | Avisos al cliente (mail y WhatsApp)                              | ✅          |
 | 23   | Facturación electrónica (ARCA)                                   | 💤 al fondo |
 | 24   | App instalable del repartidor (sin señal)                        | 💤 al fondo |
 
@@ -468,9 +468,9 @@ mientras está abierta, el admin puede pasar una cantidad de un lote a otro si e
 sugerencia (dos movimientos del pedido, el saldo no cambia). Avisos: listado de lotes en Stock
 (`/admin/stock/lots`, vencidos y por vencer a 30 días) y alerta en el dashboard.
 
-| PR   | Contenido                                                                                 | Estado         |
-| ---- | ----------------------------------------------------------------------------------------- | -------------- |
-| 20.1 | Lotes por depósito, vencimiento al recibir (varios lotes), salidas FEFO, picking y avisos | ✅ 1.50.0-beta |
+| PR   | Contenido                                                                                 | Estado          |
+| ---- | ----------------------------------------------------------------------------------------- | --------------- |
+| 20.1 | Lotes por depósito, vencimiento al recibir (varios lotes), salidas FEFO, picking y avisos | ✅ v1.50.0-beta |
 
 ## Fase 21 — Toma de inventario desde el celular ✅
 
@@ -484,11 +484,11 @@ primer escaneo, así lo vendido mientras se contaba no se pisa) se asienta como 
 revisión se puede quitar lo que no corresponda ajustar. Un producto con control de vencimiento que sobra
 entra sin lote y el que falta sale primero del lote que vence antes.
 
-| PR   | Contenido                                                                        | Estado         |
-| ---- | -------------------------------------------------------------------------------- | -------------- |
-| 21.1 | Conteo por depósito con escáner de cámara, revisión a ciegas y ajuste al aprobar | ✅ 1.51.0-beta |
+| PR   | Contenido                                                                        | Estado          |
+| ---- | -------------------------------------------------------------------------------- | --------------- |
+| 21.1 | Conteo por depósito con escáner de cámara, revisión a ciegas y ajuste al aprobar | ✅ v1.51.0-beta |
 
-## Fase 22 — Avisos al cliente 🟡
+## Fase 22 — Avisos al cliente ✅
 
 Definiciones: el **mail** sale por SMTP configurado en el `.env` de la instalación (`SMTP_HOST`,
 `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`; sin ellos la app anda igual y no avisa). Se avisa
@@ -500,9 +500,9 @@ hasta 3 veces y el admin lo ve y puede reintentarlo desde el pedido; un mail ca�
 de estado. En el detalle del pedido hay además un botón que abre **WhatsApp** (`wa.me`, sin API) con el
 mensaje armado según el estado actual para el teléfono de esa persona.
 
-| PR   | Contenido                                                                         | Estado      |
-| ---- | --------------------------------------------------------------------------------- | ----------- |
-| 22.1 | Mails de estado del pedido con cola y reintento, registro en el pedido y WhatsApp | 🟡 PR listo |
+| PR   | Contenido                                                                         | Estado          |
+| ---- | --------------------------------------------------------------------------------- | --------------- |
+| 22.1 | Mails de estado del pedido con cola y reintento, registro en el pedido y WhatsApp | ✅ v1.52.0-beta |
 
 ## Al fondo 💤
 
@@ -515,6 +515,6 @@ mensaje armado según el estado actual para el teléfono de esa persona.
 ## Convenciones de trabajo
 
 - Antes de cada fase se acuerdan las definiciones.
-- Commit, push y PR los hace Santiago; se entrega el título (Conventional Commits) y una descripción
-  corta del PR.
+- Commit, push y PR se hacen cuando Santiago lo pide. El título del PR va en Conventional Commits y la
+  descripción sigue el template del repo (`.github/pull_request_template.md`).
 - Cada PR se prueba con typecheck, lint, tests, build y una pasada en el navegador.

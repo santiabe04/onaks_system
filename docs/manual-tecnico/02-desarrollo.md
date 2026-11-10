@@ -27,17 +27,18 @@ falta, la app falla al primer request que mire la sesión (a propósito: no desl
 
 Next y Prisma leen `app/.env` (Prisma vía `dotenv` en `prisma.config.ts`).
 
-| Variable                                 | Para qué                                                                     |
-| ---------------------------------------- | ---------------------------------------------------------------------------- |
-| `DATABASE_URL`                           | Conexión a Postgres. En Docker la arma el compose con las `POSTGRES_*`.      |
-| `SESSION_SECRET`                         | Firma de la cookie de sesión (≥ 32 caracteres).                              |
-| `APP_LOCALE`                             | `es` (default) o `en`. Se lee en runtime.                                    |
-| `UPLOADS_DIR`                            | Carpeta de imágenes de productos y firmas/fotos de remitos (`uploads`).      |
-| `SEED_ADMIN_MAIL`, `SEED_ADMIN_PASSWORD` | Primer admin que crea el seed (con cambio de contraseña obligatorio).        |
-| `SEED_DEMO`                              | `true` carga la demo (solo en una base sin productos y nunca en producción). |
-| `POSTGRES_USER/PASSWORD/DB/PORT`         | Para el contenedor de Postgres del compose.                                  |
-| `APP_PORT`                               | Puerto publicado de la app en el compose de desarrollo.                      |
-| `APP_VERSION`, `DOMAIN`, `TLS_MODE`, ... | Solo producción: ver el [capítulo 3](03-produccion.md).                      |
+| Variable                                                                           | Para qué                                                                                                    |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                                                     | Conexión a Postgres. En Docker la arma el compose con las `POSTGRES_*`.                                     |
+| `SESSION_SECRET`                                                                   | Firma de la cookie de sesión (≥ 32 caracteres).                                                             |
+| `APP_LOCALE`                                                                       | `es` (default) o `en`. Se lee en runtime.                                                                   |
+| `UPLOADS_DIR`                                                                      | Carpeta de imágenes de productos y firmas/fotos de remitos (`uploads`).                                     |
+| `SMTP_HOST`, `SMTP_FROM`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURE` | Opcionales: el servidor de mail para los avisos al cliente. Sin `SMTP_HOST` y `SMTP_FROM` no se manda nada. |
+| `SEED_ADMIN_MAIL`, `SEED_ADMIN_PASSWORD`                                           | Primer admin que crea el seed (con cambio de contraseña obligatorio).                                       |
+| `SEED_DEMO`                                                                        | `true` carga la demo (solo en una base sin productos y nunca en producción).                                |
+| `POSTGRES_USER/PASSWORD/DB/PORT`                                                   | Para el contenedor de Postgres del compose.                                                                 |
+| `APP_PORT`                                                                         | Puerto publicado de la app en el compose de desarrollo.                                                     |
+| `APP_VERSION`, `DOMAIN`, `TLS_MODE`, ...                                           | Solo producción: ver el [capítulo 3](03-produccion.md).                                                     |
 
 `lib/db.ts` **no** valida `DATABASE_URL` al importarse, a propósito: así `next build` y
 `prisma generate` andan sin base de datos.
