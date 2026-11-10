@@ -3,7 +3,7 @@
 # archivos aparecen modificados apenas los formatea Prettier.
 * text=auto eol=lf
 
-# Binarios explícitos, por las dudas de que la autodetección falle.
+# Explicit binaries, in case autodetection fails.
 *.ico binary
 *.png binary
 *.jpg binary

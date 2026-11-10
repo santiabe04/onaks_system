@@ -38,12 +38,13 @@ textos de UI en español.
 
 - `app/`: **todo el código** (Next, Prisma, Dockerfile, tooling, husky). Los comandos de npm se corren acá.
 - Raíz: solo docs y configuración no funcional (`.github/`, `release-please-*.json`, README, `docs/`).
-  El manual técnico (para quien programa) está en `docs/manual-tecnico/` (7 capítulos): si cambia algo de lo
+  El manual técnico (para quien programa) está en `docs/es/manual-tecnico/` (7 capítulos; versión en inglés en `docs/en/technical-manual/`, con la misma
+  estructura y los capítulos con nombre traducido: `01-architecture`, ...): si cambia algo de lo
   que explica, actualizarlo en el mismo PR.
 - Producción: `app/docker-compose.prod.yml` se suma al compose base (imágenes de GHCR por `APP_VERSION`,
   sin puertos de base ni app publicados, Caddy y backups). Caddy en `app/deploy/caddy/` (un Caddyfile por
   `TLS_MODE`: `auto`, `custom`, `proxy`, más `app.caddy` común); backups diarios con
-  `app/deploy/backup/backup.sh` (`pg_dump` + `uploads`, retención). Guía completa en `docs/instalacion.md`.
+  `app/deploy/backup/backup.sh` (`pg_dump` + `uploads`, retención). Guía completa en `docs/es/instalacion.md`.
 - `uploads/`, `certs/` y `backups/` nunca van a la imagen (`.dockerignore` y `outputFileTracingExcludes`:
   el tracing de `standalone` copiaba la carpeta local de uploads) ni al repo (`.gitignore`).
 - `app/src/generated/prisma`: cliente generado, no se versiona (lo crea el `postinstall`).

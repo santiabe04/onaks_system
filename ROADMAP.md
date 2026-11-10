@@ -344,7 +344,7 @@ fondo la facturación electrónica y la app del repartidor, que se retoman solo 
   `demo1234` y sin cambio obligatorio, para poder entrar directo y para los tests.
 - 11.4: `docker-compose.prod.yml` (se suma al compose base) usa las imágenes publicadas, no publica los
   puertos de la base ni de la app y suma Caddy (un Caddyfile por `TLS_MODE` en `app/deploy/caddy`) y el
-  servicio de backups (`app/deploy/backup/backup.sh`). Guía en `docs/instalacion.md`. De paso, la imagen
+  servicio de backups (`app/deploy/backup/backup.sh`). Guía en `docs/es/instalacion.md`. De paso, la imagen
   dejó de poder llevar la carpeta local `uploads` (firmas) cuando se compila a mano.
 - 11.5: Playwright (Chromium) en `app/e2e/` contra la app compilada y una base nueva con la demo: compra
   del cliente, picking + hoja de ruta + parada desde el celular con entrega parcial + cierre, compras

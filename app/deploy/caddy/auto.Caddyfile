@@ -1,6 +1,6 @@
-# TLS_MODE=auto (por defecto): Caddy saca el certificado solo (Let's Encrypt o
-# ZeroSSL) y lo renueva antes de que venza. Hace falta que DOMAIN apunte al
-# servidor y que los puertos 80 y 443 estén abiertos.
+# TLS_MODE=auto (default): Caddy gets the certificate by itself (Let's Encrypt or
+# ZeroSSL) and renews it before it expires. DOMAIN must point to the
+# server and ports 80 and 443 must be open.
 {
 	email {$ACME_EMAIL}
 }

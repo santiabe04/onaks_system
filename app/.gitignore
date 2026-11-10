@@ -24,10 +24,10 @@ src/generated/
 *.pem
 npm-debug.log*
 
-# imágenes subidas en desarrollo
+# images uploaded in development
 /uploads
 
-# Producción: certificados (TLS_MODE=custom) y backups del servidor.
+# Production: certificates (TLS_MODE=custom) and server backups.
 /certs
 /backups
 /backups-*

@@ -1,5 +1,7 @@
 # Manual técnico de Onaks System
 
+> English version: [`docs/en/technical-manual/`](../../en/technical-manual/README.md). Las dos versiones se mantienen al día juntas: cuando algo cambia, se actualizan ambas.
+
 Este manual es para quien va a programar sobre el sistema. Explica qué es, cómo está armado, cómo se
 levanta en desarrollo y en producción, cómo se prueba y cómo funciona cada parte por dentro. Al
 terminarlo tendrías que poder agregar una pantalla, un circuito o una tabla siguiendo las mismas reglas
@@ -30,9 +32,9 @@ los repartidores cargan las entregas desde el celular.
 
 - [`docs/instalacion.md`](../instalacion.md): guía operativa de instalación en un servidor (para quien
   instala, no para quien programa). El capítulo 3 la resume y explica lo que hay detrás.
-- [`app/e2e/README.md`](../../app/e2e/README.md): cómo correr y escribir los tests de punta a punta.
-- [`ROADMAP.md`](../../ROADMAP.md): fases del proyecto, qué está hecho y las definiciones de cada una.
-- [`CLAUDE.md`](../../CLAUDE.md): resumen denso del contexto del proyecto (lo usan los asistentes de
+- [`app/e2e/README.md`](../../../app/e2e/README.md): cómo correr y escribir los tests de punta a punta (en inglés: [`README.en.md`](../../../app/e2e/README.en.md)).
+- [`ROADMAP.md`](../../../ROADMAP.md): fases del proyecto, qué está hecho y las definiciones de cada una.
+- [`CLAUDE.md`](../../../CLAUDE.md): resumen denso del contexto del proyecto (lo usan los asistentes de
   código; también sirve como referencia rápida de nombres de archivos y funciones).
 
 ## Glosario rápido

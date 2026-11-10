@@ -25,7 +25,7 @@
 ```
 /                          raíz: solo documentación y configuración no funcional
 ├─ .github/workflows/      ci.yml (checks de los PR) y release.yml (versiones e imágenes)
-├─ docs/                   instalacion.md y este manual
+├─ docs/                   es/ y en/: guía de instalación y este manual
 ├─ release-please-*.json   configuración de versionado
 ├─ ROADMAP.md, CLAUDE.md
 └─ app/                    TODO el código: los comandos de npm se corren acá
@@ -275,3 +275,5 @@ React resetea un `<form action={...}>` después de cada action. Consecuencias:
   (una alícuota sin productos, una lista de precios sin clientes).
 - **Formato**: Prettier (con orden de clases de Tailwind) y ESLint; los corre el hook de pre-commit.
 - **Commits**: Conventional Commits (commitlint). Ver el [capítulo 3](03-produccion.md#versiones).
+- **Documentación**: se mantiene en dos idiomas, español en `docs/es/` e inglés en `docs/en/`, con la misma
+  estructura. Cuando cambia algo de un documento, se actualizan las dos versiones en el mismo PR.

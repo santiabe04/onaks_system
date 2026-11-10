@@ -1,5 +1,7 @@
 # Tests de punta a punta (Playwright)
 
+> English version: [`README.en.md`](README.en.md). Las dos versiones se mantienen al día juntas.
+
 Recorren la app como lo haría una persona, con Chromium, contra la app compilada y una base con la
 **demo del seed** (`SEED_DEMO=true`):
 
