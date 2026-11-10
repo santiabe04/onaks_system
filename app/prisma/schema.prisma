@@ -747,6 +747,7 @@ model Sale {
   transferProofs     TransferProof[]
   routeStops         RouteStop[]
   pickingItems       PickingListItem[]
+  notifications      OrderNotification[]
 
   @@index([userId], map: "idx_sales_user_id")
   @@index([addressId], map: "idx_sales_address_id")
@@ -1414,6 +1415,15 @@ enum StockCountState {
   CANCELED
 }
 
+/// Estado de un aviso por mail al cliente.
+enum NotificationStatus {
+  /// En cola (o falló y se va a reintentar).
+  PENDING
+  SENT
+  /// Se agotaron los intentos: el admin puede reintentar.
+  FAILED
+}
+
 enum PickingListState {
   /// Los pedidos están En preparación y se está sacando la mercadería.
   OPEN
@@ -1506,4 +1516,27 @@ model StockCountItem {
   @@id([stockCountId, productId])
   @@index([productId], map: "idx_stock_count_items_product_id")
   @@map("stock_count_items")
+}
+
+/// Aviso por mail al cliente de un cambio de estado de su pedido (cola + registro).
+model OrderNotification {
+  id        String             @id @default(cuid(2))
+  saleId    String             @map("sale_id")
+  /// Estado al que pasó el pedido; un aviso por pedido y estado.
+  event     SaleState
+  toMail    String             @map("to_mail")
+  subject   String             @db.VarChar(200)
+  body      String
+  status    NotificationStatus @default(PENDING)
+  attempts  Int                @default(0)
+  /// Cuándo se tomó para enviar (si quedó colgado, se vuelve a tomar).
+  claimedAt DateTime?          @map("claimed_at") @db.Timestamptz(3)
+  lastError String?            @map("last_error") @db.VarChar(300)
+  sentAt    DateTime?          @map("sent_at") @db.Timestamptz(3)
+  createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  sale      Sale               @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@unique([saleId, event])
+  @@index([status], map: "idx_order_notifications_status")
+  @@map("order_notifications")
 }

@@ -242,6 +242,20 @@ saldo. `/admin/stock/lots` lista los lotes con stock (vencidos y
 por vencer a 30 días, `expiryStatus`) y el dashboard avisa. Las fechas de lote son de calendario: se leen con
 `dayOf` y se muestran con `format.day` (con `format.date` se correría un día por el huso).
 
+**Avisos al cliente.** Cuando un pedido se confirma o pasa hacia adelante a En preparación, En reparto o
+Entregado, el cliente recibe un mail. `noticeFor` (`lib/order-notice`, puro) decide si el cambio se avisa;
+`enqueueOrderNotice` (`lib/order-notice-ledger`) inserta la fila de `order_notifications` dentro de la misma
+transacción que el cambio (si se deshace, el aviso tampoco queda; es única por pedido y estado, así volver
+atrás y avanzar de nuevo no repite) con el asunto y el cuerpo ya armados con el diccionario de la instalación.
+Después de responder, `after()` corre `flushOrderNotices`: toma hasta 20 avisos con `FOR UPDATE SKIP LOCKED`,
+cuenta el intento, manda por SMTP (`lib/mailer`, configurado por env; sin `SMTP_HOST` y `SMTP_FROM` no se
+encola nada) y marca `SENT`; si falla queda `PENDING` con el error hasta agotar `NOTICE_MAX_ATTEMPTS` y pasa a
+`FAILED`. Los que quedan en cola se vuelven a tomar en el próximo envío, y el admin puede reintentarlos a mano
+desde el detalle del pedido (`retryOrderNotice`). Ahí mismo, `OrderNotices` arma el botón de WhatsApp: un
+link `wa.me` con el mensaje del estado actual (`buildWhatsappText`) para el teléfono de la persona
+(`whatsappLink`), sin API. Para probar localmente sin un SMTP real, apuntar `SMTP_PORT` a un puerto cerrado
+(el aviso queda en cola con su error) o a un servidor SMTP de prueba.
+
 **Conteo de inventario.** `/admin/stock/counts` abre el conteo de un depósito (`stock_counts`, un solo
 `OPEN` por depósito: índice único parcial en la migración). Quien cuenta (`stock:count`) lo carga a ciegas
 desde el celular en `/admin/stock/counts/[number]`: `ScanForm` lee el código con la cámara

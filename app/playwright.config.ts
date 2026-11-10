@@ -32,5 +32,11 @@ export default defineConfig({
         url: `${baseURL}/api/health`,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
+        // SMTP a un puerto cerrado: los avisos por mail quedan en cola con su error.
+        env: {
+          SMTP_HOST: "127.0.0.1",
+          SMTP_PORT: "1",
+          SMTP_FROM: "pedidos@onaks.local",
+        },
       },
 });

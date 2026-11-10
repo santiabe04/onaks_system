@@ -229,6 +229,21 @@ comentarios y textos de UI en español.
 action>` después de cada action: los no controlados pierden lo tipeado con un error y un select
   controlado vuelve a su primera opción.
 
+## Avisos al cliente
+
+- Mail por SMTP (`lib/mailer`, nodemailer; env `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`,
+  `SMTP_PASSWORD`, `SMTP_FROM`): sin `SMTP_HOST` y `SMTP_FROM` no se encola nada. `applySaleStateChange` y las
+  dos altas de pedido (tienda y admin) llaman a `enqueueOrderNotice` (`lib/order-notice-ledger`) **dentro de
+  la transacción**: `noticeFor` (puro, `lib/order-notice`) decide si el cambio se avisa (solo hacia adelante,
+  a Pendiente al confirmar, En preparación, En reparto y Entregado) y la fila de `order_notifications` (única
+  por pedido y estado, con asunto y cuerpo ya armados en el idioma de la instalación) se inserta con
+  `skipDuplicates`; después `after()` corre `flushOrderNotices`, que toma un lote con `FOR UPDATE SKIP LOCKED`,
+  manda y marca `SENT`, o deja `PENDING` hasta `NOTICE_MAX_ATTEMPTS` y pasa a `FAILED`. Un mail caído nunca
+  frena un cambio de estado. Destinatario: `getOrderRecipient` (la persona del pedido si es de la empresa; si
+  lo cargó el admin, la más antigua con usuario activo). `OrderNotices` en el detalle del pedido lista los
+  avisos, permite reintentar (`retryOrderNotice`) y arma el botón de WhatsApp (`whatsappLink`, `wa.me` con el
+  teléfono normalizado a 549 + 10 dígitos). Los e2e levantan la app con un SMTP a un puerto cerrado.
+
 ## Conteo de inventario
 
 - Conteos por depósito (`/admin/stock/counts`, `stock_counts` + `stock_count_items`; `lib/stock-count` puro y

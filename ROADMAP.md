@@ -472,7 +472,7 @@ sugerencia (dos movimientos del pedido, el saldo no cambia). Avisos: listado de 
 | ---- | ----------------------------------------------------------------------------------------- | -------------- |
 | 20.1 | Lotes por depósito, vencimiento al recibir (varios lotes), salidas FEFO, picking y avisos | ✅ 1.50.0-beta |
 
-## Fase 21 — Toma de inventario desde el celular 🟡
+## Fase 21 — Toma de inventario desde el celular ✅
 
 Definiciones: se cuenta **un depósito a la vez** (un solo conteo abierto por depósito), **a ciegas**: quien
 cuenta ve lo que lleva contado, no el saldo del sistema. El código de barras (o el SKU) se lee con la cámara
@@ -484,14 +484,25 @@ primer escaneo, así lo vendido mientras se contaba no se pisa) se asienta como 
 revisión se puede quitar lo que no corresponda ajustar. Un producto con control de vencimiento que sobra
 entra sin lote y el que falta sale primero del lote que vence antes.
 
-| PR   | Contenido                                                                        | Estado      |
-| ---- | -------------------------------------------------------------------------------- | ----------- |
-| 21.1 | Conteo por depósito con escáner de cámara, revisión a ciegas y ajuste al aprobar | 🟡 PR listo |
+| PR   | Contenido                                                                        | Estado         |
+| ---- | -------------------------------------------------------------------------------- | -------------- |
+| 21.1 | Conteo por depósito con escáner de cámara, revisión a ciegas y ajuste al aprobar | ✅ 1.51.0-beta |
 
-## Fase 22 — Avisos al cliente ⏳
+## Fase 22 — Avisos al cliente 🟡
 
-- Mail al confirmar, preparar, salir a reparto y entregar el pedido; botón que abre WhatsApp con el
-  mensaje armado (sin API).
+Definiciones: el **mail** sale por SMTP configurado en el `.env` de la instalación (`SMTP_HOST`,
+`SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`; sin ellos la app anda igual y no avisa). Se avisa
+al **confirmar, preparar, salir a reparto y entregar** (solo hacia adelante, un aviso por pedido y estado)
+a la persona que hizo el pedido; si lo cargó el admin, a la persona más antigua de la empresa con
+usuario. Cada aviso queda en una **cola con registro** (`order_notifications`: en cola, enviado o falló):
+se guarda en la misma transacción que el cambio de estado, se envía después de responder, se reintenta
+hasta 3 veces y el admin lo ve y puede reintentarlo desde el pedido; un mail caído nunca frena un cambio
+de estado. En el detalle del pedido hay además un botón que abre **WhatsApp** (`wa.me`, sin API) con el
+mensaje armado según el estado actual para el teléfono de esa persona.
+
+| PR   | Contenido                                                                         | Estado      |
+| ---- | --------------------------------------------------------------------------------- | ----------- |
+| 22.1 | Mails de estado del pedido con cola y reintento, registro en el pedido y WhatsApp | 🟡 PR listo |
 
 ## Al fondo 💤
 

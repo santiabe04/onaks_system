@@ -26,6 +26,7 @@ import { CreditNoteList } from "@/components/account/credit-note-list";
 import { VoidCreditNoteForm } from "@/components/account/credit-note-forms";
 import { buttonClass } from "@/components/ui/button";
 import { isReturnable } from "@/lib/customer-credit";
+import { OrderNotices } from "@/components/orders/order-notices";
 import { TransferProofList } from "@/components/orders/transfer-proof-list";
 import { CreditHoldControl } from "./credit-hold-control";
 import { CustomerEditControl } from "./customer-edit-control";
@@ -282,6 +283,14 @@ async function Order({ params }: { params: Promise<{ number: string }> }) {
           />
         </section>
       )}
+
+      <OrderNotices
+        sale={{ id: sale.id, number: sale.number, state: sale.state }}
+        canManage={canManage}
+        format={format}
+        t={t}
+        states={t.orders.states}
+      />
 
       {(orderNotes.length > 0 || canReturn) && (
         <section className="mt-8 rounded border border-current/20 p-4 print:hidden">

@@ -19,6 +19,7 @@ import { validateCheckoutForm, type CheckoutFormState } from "@/lib/checkout";
 import { latestCosts } from "@/lib/cost-queries";
 import { applyCreditCheck } from "@/lib/credit-ledger";
 import { db } from "@/lib/db";
+import { enqueueOrderNotice } from "@/lib/order-notice-ledger";
 import { hasUpload } from "@/lib/product-image";
 import { transferAvailable } from "@/lib/transfer";
 import {
@@ -204,6 +205,8 @@ export async function placeOrder(
         account,
         userId: user.id,
       });
+      // Confirmado: aviso por mail (si reemplaza uno ya avisado, no se repite).
+      await enqueueOrderNotice(tx, sale, "PENDING");
       return sale.number;
     });
   } catch (error) {

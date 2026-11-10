@@ -1599,6 +1599,51 @@ export const es = {
       empty: "No se contó ningún producto",
     },
   },
+  notices: {
+    greeting: "Hola {name}:",
+    signature: "Saludos,\n{app}",
+    events: {
+      PENDING: {
+        subject: "Recibimos tu pedido #{number}",
+        body: "Recibimos tu pedido #{number} y lo estamos revisando. Te avisamos cuando empecemos a prepararlo.",
+      },
+      PREPARING: {
+        subject: "Estamos preparando tu pedido #{number}",
+        body: "Estamos preparando tu pedido #{number}.",
+      },
+      OUT_FOR_DELIVERY: {
+        subject: "Tu pedido #{number} salió a reparto",
+        body: "Tu pedido #{number} salió a reparto: pronto lo vas a recibir.",
+      },
+      DELIVERED: {
+        subject: "Entregamos tu pedido #{number}",
+        body: "Entregamos tu pedido #{number}. ¡Gracias por tu compra!",
+      },
+    },
+  },
+  orderNotices: {
+    title: "Avisos al cliente",
+    none: "Todavía no se le avisó nada de este pedido.",
+    noMail: "Esta instalación no tiene el envío de mails configurado (SMTP).",
+    columns: {
+      event: "Aviso",
+      to: "Para",
+      status: "Estado",
+      detail: "Detalle",
+    },
+    statuses: {
+      PENDING: "En cola",
+      SENT: "Enviado",
+      FAILED: "Falló",
+    },
+    retry: "Reintentar",
+    retrying: "Reintentando…",
+    whatsapp: "Avisar por WhatsApp",
+    whatsappHint:
+      "Abre WhatsApp con el mensaje armado para {name}; lo mandás vos.",
+    noPhone: "La persona que pidió no tiene teléfono cargado para WhatsApp.",
+    errors: { notFound: "El aviso no existe o ya se envió" },
+  },
   lots: {
     title: "Lotes y vencimientos",
     hint: "Lo que queda de cada lote de los productos que controlan vencimiento. Las salidas toman primero el lote que vence antes.",

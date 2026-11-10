@@ -20,19 +20,20 @@ comandos se corren dentro de la carpeta `app/` del repositorio.
    cp .env.example .env
    ```
 
-   | Variable                          | Qué poner                                                                      |
-   | --------------------------------- | ------------------------------------------------------------------------------ |
-   | `SESSION_SECRET`                  | Una clave larga al azar: `openssl rand -base64 32`                             |
-   | `SEED_ADMIN_MAIL`                 | El mail del primer administrador                                               |
-   | `SEED_ADMIN_PASSWORD`             | Su contraseña inicial (se pide cambiarla al entrar)                            |
-   | `SEED_DEMO`                       | `false` (los datos de demo son solo para probar)                               |
-   | `POSTGRES_PASSWORD`               | Una contraseña larga al azar para la base                                      |
-   | `APP_VERSION`                     | La versión a instalar, por ejemplo `1.40.0-beta` (ver las releases)            |
-   | `DOMAIN`                          | El dominio, sin `https://`                                                     |
-   | `ACME_EMAIL`                      | Un mail para los avisos del certificado                                        |
-   | `TLS_MODE`                        | `auto`, `custom` o `proxy` (ver [Certificado HTTPS](#certificado-https))       |
-   | `APP_LOCALE`                      | `es` o `en`                                                                    |
-   | `BACKUP_KEEP_DAYS`, `BACKUP_HOUR` | Cuántos días se guardan los backups y a qué hora se hacen (por defecto 14 y 3) |
+   | Variable                          | Qué poner                                                                                                                    |
+   | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+   | `SESSION_SECRET`                  | Una clave larga al azar: `openssl rand -base64 32`                                                                           |
+   | `SEED_ADMIN_MAIL`                 | El mail del primer administrador                                                                                             |
+   | `SEED_ADMIN_PASSWORD`             | Su contraseña inicial (se pide cambiarla al entrar)                                                                          |
+   | `SEED_DEMO`                       | `false` (los datos de demo son solo para probar)                                                                             |
+   | `POSTGRES_PASSWORD`               | Una contraseña larga al azar para la base                                                                                    |
+   | `APP_VERSION`                     | La versión a instalar, por ejemplo `1.40.0-beta` (ver las releases)                                                          |
+   | `DOMAIN`                          | El dominio, sin `https://`                                                                                                   |
+   | `ACME_EMAIL`                      | Un mail para los avisos del certificado                                                                                      |
+   | `TLS_MODE`                        | `auto`, `custom` o `proxy` (ver [Certificado HTTPS](#certificado-https))                                                     |
+   | `APP_LOCALE`                      | `es` o `en`                                                                                                                  |
+   | `SMTP_HOST`, `SMTP_FROM`          | Opcionales: el servidor de mail y el remitente para avisar al cliente de su pedido (ver [Avisos por mail](#avisos-por-mail)) |
+   | `BACKUP_KEEP_DAYS`, `BACKUP_HOUR` | Cuántos días se guardan los backups y a qué hora se hacen (por defecto 14 y 3)                                               |
 
    La `DATABASE_URL` del `.env` no se usa en Docker (el compose arma la suya con `POSTGRES_*`).
 
@@ -199,3 +200,22 @@ docker compose exec backup ls -lh /backups
 - `SESSION_SECRET` y `POSTGRES_PASSWORD` largos y al azar; el `.env` y `certs/` no se comparten ni se
   versionan.
 - El firewall del servidor con solo 22 (SSH), 80 y 443 abiertos.
+
+## Avisos por mail
+
+La app avisa por mail al cliente cuando su pedido se confirma, se prepara, sale a reparto y se entrega. Para
+eso necesita un servidor SMTP (el del hosting, Gmail con una contraseña de aplicación, Brevo, etc.). En el
+`.env`:
+
+```bash
+SMTP_HOST=smtp.midistribuidora.com.ar
+SMTP_PORT=587
+SMTP_USER=pedidos@midistribuidora.com.ar
+SMTP_PASSWORD=la-contraseña
+SMTP_FROM="Mi Distribuidora <pedidos@midistribuidora.com.ar>"
+```
+
+El puerto 465 usa TLS directo; en los demás se negocia STARTTLS (se puede forzar con `SMTP_SECURE=true` o
+`false`). Sin `SMTP_HOST` y `SMTP_FROM` la app funciona igual y no manda mails. Reiniciá la app después de
+cambiarlos. En el detalle de cada pedido el admin ve qué se envió, si algo falló (con el motivo) y puede
+reintentarlo; también tiene un botón para avisar por WhatsApp.

@@ -13,6 +13,7 @@ import { customerPrice, saleDiscount } from "@/lib/customer-price";
 import { latestCosts } from "@/lib/cost-queries";
 import { applyCreditCheck } from "@/lib/credit-ledger";
 import { db } from "@/lib/db";
+import { enqueueOrderNotice } from "@/lib/order-notice-ledger";
 import { isCuid } from "@/lib/ids";
 import { getPricing } from "@/lib/pricing-queries";
 
@@ -143,6 +144,8 @@ export async function createOrderForCustomer(
         account,
         userId: user.id,
       });
+      // Confirmado: aviso por mail a la persona de la empresa que corresponda.
+      await enqueueOrderNotice(tx, sale, "PENDING");
       return sale.number;
     });
   } catch (error) {
