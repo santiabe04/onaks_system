@@ -1598,6 +1598,46 @@ export const en: Dictionary = {
       empty: "No product was counted",
     },
   },
+  notices: {
+    greeting: "Hi {name}:",
+    signature: "Regards,\n{app}",
+    events: {
+      PENDING: {
+        subject: "We received your order #{number}",
+        body: "We received your order #{number} and we are reviewing it. We will let you know when we start preparing it.",
+      },
+      PREPARING: {
+        subject: "We are preparing your order #{number}",
+        body: "We are preparing your order #{number}.",
+      },
+      OUT_FOR_DELIVERY: {
+        subject: "Your order #{number} is out for delivery",
+        body: "Your order #{number} is out for delivery: you will receive it soon.",
+      },
+      DELIVERED: {
+        subject: "We delivered your order #{number}",
+        body: "We delivered your order #{number}. Thank you for your purchase!",
+      },
+    },
+  },
+  orderNotices: {
+    title: "Customer notices",
+    none: "Nothing has been sent to the customer about this order yet.",
+    noMail: "This installation has no mail sending configured (SMTP).",
+    columns: { event: "Notice", to: "To", status: "State", detail: "Detail" },
+    statuses: {
+      PENDING: "Queued",
+      SENT: "Sent",
+      FAILED: "Failed",
+    },
+    retry: "Retry",
+    retrying: "Retrying…",
+    whatsapp: "Notify by WhatsApp",
+    whatsappHint:
+      "Opens WhatsApp with the message ready for {name}; you send it.",
+    noPhone: "The person who ordered has no phone number for WhatsApp.",
+    errors: { notFound: "The notice does not exist or was already sent" },
+  },
   lots: {
     title: "Lots and expiry dates",
     hint: "What is left of each lot of the products that track expiry. Outgoing stock takes the lot that expires first.",

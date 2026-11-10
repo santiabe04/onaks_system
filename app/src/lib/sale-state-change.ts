@@ -6,6 +6,8 @@ import { CHARGED_SALE_STATES } from "./account";
 import { lockAccount, recomputeAccount } from "./account-ledger";
 import { audit } from "./audit";
 import { fromMilli, toMilli } from "./quantity";
+import { noticeFor } from "./order-notice";
+import { enqueueOrderNotice } from "./order-notice-ledger";
 import { canTransition, pendingReturns, stockEffect } from "./sale-state";
 import { resolveWarehouses, type StateChangeInput } from "./sale-state-form";
 import { recordSaleMovements, StockLedgerError } from "./stock-ledger";
@@ -119,4 +121,7 @@ export async function applySaleStateChange(
   });
   // Entregar (o volver atrás) cambia la deuda y el estado de pago.
   await recomputeAccount(tx, customerId);
+  // Avisa al cliente por mail (hacia adelante, a los estados que se avisan).
+  const event = noticeFor(locked.state, input.to);
+  if (event) await enqueueOrderNotice(tx, sale, event);
 }
